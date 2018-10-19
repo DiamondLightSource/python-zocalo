@@ -1,0 +1,78 @@
+# Config file for automatic testing at travis-ci.org
+
+language: python
+
+matrix:
+  include:
+    - python: 3.7
+      dist: xenial
+      sudo: true
+    - python: 3.6
+    - python: 3.5
+    - python: 3.4
+    - python: 2.7
+    - python: pypy
+    - os: osx
+      language: generic
+      env: PYTHON=3.7.0 TOXENV=py37
+    - os: osx
+      language: generic
+      env: PYTHON=3.6.5 TOXENV=py36
+    - os: osx
+      language: generic
+      env: PYTHON=3.5.5 TOXENV=py35
+    - os: osx
+      language: generic
+      env: PYTHON=3.4.8 TOXENV=py34
+    - os: osx
+      language: generic
+      env: PYTHON=2.7.14 TOXENV=py27
+
+  allow_failures:
+    - env: OPTIONAL=1
+
+  fast_finish: true
+
+before_install: |
+  if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+    brew update
+    # Per the `pyenv homebrew recommendations <https://github.com/yyuu/pyenv/wiki#suggested-build-environment>`_.
+    brew install openssl readline
+    # See https://docs.travis-ci.com/user/osx-ci-environment/#A-note-on-upgrading-packages.
+    # I didn't do this above because it works and I'm lazy.
+    brew outdated pyenv || brew upgrade pyenv
+    # virtualenv doesn't work without pyenv knowledge. venv in Python 3.3
+    # doesn't provide Pip by default. So, use `pyenv-virtualenv <https://github.com/yyuu/pyenv-virtualenv/blob/master/README.md>`_.
+    brew install pyenv-virtualenv
+    pyenv install $PYTHON
+    # I would expect something like ``pyenv init; pyenv local $PYTHON`` or
+    # ``pyenv shell $PYTHON`` would work, but ``pyenv init`` doesn't seem to
+    # modify the Bash environment. ??? So, I hand-set the variables instead.
+    export PYENV_VERSION=$PYTHON
+    export PATH="/Users/travis/.pyenv/shims:${PATH}"
+    pyenv-virtualenv venv
+    source venv/bin/activate
+    # A manual check that the correct version of Python is running.
+    python --version
+  fi
+
+# Command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
+install: pip install -U tox-travis
+
+# Command to run tests, e.g. python setup.py test
+script: tox
+
+# Assuming you have installed the travis-ci CLI tool, after you
+# create the Github repo and add it to Travis, run the
+# following command to finish PyPI deployment setup:
+# $ travis encrypt --add deploy.password
+deploy:
+  provider: pypi
+  distributions: sdist bdist_wheel
+  user: mgerstel
+  password:
+    secure: qN3EYVlH22eLPZp5CSvc5Bz8bpP0l0wBZ8tcYMa6kBrqelYdIgqkuZESR/oCMu1YBA3AbcKJNwMuzuWf8RNGAFebD820OJThdP4czRMCv6LDbWABnv12lFHQLQSW1fMQVvb2arjnE/Ew7BFq70p0wOlIJJRwu6CoeOXW/sMeVYMivxdaHmgORq3cdMluFAy4amVb3Fc8i7mxAM0QGklO7x/UWJR/IEpUk2RlUbXL+HrzNoEjRtDeMxoCR84gKZTjVeUQ/iIQSuWwxlt7v1FNENj6ZEbE7+PS8/ylIVfPufbCr8tEEv8W58QcxQ5xPJC2g85ulsN5dM9/9FekhpyKa25B/4wKUNq5T8rKJ8WZ6hMiGffW8rmAfrGTmrBaojKBi0pb9VfXJ5KXUcunVXwQaAn2L80jLLHNsAo94ZxeoowD1eJox9Wh1NtNc+NiUv8K6spOIBsur7G5GY4JVA/yZ7w+DweEfQEp8/SEdVhK0vEYSYT4FnJHuAAmNgeedyAtoes4+a5bYYUM4qrz2OC78NWQWAnnsZhD4Y/TulkavWSexVCqfSePRoK3gcCs+rXwiM69XkMbL1Wgj1gNou+XMkntayH2ZDHkkyJi5F7ls4nqMH5RON9FfVygJMoHDRqh0p4RV25IzJ4FSYqKihHNBO31/URnU2ihpW7n8kM+mbM=
+  on:
+    tags: true
+    repo: DiamondLightSource/zocalo-python
+    python: 3.7
