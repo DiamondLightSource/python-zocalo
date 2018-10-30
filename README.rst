@@ -6,8 +6,8 @@ Zocalo
 .. image:: https://img.shields.io/pypi/v/zocalo.svg
         :target: https://pypi.python.org/pypi/zocalo
 
-.. image:: https://img.shields.io/travis/DiamondLightSource/zocalo.svg
-        :target: https://travis-ci.org/DiamondLightSource/zocalo
+.. image:: https://img.shields.io/travis/com/DiamondLightSource/zocalo.svg
+        :target: https://travis-ci.com/DiamondLightSource/zocalo
 
 .. image:: https://readthedocs.org/projects/zocalo/badge/?version=latest
         :target: https://zocalo.readthedocs.io/en/latest/?badge=latest
