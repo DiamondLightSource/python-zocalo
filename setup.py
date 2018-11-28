@@ -12,10 +12,8 @@ with open("README.rst") as readme_file:
 with open("HISTORY.rst") as history_file:
     history = history_file.read()
 
-requirements = []
-
-setup_requirements = ["graypy", "stomp.py", "workflows"]
-
+requirements = ["graypy", "stomp.py", "workflows"]
+setup_requirements = []
 test_requirements = ["mock", "pytest"]
 
 needs_pytest = {"pytest", "test", "ptr"}.intersection(sys.argv)
