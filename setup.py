@@ -14,13 +14,13 @@ with open("HISTORY.rst") as history_file:
 
 requirements = []
 
-setup_requirements = ["workflows"]
+setup_requirements = ["graypy", "stomp.py", "workflows"]
 
 test_requirements = ["pytest"]
 
-needs_pytest = {'pytest', 'test', 'ptr'}.intersection(sys.argv)
+needs_pytest = {"pytest", "test", "ptr"}.intersection(sys.argv)
 if needs_pytest:
-  setup_requirements.append("pytest-runner")
+    setup_requirements.append("pytest-runner")
 
 setup(
     author="Markus Gerstel",
