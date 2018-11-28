@@ -9,7 +9,7 @@ import logging
 
 __author__ = "Markus Gerstel"
 __email__ = "scientificsoftware@diamond.ac.uk"
-__version__ = '0.1.0'
+__version__ = "0.2.0"
 
 
 def enable_graylog(host="graylog2.diamond.ac.uk", port=12201):
