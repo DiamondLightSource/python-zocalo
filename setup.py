@@ -16,7 +16,7 @@ requirements = []
 
 setup_requirements = ["graypy", "stomp.py", "workflows"]
 
-test_requirements = ["pytest"]
+test_requirements = ["mock", "pytest"]
 
 needs_pytest = {"pytest", "test", "ptr"}.intersection(sys.argv)
 if needs_pytest:
