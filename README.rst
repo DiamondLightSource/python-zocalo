@@ -7,8 +7,8 @@ Zocalo
         :target: https://pypi.python.org/pypi/zocalo
         :alt: PyPI release
 
-.. image:: https://img.shields.io/travis/com/DiamondLightSource/zocalo.svg
-        :target: https://travis-ci.com/DiamondLightSource/zocalo
+.. image:: https://img.shields.io/travis/com/DiamondLightSource/zocalo-python.svg
+        :target: https://travis-ci.com/DiamondLightSource/zocalo-python
         :alt: Build status
 
 .. image:: https://readthedocs.org/projects/zocalo/badge/?version=latest
