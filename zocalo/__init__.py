@@ -11,6 +11,8 @@ __author__ = "Markus Gerstel"
 __email__ = "scientificsoftware@diamond.ac.uk"
 __version__ = "0.3.0"
 
+logging.getLogger("zocalo").addHandler(logging.NullHandler())
+
 
 def enable_graylog(host="graylog2.diamond.ac.uk", port=12201):
     """
