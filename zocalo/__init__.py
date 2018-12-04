@@ -9,7 +9,7 @@ import logging
 
 __author__ = "Markus Gerstel"
 __email__ = "scientificsoftware@diamond.ac.uk"
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 logging.getLogger("zocalo").addHandler(logging.NullHandler())
 
