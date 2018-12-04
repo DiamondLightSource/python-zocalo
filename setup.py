@@ -36,10 +36,12 @@ setup(
     ],
     description="Infrastructure components for automated data processing at Diamond Light Source",
     entry_points={
+        "console_scripts": ["zocalo.service = zocalo.service:start_service"],
+        "dlstbx.wrappers": ["dummy = zocalo.wrapper:DummyWrapper"],
+        "libtbx.dispatcher.script": ["zocalo.service = zocalo.service"],
         "workflows.services": [
             "Schlockmeister = zocalo.service.schlockmeister:Schlockmeister"
         ],
-        "dlstbx.wrappers": ["dummy = zocalo.wrapper:DummyWrapper"],
     },
     install_requires=requirements,
     license="BSD license",

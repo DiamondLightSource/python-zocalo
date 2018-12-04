@@ -2,6 +2,12 @@
 History
 =======
 
+0.5.0 (2018-12-04)
+------------------
+
+* Add zocalo.service command to start services
+
+
 0.4.0 (2018-12-04)
 ------------------
 
