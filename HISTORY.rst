@@ -2,6 +2,12 @@
 History
 =======
 
+0.5.1 (2018-12-04)
+------------------
+
+* Fix packaging bug which meant files were missing from the release
+
+
 0.5.0 (2018-12-04)
 ------------------
 
