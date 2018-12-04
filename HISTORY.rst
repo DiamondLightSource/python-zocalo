@@ -2,6 +2,12 @@
 History
 =======
 
+0.3.0 (2018-12-04)
+------------------
+
+* Add schlockmeister service and base wrapper class
+
+
 0.2.0 (2018-11-28)
 ------------------
 
