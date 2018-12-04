@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""The setup script."""
-
 import sys
 from setuptools import setup, find_packages
 
@@ -37,6 +35,11 @@ setup(
         "Programming Language :: Python :: 3.7",
     ],
     description="Infrastructure components for automated data processing at Diamond Light Source",
+    entry_points={
+        "workflows.services": [
+            "Schlockmeister = zocalo.service.schlockmeister:Schlockmeister"
+        ]
+    },
     install_requires=requirements,
     license="BSD license",
     long_description=readme + "\n\n" + history,
