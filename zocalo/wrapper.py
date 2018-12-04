@@ -43,7 +43,7 @@ class BaseWrapper(object):
 
 class DummyWrapper(BaseWrapper):
     def run(self):
-        logging.getLogger("dlstbx.zocalo.wrapper.DummyWrapper").info(
+        logging.getLogger("zocalo.wrapper.DummyWrapper").info(
             "This is a dummy wrapper that simply waits for a minute."
         )
         import time
