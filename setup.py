@@ -38,7 +38,8 @@ setup(
     entry_points={
         "workflows.services": [
             "Schlockmeister = zocalo.service.schlockmeister:Schlockmeister"
-        ]
+        ],
+        "dlstbx.wrappers": ["dummy = zocalo.wrapper:DummyWrapper"],
     },
     install_requires=requirements,
     license="BSD license",
