@@ -27,9 +27,11 @@ Zocalo
         :target: https://github.com/ambv/black
         :alt: Code style: black
 
+.. image:: https://img.shields.io/pypi/l/zocalo.svg
+        :alt: BSD license
+
 Infrastructure components for automated data processing at Diamond Light Source
 
-* Free software: BSD license
 * Documentation: https://zocalo.readthedocs.io.
 
 
