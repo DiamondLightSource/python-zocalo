@@ -64,7 +64,8 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
         if "--live" in sys.argv:
             self.use_live_infrastructure = True
             default_configuration = "/dls_sw/apps/zocalo/secrets/credentials-live.cfg"
-        StompTransport.load_configuration_file(default_configuration)
+        if os.path.exists(default_configuration):
+            StompTransport.load_configuration_file(default_configuration)
 
     def on_parser_preparation(self, parser):
         parser.add_option(
