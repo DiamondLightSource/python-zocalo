@@ -7,6 +7,10 @@ Zocalo
         :target: https://pypi.python.org/pypi/zocalo
         :alt: PyPI release
 
+.. image:: https://img.shields.io/pypi/l/zocalo.svg
+        :target: https://pypi.python.org/pypi/zocalo
+        :alt: BSD license
+
 .. image:: https://img.shields.io/travis/com/DiamondLightSource/zocalo-python.svg
         :target: https://travis-ci.com/DiamondLightSource/zocalo-python
         :alt: Build status
@@ -15,20 +19,17 @@ Zocalo
         :target: https://zocalo.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation status
 
-.. image:: https://pyup.io/repos/github/DiamondLightSource/zocalo-python/shield.svg
-        :target: https://pyup.io/repos/github/DiamondLightSource/zocalo-python/
-        :alt: Updates
-
 .. image:: https://img.shields.io/pypi/pyversions/zocalo.svg
         :target: https://pypi.org/project/zocalo/
         :alt: Supported Python versions
 
+.. image:: https://pyup.io/repos/github/DiamondLightSource/zocalo-python/shield.svg
+        :target: https://pyup.io/repos/github/DiamondLightSource/zocalo-python/
+        :alt: Updates
+
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
         :target: https://github.com/ambv/black
         :alt: Code style: black
-
-.. image:: https://img.shields.io/pypi/l/zocalo.svg
-        :alt: BSD license
 
 Infrastructure components for automated data processing at Diamond Light Source
 
