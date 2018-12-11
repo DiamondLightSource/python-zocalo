@@ -7,6 +7,10 @@ Zocalo
         :target: https://pypi.python.org/pypi/zocalo
         :alt: PyPI release
 
+.. image:: https://img.shields.io/conda/vn/conda-forge/zocalo.svg
+        :target: https://anaconda.org/conda-forge/zocalo
+        :alt: Conda version
+
 .. image:: https://img.shields.io/pypi/l/zocalo.svg
         :target: https://pypi.python.org/pypi/zocalo
         :alt: BSD license
