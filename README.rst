@@ -15,8 +15,8 @@ Zocalo
         :target: https://pypi.python.org/pypi/zocalo
         :alt: BSD license
 
-.. image:: https://img.shields.io/travis/com/DiamondLightSource/python-zocalo.svg
-        :target: https://travis-ci.com/DiamondLightSource/python-zocalo
+.. image:: https://img.shields.io/travis/com/DiamondLightSource/zocalo-python.svg
+        :target: https://travis-ci.com/DiamondLightSource/zocalo-python
         :alt: Build status
 
 .. image:: https://readthedocs.org/projects/zocalo/badge/?version=latest
