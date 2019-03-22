@@ -4,8 +4,10 @@ from __future__ import absolute_import, division, print_function
 
 """Top-level package for Zocalo."""
 
-import graypy
 import logging
+
+import graypy
+import graypy.handler
 
 __author__ = "Markus Gerstel"
 __email__ = "scientificsoftware@diamond.ac.uk"
@@ -46,7 +48,11 @@ def enable_graylog(host="graylog2.diamond.ac.uk", port=12201):
     graypy.handler.SYSLOG_LEVELS = PythonLevelToSyslogConverter()
 
     # Create and enable graylog handler
-    graylog = graypy.GELFHandler(host, port, level_names=True)
+    try:
+        handler = graypy.GELFUDPHandler
+    except AttributeError:
+        handler = graypy.GELFHandler  # graypy < 1.0
+    graylog = handler(host, port, level_names=True)
     logger = logging.getLogger()
     logger.addHandler(graylog)
 
