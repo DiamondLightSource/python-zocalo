@@ -14,18 +14,18 @@ import zocalo
 def test_that_graypy_is_correctly_initialised(graypy, logging):
     zocalo.enable_graylog(host=mock.sentinel.host, port=mock.sentinel.port)
     logging.getLogger.return_value.addHandler.assert_called_once_with(
-        graypy.GELFHandler.return_value
+        graypy.GELFUDPHandler.return_value
     )
-    graypy.GELFHandler.assert_called_once()
-    assert graypy.GELFHandler.call_args[0] == (mock.sentinel.host, mock.sentinel.port)
+    graypy.GELFUDPHandler.assert_called_once()
+    assert graypy.GELFUDPHandler.call_args[0] == (mock.sentinel.host, mock.sentinel.port)
 
 
 @mock.patch("zocalo.logging")
 @mock.patch("zocalo.graypy")
 def test_that_graypy_is_using_sensible_defaults(graypy, logging):
     zocalo.enable_graylog()
-    graypy.GELFHandler.assert_called_once()
-    call_args = graypy.GELFHandler.call_args[0]
+    graypy.GELFUDPHandler.assert_called_once()
+    call_args = graypy.GELFUDPHandler.call_args[0]
     assert len(call_args) == 2
     assert "diamond" in call_args[0]
     assert isinstance(call_args[1], int) and call_args[1] > 0
