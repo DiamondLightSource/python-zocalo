@@ -17,7 +17,10 @@ def test_that_graypy_is_correctly_initialised(graypy, logging):
         graypy.GELFUDPHandler.return_value
     )
     graypy.GELFUDPHandler.assert_called_once()
-    assert graypy.GELFUDPHandler.call_args[0] == (mock.sentinel.host, mock.sentinel.port)
+    assert graypy.GELFUDPHandler.call_args[0] == (
+        mock.sentinel.host,
+        mock.sentinel.port,
+    )
 
 
 @mock.patch("zocalo.logging")
