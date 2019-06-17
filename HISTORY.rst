@@ -5,8 +5,11 @@ History
 0.6.0 (2019-06-17)
 ------------------
 
-* Start moving dlstbx.wrap to zocalo.wrap
+* Start moving dlstbx scripts to zocalo package:
+  * zocalo.go
+  * zocalo.wrap
 * Entry point 'dlstbx.wrappers' has been renamed 'zocalo.wrappers'
+* Dropped Python 3.4 support
 
 
 0.5.4 (2019-03-22)

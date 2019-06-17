@@ -22,7 +22,7 @@ setup(
     author="Markus Gerstel",
     author_email="scientificsoftware@diamond.ac.uk",
     classifiers=[
-        "Development Status :: 2 - Pre-Alpha",
+        "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: BSD License",
         "Natural Language :: English",
@@ -36,10 +36,12 @@ setup(
     description="Infrastructure components for automated data processing at Diamond Light Source",
     entry_points={
         "console_scripts": [
+            "zocalo.go = zocalo.cli.go:run",
             "zocalo.service = zocalo.service:start_service",
             "zocalo.wrap = zocalo.cli.wrap:run",
         ],
         "libtbx.dispatcher.script": [
+            "zocalo.go = zocalo.go",
             "zocalo.service = zocalo.service",
             "zocalo.wrap = zocalo.wrap",
         ],
