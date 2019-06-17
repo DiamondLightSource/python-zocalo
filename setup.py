@@ -39,6 +39,7 @@ setup(
         "console_scripts": ["zocalo.service = zocalo.service:start_service"],
         "dlstbx.wrappers": ["dummy = zocalo.wrapper:DummyWrapper"],
         "libtbx.dispatcher.script": ["zocalo.service = zocalo.service"],
+        "libtbx.precommit": ["zocalo = zocalo"],
         "workflows.services": [
             "Schlockmeister = zocalo.service.schlockmeister:Schlockmeister"
         ],
