@@ -2,6 +2,13 @@
 History
 =======
 
+0.6.0 (2019-06-17)
+------------------
+
+* Start moving dlstbx.wrap to zocalo.wrap
+* Entry point 'dlstbx.wrappers' has been renamed 'zocalo.wrappers'
+
+
 0.5.4 (2019-03-22)
 ------------------
 
