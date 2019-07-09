@@ -2,6 +2,11 @@
 History
 =======
 
+0.6.2
+-----
+
+* Set live flag in service environment if service started with '--live'
+
 0.6.0 (2019-06-17)
 ------------------
 
