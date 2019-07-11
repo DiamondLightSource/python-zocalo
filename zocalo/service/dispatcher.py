@@ -26,10 +26,11 @@ class Dispatcher(CommonService):
     # Logger name
     _logger_name = "services.dispatcher"
 
-    # Store a copy of all dispatch messages in this location
-    def get_recipe_basepath(self):
-        # Return the basepath for your Dispatcher class
-        return "/dls_sw/apps/zocalo/live/recipes"
+    # Define a base path where your recipes are located (accessed with zocalo.go -r $recipename)
+    _recipe_basepath = None
+
+    # Define a logbook if you would like to do logging
+    _logbook = None
 
     def filter_messages(self, message, parameters):
         """
@@ -43,13 +44,14 @@ class Dispatcher(CommonService):
         """Subscribe to the processing_recipe queue. Received messages must be acknowledged."""
         # self._environment.get('live') can be used to distinguish live/test mode
         self.log.info("Dispatcher starting")
-        self.recipe_basepath = self.get_recipe_basepath()
 
         if self._environment.get("live"):
-            try:
-                os.makedirs(self._logbook, 0o775)
-            except OSError:
-                pass  # Ignore if exists
+            if self._logbook:
+                try:
+                    os.makedirs(self._logbook, 0o775)
+                except OSError:
+                    pass  # Ignore if exists
+            # Reset _logbook to none if it is defined but directory was not made correctly
             if not os.access(self._logbook, os.R_OK | os.W_OK | os.X_OK):
                 self.log.error("Logbook disabled: Can not write to location")
                 self._logbook = None
@@ -156,9 +158,7 @@ class Dispatcher(CommonService):
                 message, parameters = self.filter_messages(message, parameters)
             except Exception as e:
                 self.log.error(
-                    "Rejected message due to filter error: %s",
-                    str(e),
-                    exc_info=True,
+                    "Rejected message due to filter error: %s", str(e), exc_info=True
                 )
                 self._transport.nack(header)
                 return
@@ -186,7 +186,7 @@ class Dispatcher(CommonService):
                 for recipefile in message["recipes"]:
                     try:
                         with open(
-                            os.path.join(self.recipe_basepath, recipefile + ".json"),
+                            os.path.join(self._recipe_basepath, recipefile + ".json"),
                             "r",
                         ) as rcp:
                             recipes.append(workflows.recipe.Recipe(recipe=rcp.read()))

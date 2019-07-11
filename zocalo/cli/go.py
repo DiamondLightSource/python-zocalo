@@ -37,7 +37,8 @@ def run():
         metavar="RCP",
         action="append",
         default=[],
-        help="Name of a recipe to run. Can be used multiple times. Recipe names correspond to filenames (excluding .json) in /dls_sw/apps/zocalo/live/recipes",
+        help="Name of a recipe to run. Can be used multiple times. Recipe names correspond to filenames (excluding .json)."
+        " This directory is defined in the _recipe_basepath attribute of Dispatcher services.",
     )
     parser.add_option(
         "-a",
