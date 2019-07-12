@@ -18,7 +18,7 @@ class Dispatcher(CommonService):
      (say, a data collection ID), a processing recipe, a list of recipes,
      or pointers to recipes stored elsewhere, and mangles these into something
      that can be processed by downstream services.
-  """
+    """
 
     # Human readable service name
     _service_name = "Dispatcher"
@@ -29,16 +29,16 @@ class Dispatcher(CommonService):
     # Define a base path where your recipes are located (accessed with zocalo.go -r $recipename)
     _recipe_basepath = None
 
-    # Define a logbook if you would like to do logging
-    _logbook = None
+    # Put message filter functions in here and they will be run in order during filtering
+    _message_filters = []
 
-    def filter_messages(self, message, parameters):
-        """
-        Filter out the messages and parameters and return them as a tuple.
-        This can be implemented in child classes with different filters depending
-        on the site and specific implementation
-        """
-        return (message, parameters)
+    def before_filter(self):
+        """Actions to be taken before message filtering"""
+        pass
+
+    def before_dispatch(self):
+        """Actions to be taken just before dispatching message"""
+        pass
 
     def initializing(self):
         """Subscribe to the processing_recipe queue. Received messages must be acknowledged."""
@@ -141,8 +141,8 @@ class Dispatcher(CommonService):
         # Unless 'guid' is already defined then generate a unique recipe IDs for
         # this request, which is attached to all downstream log records and can
         # be used to determine unique file paths.
-        recipe_id = parameters.get("guid") or str(uuid.uuid4())
-        parameters["guid"] = recipe_id
+        recipe_id = parameters.get("uuid") or str(uuid.uuid4())
+        parameters["uuid"] = recipe_id
 
         # If we are fully logging requests then make a copy of the original message
         if self._logbook:
@@ -153,9 +153,10 @@ class Dispatcher(CommonService):
             self.log.debug("Received processing request:\n" + str(message))
             self.log.debug("Received processing parameters:\n" + str(parameters))
 
-            # Calls the defined filter
             try:
-                message, parameters = self.filter_messages(message, parameters)
+                # Calls the defined filters
+                for filter in self._message_filters:
+                    message, parameters = filter(message, parameters)
             except Exception as e:
                 self.log.error(
                     "Rejected message due to filter error: %s", str(e), exc_info=True
@@ -231,11 +232,10 @@ class Dispatcher(CommonService):
             self._transport.ack(header, transaction=txn)
 
             rw = workflows.recipe.RecipeWrapper(
-                recipe=full_recipe, transport=self._transport
+                environment={"ID": recipe_id},
+                recipe=full_recipe,
+                transport=self._transport,
             )
-            rw.environment = {
-                "ID": recipe_id
-            }  # FIXME: This should go into the constructor, but workflows can't do that yet
             rw.start(transaction=txn)
 
             # Write information to logbook if applicable

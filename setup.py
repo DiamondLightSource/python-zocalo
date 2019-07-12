@@ -47,8 +47,8 @@ setup(
         ],
         "libtbx.precommit": ["zocalo = zocalo"],
         "workflows.services": [
-            "Schlockmeister = zocalo.service.schlockmeister:Schlockmeister",
             "Dispatcher = zocalo.service.dispatcher:Dispatcher",
+            "Schlockmeister = zocalo.service.schlockmeister:Schlockmeister",
         ],
         "zocalo.wrappers": ["dummy = zocalo.wrapper:DummyWrapper"],
     },
