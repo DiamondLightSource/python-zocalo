@@ -63,20 +63,20 @@ class Dispatcher(CommonService):
             "processing_recipe", self.process, acknowledgement=True
         )
 
-    def record_to_logbook(self, guid, header, original_message, message, recipewrap):
+    def record_to_logbook(self, uuid, header, original_message, message, recipewrap):
         basepath = os.path.join(self._logbook, time.strftime("%Y-%m"))
-        clean_guid = re.sub("[^a-z0-9A-Z\-]+", "", guid, re.UNICODE)
-        if not clean_guid or len(clean_guid) < 3:
+        clean_uuid = re.sub("[^a-z0-9A-Z\-]+", "", uuid, re.UNICODE)
+        if not clean_uuid or len(clean_uuid) < 3:
             self.log.warning(
-                "Message with non-conforming guid %s not written to logbook", guid
+                "Message with non-conforming uuid %s not written to logbook", uuid
             )
             return
         try:
-            os.makedirs(os.path.join(basepath, clean_guid[:2]))
+            os.makedirs(os.path.join(basepath, clean_uuid[:2]))
         except OSError:
             pass  # Ignore if exists
         try:
-            log_entry = os.path.join(basepath, clean_guid[:2], clean_guid[2:])
+            log_entry = os.path.join(basepath, clean_uuid[:2], clean_uuid[2:])
             with open(log_entry, "w") as fh:
                 fh.write("Incoming message header:\n")
                 json.dump(
@@ -138,7 +138,7 @@ class Dispatcher(CommonService):
             self._transport.nack(header)
             return
 
-        # Unless 'guid' is already defined then generate a unique recipe IDs for
+        # Unless 'uuid' is already defined then generate a unique recipe IDs for
         # this request, which is attached to all downstream log records and can
         # be used to determine unique file paths.
         recipe_id = parameters.get("uuid") or str(uuid.uuid4())
