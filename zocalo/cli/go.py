@@ -38,7 +38,7 @@ def run():
         action="append",
         default=[],
         help="Name of a recipe to run. Can be used multiple times. Recipe names correspond to filenames (excluding .json)."
-        " This directory is defined in the _recipe_basepath attribute of Dispatcher services.",
+        " Defined by the Dispatcher service which processes this request.",
     )
     parser.add_option(
         "-a",
@@ -189,7 +189,8 @@ def run():
         with open(options.recipefile, "r") as fh:
             custom_recipe = workflows.recipe.Recipe(json.load(fh))
         custom_recipe.validate()
-        message["custom_recipe"] = custom_recipe.recipe
+        # Store as a list so can be easily processed by Dispatcher service
+        message["raw_recipes"] = [custom_recipe.recipe]
 
     if options.nodcid:
         if options.recipe:
@@ -225,7 +226,7 @@ def run():
     if options.recipefile:
         print("Running recipe from file", options.recipefile)
 
-    if not message["recipes"] and not message.get("custom_recipe"):
+    if not message["recipes"] and not message.get("raw_recipes"):
         sys.exit("No recipes specified.")
     print("for data collection", dcid)
     message["parameters"]["ispyb_dcid"] = dcid

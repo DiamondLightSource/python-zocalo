@@ -4,8 +4,6 @@ import copy
 import errno
 import json
 import os
-import re
-import time
 import timeit
 import uuid
 
@@ -26,19 +24,40 @@ class Dispatcher(CommonService):
     # Logger name
     _logger_name = "services.dispatcher"
 
-    # Define a base path where your recipes are located (accessed with zocalo.go -r $recipename)
-    _recipe_basepath = None
+    def recipe_lookup_filter(message, parameters):
+        """Takes defined recipes, reads them and appends to the raw_recipes list"""
+        # Define a base path where your recipes are located (accessed with zocalo.go -r $recipename)
+        recipe_basepath = "/dls_sw/apps/zocalo/live/recipes"
+        for recipefile in message["recipes"]:
+            try:
+                with open(
+                    os.path.join(recipe_basepath, recipefile + ".json"), "r"
+                ) as rcp:
+                    message["raw_recipes"].append(
+                        workflows.recipe.Recipe(recipe=rcp.read()).recipe
+                    )
+            except ValueError as e:
+                raise ValueError("Error reading recipe '%s': %s", recipefile, str(e))
+            except IOError as e:
+                if e.errno == errno.ENOENT:
+                    raise Exception(
+                        "Message references non-existing recipe '%s'", recipefile
+                    )
+                raise e
+
+        return message, parameters
 
     # Put message filter functions in here and they will be run in order during filtering
-    _message_filters = []
+    _message_filters = [recipe_lookup_filter]
 
-    def before_filter(self):
+    def before_filter(self, header, message, recipe_id):
         """Actions to be taken before message filtering"""
         pass
 
-    def before_dispatch(self):
+    def before_dispatch(self, header, message, recipe_id, filtered_message, rw):
         """Actions to be taken just before dispatching message"""
-        pass
+        print(header)
+        print(message)
 
     def initializing(self):
         """Subscribe to the processing_recipe queue. Received messages must be acknowledged."""
@@ -63,66 +82,6 @@ class Dispatcher(CommonService):
             "processing_recipe", self.process, acknowledgement=True
         )
 
-    def record_to_logbook(self, guid, header, original_message, message, recipewrap):
-        basepath = os.path.join(self._logbook, time.strftime("%Y-%m"))
-        clean_guid = re.sub("[^a-z0-9A-Z\-]+", "", guid, re.UNICODE)
-        if not clean_guid or len(clean_guid) < 3:
-            self.log.warning(
-                "Message with non-conforming guid %s not written to logbook", guid
-            )
-            return
-        try:
-            os.makedirs(os.path.join(basepath, clean_guid[:2]))
-        except OSError:
-            pass  # Ignore if exists
-        try:
-            log_entry = os.path.join(basepath, clean_guid[:2], clean_guid[2:])
-            with open(log_entry, "w") as fh:
-                fh.write("Incoming message header:\n")
-                json.dump(
-                    header,
-                    fh,
-                    sort_keys=True,
-                    skipkeys=True,
-                    default=str,
-                    indent=2,
-                    separators=(",", ": "),
-                )
-                fh.write("\n\nIncoming message body:\n")
-                json.dump(
-                    original_message,
-                    fh,
-                    sort_keys=True,
-                    skipkeys=True,
-                    default=str,
-                    indent=2,
-                    separators=(",", ": "),
-                )
-                fh.write("\n\nParsed message body:\n")
-                json.dump(
-                    message,
-                    fh,
-                    sort_keys=True,
-                    skipkeys=True,
-                    default=str,
-                    indent=2,
-                    separators=(",", ": "),
-                )
-                fh.write("\n\nRecipe object:\n")
-                json.dump(
-                    recipewrap.recipe.recipe,
-                    fh,
-                    sort_keys=True,
-                    skipkeys=True,
-                    default=str,
-                    indent=2,
-                    separators=(",", ": "),
-                )
-                fh.write("\n")
-            self.log.debug("Message saved in logbook at %s", log_entry)
-        except Exception:
-            self.log.warning("Could not write message to logbook", exc_info=True)
-
     def process(self, header, message):
         """Process an incoming processing request."""
         # Time execution
@@ -144,9 +103,7 @@ class Dispatcher(CommonService):
         recipe_id = parameters.get("uuid") or str(uuid.uuid4())
         parameters["uuid"] = recipe_id
 
-        # If we are fully logging requests then make a copy of the original message
-        if self._logbook:
-            original_message = copy.deepcopy(message)
+        self.before_filter(header, message, recipe_id)
 
         # From here on add the global ID to all log messages
         with self.extend_log("recipe_ID", recipe_id):
@@ -154,27 +111,35 @@ class Dispatcher(CommonService):
             self.log.debug("Received processing parameters:\n" + str(parameters))
 
             try:
+                # Set up new variables to filter on
+                filtered_message = copy.deepcopy(message)
+                filtered_parameters = copy.deepcopy(parameters)
                 # Calls the defined filters
                 for filter in self._message_filters:
-                    message, parameters = filter(message, parameters)
+                    try:
+                        filtered_message, filtered_parameters = filter(
+                            filtered_message, filtered_parameters
+                        )
+                    except Exception as e:
+                        self._transport.nack(header)
+                        self.log.exception(e)
+                        return
             except Exception as e:
                 self.log.error(
                     "Rejected message due to filter error: %s", str(e), exc_info=True
                 )
                 self._transport.nack(header)
                 return
-            self.log.debug("Mangled processing request:\n" + str(message))
-            self.log.debug("Mangled processing parameters:\n" + str(parameters))
+            self.log.debug("Mangled processing request:\n" + str(filtered_message))
+            self.log.debug(
+                "Mangled processing parameters:\n" + str(filtered_parameters)
+            )
 
-            # Process message
+            # Extract recipes
             recipes = []
-            if message.get("custom_recipe"):
+            for recipe in filtered_message.get("raw_recipes"):
                 try:
-                    recipes.append(
-                        workflows.recipe.Recipe(
-                            recipe=json.dumps(message["custom_recipe"])
-                        )
-                    )
+                    recipes.append(workflows.recipe.Recipe(recipe=json.dumps(recipe)))
                 except Exception as e:
                     self.log.error(
                         "Rejected message containing a custom recipe that caused parsing errors: %s",
@@ -183,29 +148,8 @@ class Dispatcher(CommonService):
                     )
                     self._transport.nack(header)
                     return
-            if message.get("recipes"):
-                for recipefile in message["recipes"]:
-                    try:
-                        with open(
-                            os.path.join(self._recipe_basepath, recipefile + ".json"),
-                            "r",
-                        ) as rcp:
-                            recipes.append(workflows.recipe.Recipe(recipe=rcp.read()))
-                    except ValueError as e:
-                        self.log.error(
-                            "Error reading recipe '%s': %s", recipefile, str(e)
-                        )
-                        self._transport.nack(header)
-                        return
-                    except IOError as e:
-                        if e.errno == errno.ENOENT:
-                            self.log.error(
-                                "Message references non-existing recipe '%s'",
-                                recipefile,
-                            )
-                            self._transport.nack(header)
-                            return
-                        raise
+
+            print(recipes)
 
             if not recipes:
                 self.log.error(
@@ -224,7 +168,7 @@ class Dispatcher(CommonService):
                     )
                     self._transport.nack(header)
                     return
-                recipe.apply_parameters(parameters)
+                recipe.apply_parameters(filtered_parameters)
                 full_recipe = full_recipe.merge(recipe)
 
             # Conditionally acknowledge receipt of the message
@@ -236,11 +180,10 @@ class Dispatcher(CommonService):
                 recipe=full_recipe,
                 transport=self._transport,
             )
-            rw.start(transaction=txn)
 
-            # Write information to logbook if applicable
-            if self._logbook:
-                self.record_to_logbook(recipe_id, header, original_message, message, rw)
+            self.before_dispatch(header, message, recipe_id, filtered_message, rw)
+
+            rw.start(transaction=txn)
 
             # Commit transaction
             self._transport.transaction_commit(txn)
