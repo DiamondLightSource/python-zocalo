@@ -97,7 +97,7 @@ class Dispatcher(CommonService):
             self._transport.nack(header)
             return
 
-        # Unless 'guid' is already defined then generate a unique recipe IDs for
+        # Unless 'uuid' is already defined then generate a unique recipe IDs for
         # this request, which is attached to all downstream log records and can
         # be used to determine unique file paths.
         recipe_id = parameters.get("uuid") or str(uuid.uuid4())
