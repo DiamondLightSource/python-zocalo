@@ -25,7 +25,7 @@ class Dispatcher(CommonService):
     _logger_name = "services.dispatcher"
 
     def recipe_lookup_filter(message, parameters):
-        """Takes defined recipes, reads them and appends to the raw_recipes list"""
+        """Takes defined recipes, reads them and appends to the custom_recipes list"""
         # Define a base path where your recipes are located (accessed with zocalo.go -r $recipename)
         recipe_basepath = "/dls_sw/apps/zocalo/live/recipes"
         for recipefile in message["recipes"]:
@@ -33,7 +33,7 @@ class Dispatcher(CommonService):
                 with open(
                     os.path.join(recipe_basepath, recipefile + ".json"), "r"
                 ) as rcp:
-                    message["raw_recipes"].append(
+                    message["custom_recipes"].append(
                         workflows.recipe.Recipe(recipe=rcp.read()).recipe
                     )
             except ValueError as e:
@@ -137,7 +137,7 @@ class Dispatcher(CommonService):
 
             # Extract recipes
             recipes = []
-            for recipe in filtered_message.get("raw_recipes"):
+            for recipe in filtered_message.get("custom_recipes"):
                 try:
                     recipes.append(workflows.recipe.Recipe(recipe=json.dumps(recipe)))
                 except Exception as e:

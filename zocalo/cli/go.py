@@ -98,7 +98,7 @@ def run():
         dest="verbose",
         action="store_true",
         default=False,
-        help="Show raw message before sending",
+        help="Show message before sending",
     )
 
     parser.add_option(
@@ -190,7 +190,7 @@ def run():
             custom_recipe = workflows.recipe.Recipe(json.load(fh))
         custom_recipe.validate()
         # Store as a list so can be easily processed by Dispatcher service
-        message["raw_recipes"] = [custom_recipe.recipe]
+        message["custom_recipes"] = [custom_recipe.recipe]
 
     if options.nodcid:
         if options.recipe:
@@ -226,7 +226,7 @@ def run():
     if options.recipefile:
         print("Running recipe from file", options.recipefile)
 
-    if not message["recipes"] and not message.get("raw_recipes"):
+    if not message["recipes"] and not message.get("custom_recipes"):
         sys.exit("No recipes specified.")
     print("for data collection", dcid)
     message["parameters"]["ispyb_dcid"] = dcid
