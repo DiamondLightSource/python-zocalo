@@ -93,21 +93,6 @@ class Dispatcher(CommonService):
         """Subscribe to the processing_recipe queue. Received messages must be acknowledged."""
         # self._environment.get('live') can be used to distinguish live/test mode
         self.log.info("Dispatcher starting")
-
-        if self._environment.get("live"):
-            if self._logbook:
-                try:
-                    os.makedirs(self._logbook, 0o775)
-                except OSError:
-                    pass  # Ignore if exists
-            # Reset _logbook to none if it is defined but directory was not made correctly
-            if not os.access(self._logbook, os.R_OK | os.W_OK | os.X_OK):
-                self.log.error("Logbook disabled: Can not write to location")
-                self._logbook = None
-        else:
-            self.log.info("Logbook disabled: Not running in live mode")
-            self._logbook = None
-
         self._transport.subscribe(
             "processing_recipe", self.process, acknowledgement=True
         )
