@@ -37,8 +37,8 @@ def run():
         metavar="RCP",
         action="append",
         default=[],
-        help="Name of a recipe to run. Can be used multiple times. Recipe names correspond to filenames (excluding .json)."
-        " Defined by the Dispatcher service which processes this request.",
+        help="Name of a recipe to run. Can be used multiple times. "
+        + "Names correspond to recipes stored in a site-wide central repository",
     )
     parser.add_option(
         "-a",
@@ -98,7 +98,7 @@ def run():
         dest="verbose",
         action="store_true",
         default=False,
-        help="Show message before sending",
+        help="Show raw message before sending",
     )
 
     parser.add_option(
@@ -189,8 +189,7 @@ def run():
         with open(options.recipefile, "r") as fh:
             custom_recipe = workflows.recipe.Recipe(json.load(fh))
         custom_recipe.validate()
-        # Store as a list so can be easily processed by Dispatcher service
-        message["custom_recipes"] = [custom_recipe.recipe]
+        message["custom_recipe"] = custom_recipe.recipe
 
     if options.nodcid:
         if options.recipe:
@@ -226,7 +225,7 @@ def run():
     if options.recipefile:
         print("Running recipe from file", options.recipefile)
 
-    if not message["recipes"] and not message.get("custom_recipes"):
+    if not message["recipes"] and not message.get("custom_recipe"):
         sys.exit("No recipes specified.")
     print("for data collection", dcid)
     message["parameters"]["ispyb_dcid"] = dcid
