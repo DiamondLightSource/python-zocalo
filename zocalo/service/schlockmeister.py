@@ -5,6 +5,9 @@ import uuid
 
 from workflows.services.common_service import CommonService
 
+TRACE_LOGLEVEL = 5
+# a log level below debug if anyone is interested in the really-low-level spam
+
 
 class Schlockmeister(CommonService):
     """
@@ -132,7 +135,9 @@ class Schlockmeister(CommonService):
                 )
             self.known_consumers[consumer_triple] = destination
 
-            self.log.debug("Seen new subscriber %s to %s", subscriber, destination)
+            self.log.log(
+                TRACE_LOGLEVEL, "Seen new subscriber %s to %s", subscriber, destination
+            )
             if destination not in self.known_queues:
                 self.known_queues[destination] = {"subscribers": collections.Counter()}
             self.known_queues[destination]["subscribers"].update({subscriber: 1})
@@ -157,7 +162,9 @@ class Schlockmeister(CommonService):
 
             if destination not in self.known_queues:
                 self.log.error("Queue %s unknown for removal", destination)
-            self.log.debug("Seen subscriber %s leaving %s", subscriber, destination)
+            self.log.log(
+                TRACE_LOGLEVEL, "Seen subscriber %s leaving %s", subscriber, destination
+            )
             self.known_queues[destination]["subscribers"].update({subscriber: -1})
             if self.known_queues[destination]["subscribers"][subscriber] == 0:
                 del self.known_queues[destination]["subscribers"][subscriber]
