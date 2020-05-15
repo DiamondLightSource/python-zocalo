@@ -2,6 +2,11 @@
 History
 =======
 
+0.6.3 (2020-05-25)
+------------------
+
+* Remove stomp.py requirement - this is pulled in via workflows only
+
 0.6.2 (2019-07-16)
 ------------------
 
