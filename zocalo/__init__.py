@@ -11,7 +11,7 @@ import graypy.handler
 
 __author__ = "Markus Gerstel"
 __email__ = "scientificsoftware@diamond.ac.uk"
-__version__ = "0.6.2"
+__version__ = "0.6.3"
 
 logging.getLogger("zocalo").addHandler(logging.NullHandler())
 
