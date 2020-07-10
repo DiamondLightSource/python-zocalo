@@ -3,7 +3,6 @@
 #   Process a datacollection
 #
 
-from __future__ import absolute_import, division, print_function
 
 import getpass
 import json
@@ -159,7 +158,7 @@ def run():
             ValueError,
         ):
             raise
-        except Exception as e:
+        except Exception:
             if not allow_stomp_fallback:
                 raise
             print("\n\n")
@@ -185,7 +184,7 @@ def run():
         sys.exit("No recipes specified.")
 
     if options.recipefile:
-        with open(options.recipefile, "r") as fh:
+        with open(options.recipefile) as fh:
             custom_recipe = workflows.recipe.Recipe(json.load(fh))
         custom_recipe.validate()
         message["custom_recipe"] = custom_recipe.recipe

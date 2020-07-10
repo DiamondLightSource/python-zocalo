@@ -4,7 +4,6 @@
 # interfering with live data processing.
 # To run a live server you must specify '--live'
 
-from __future__ import absolute_import, division, print_function
 
 import logging
 import os

@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function
-
 import logging
 import threading
 
@@ -10,7 +6,7 @@ import workflows.util
 import zocalo
 
 
-class BaseWrapper(object):
+class BaseWrapper:
     def set_recipe_wrapper(self, recwrap):
         self.recwrap = recwrap
 
@@ -61,7 +57,7 @@ class DummyWrapper(BaseWrapper):
 
 class StatusNotifications(threading.Thread):
     def __init__(self, send_function, taskname):
-        super(StatusNotifications, self).__init__(name="zocalo status notification")
+        super().__init__(name="zocalo status notification")
         self.daemon = True
         self.send_status = send_function
         self._lock = threading.Condition(threading.Lock())

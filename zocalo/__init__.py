@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import absolute_import, division, print_function
-
 """Top-level package for Zocalo."""
 
 import logging
@@ -27,7 +23,7 @@ def enable_graylog(host="graylog2.diamond.ac.uk", port=12201):
 
     # Monkeypatch graypy to support graylog log levels:
     # Translate Python integer level numbers to syslog levels
-    class PythonLevelToSyslogConverter(object):
+    class PythonLevelToSyslogConverter:
         @staticmethod
         def get(level, _):
             if level < 20:

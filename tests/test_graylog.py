@@ -1,11 +1,7 @@
-# -*- coding: utf-8 -*-
-
 """Tests related to graylog functionality."""
 
-from __future__ import absolute_import, division, print_function
 
 import mock
-import pytest
 import zocalo
 
 

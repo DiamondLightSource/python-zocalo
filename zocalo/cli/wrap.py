@@ -3,7 +3,6 @@
 #   Wraps a command so that its status can be tracked in zocalo
 #
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import logging
@@ -131,7 +130,7 @@ def run():
 
     # If specified, read in a serialized recipewrapper
     if options.recipewrapper:
-        with open(options.recipewrapper, "r") as fh:
+        with open(options.recipewrapper) as fh:
             recwrap = workflows.recipe.wrapper.RecipeWrapper(
                 message=json.load(fh), transport=transport
             )
