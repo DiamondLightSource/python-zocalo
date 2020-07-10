@@ -4,19 +4,13 @@ language: python
 
 matrix:
   include:
+    - python: 3.8
     - python: 3.7
-      dist: xenial
-      sudo: true
     - python: 3.6
     - python: 3.5
-    - python: 2.7
-    - python: pypy
     - os: osx
       language: generic
-      env: PYTHON=3.7.2 TOXENV=py37
-    - os: osx
-      language: generic
-      env: PYTHON=2.7.16 TOXENV=py27
+      env: PYTHON=3.7.8 TOXENV=py37
 
   allow_failures:
     - env: OPTIONAL=1
@@ -65,4 +59,4 @@ deploy:
   on:
     tags: true
     repo: DiamondLightSource/python-zocalo
-    python: 3.7
+    python: 3.8
