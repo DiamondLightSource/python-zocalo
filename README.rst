@@ -27,9 +27,9 @@ Zocalo
         :target: https://pypi.org/project/zocalo/
         :alt: Supported Python versions
 
-.. image:: https://pyup.io/repos/github/DiamondLightSource/python-zocalo/shield.svg
-        :target: https://pyup.io/repos/github/DiamondLightSource/python-zocalo/
-        :alt: Updates
+.. image:: https://flat.badgen.net/dependabot/DiamondLightSource/python-zocalo?icon=dependabot
+        :target: https://github.com/DiamondLightSource/python-zocalo/pulls
+        :alt: Dependabot dependency updates
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
         :target: https://github.com/ambv/black
