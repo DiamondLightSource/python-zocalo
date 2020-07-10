@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import sys
 from setuptools import setup, find_packages
 
 with open("README.rst") as readme_file:
@@ -12,10 +11,6 @@ with open("HISTORY.rst") as history_file:
 requirements = ["graypy", "workflows"]
 setup_requirements = []
 test_requirements = ["mock", "pytest"]
-
-needs_pytest = {"pytest", "test", "ptr"}.intersection(sys.argv)
-if needs_pytest:
-    setup_requirements.append("pytest-runner")
 
 setup(
     author="Markus Gerstel",
@@ -56,6 +51,7 @@ setup(
     keywords="zocalo",
     name="zocalo",
     packages=find_packages(),
+    python_requires=">=3.5",
     setup_requires=setup_requirements,
     test_suite="tests",
     tests_require=test_requirements,
