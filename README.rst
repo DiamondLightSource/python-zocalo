@@ -11,8 +11,8 @@ Zocalo
         :target: https://anaconda.org/conda-forge/zocalo
         :alt: Conda version
 
-.. image:: https://img.shields.io/travis/com/DiamondLightSource/zocalo-python.svg
-        :target: https://travis-ci.com/DiamondLightSource/zocalo-python
+.. image:: https://img.shields.io/travis/com/DiamondLightSource/python-zocalo.svg
+        :target: https://travis-ci.com/DiamondLightSource/python-zocalo
         :alt: Build status
 
 .. image:: https://img.shields.io/lgtm/grade/python/g/DiamondLightSource/python-zocalo.svg?logo=lgtm&logoWidth=18
