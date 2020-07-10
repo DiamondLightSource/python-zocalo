@@ -11,13 +11,17 @@ Zocalo
         :target: https://anaconda.org/conda-forge/zocalo
         :alt: Conda version
 
-.. image:: https://img.shields.io/pypi/l/zocalo.svg
-        :target: https://pypi.python.org/pypi/zocalo
-        :alt: BSD license
-
 .. image:: https://img.shields.io/travis/com/DiamondLightSource/zocalo-python.svg
         :target: https://travis-ci.com/DiamondLightSource/zocalo-python
         :alt: Build status
+
+.. image:: https://img.shields.io/lgtm/grade/python/g/DiamondLightSource/python-zocalo.svg?logo=lgtm&logoWidth=18
+        :target: https://lgtm.com/projects/g/DiamondLightSource/python-zocalo/context:python
+        :alt: Language grade: Python
+
+.. image:: https://img.shields.io/lgtm/alerts/g/DiamondLightSource/python-zocalo.svg?logo=lgtm&logoWidth=18
+        :target: https://lgtm.com/projects/g/DiamondLightSource/python-zocalo/alerts/
+        :alt: Total alerts
 
 .. image:: https://readthedocs.org/projects/zocalo/badge/?version=latest
         :target: https://zocalo.readthedocs.io/en/latest/?badge=latest
@@ -34,6 +38,10 @@ Zocalo
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
         :target: https://github.com/ambv/black
         :alt: Code style: black
+
+.. image:: https://img.shields.io/pypi/l/zocalo.svg
+        :target: https://pypi.python.org/pypi/zocalo
+        :alt: BSD license
 
 Infrastructure components for automated data processing at Diamond Light Source
 
