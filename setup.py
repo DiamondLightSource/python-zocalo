@@ -42,6 +42,10 @@ setup(
         "workflows.services": [
             "Schlockmeister = zocalo.service.schlockmeister:Schlockmeister"
         ],
+        "zocalo.configuration.plugins": [
+            "stomp = zocalo.configuration.stomp",
+            "graylog = zocalo.configuration.graylog",
+        ],
         "zocalo.wrappers": ["dummy = zocalo.wrapper:DummyWrapper"],
     },
     install_requires=requirements,
