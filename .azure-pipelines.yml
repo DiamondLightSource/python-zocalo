@@ -114,11 +114,11 @@ stages:
           pathToPublish: dist/
           artifactName: python-release
 
-#      - task: TwineAuthenticate@1
-#        displayName: Set up credentials
-#        inputs:
-#          pythonUploadServiceConnection: pypi-zocalo
+      - task: TwineAuthenticate@1
+        displayName: Set up credentials
+        inputs:
+          pythonUploadServiceConnection: pypi-zocalo
 
-#      - bash: |
-#          python -m twine upload -r pypi-zocalo --config-file $(PYPIRC_PATH) dist/*.tar.gz dist/*.whl
-#        displayName: Publish package
+      - bash: |
+          python -m twine upload -r pypi-zocalo --config-file $(PYPIRC_PATH) dist/*.tar.gz dist/*.whl
+        displayName: Publish package
