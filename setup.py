@@ -8,7 +8,7 @@ with open("README.rst") as readme_file:
 with open("HISTORY.rst") as history_file:
     history = history_file.read()
 
-requirements = ["graypy", "workflows"]
+requirements = ["graypy", "setuptools", "workflows"]
 setup_requirements = []
 test_requirements = ["pytest"]
 
