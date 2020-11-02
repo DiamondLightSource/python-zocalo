@@ -171,7 +171,7 @@ def run():
     message = {"recipes": options.recipe, "parameters": {}}
     for kv in options.parameters:
         if "=" not in kv:
-            sys.exit("Invalid variable specification '{}'".format(kv))
+            sys.exit(f"Invalid variable specification '{kv}'")
         key, value = kv.split("=", 1)
         message["parameters"][key] = value
 

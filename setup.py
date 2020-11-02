@@ -10,7 +10,7 @@ with open("HISTORY.rst") as history_file:
 
 requirements = ["graypy", "workflows"]
 setup_requirements = []
-test_requirements = ["mock", "pytest"]
+test_requirements = ["pytest"]
 
 setup(
     author="Markus Gerstel",
@@ -21,7 +21,6 @@ setup(
         "License :: OSI Approved :: BSD License",
         "Natural Language :: English",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
@@ -52,7 +51,7 @@ setup(
     keywords="zocalo",
     name="zocalo",
     packages=find_packages(),
-    python_requires=">=3.5",
+    python_requires=">=3.6",
     setup_requires=setup_requirements,
     test_suite="tests",
     tests_require=test_requirements,

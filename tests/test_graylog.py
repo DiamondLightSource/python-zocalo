@@ -1,7 +1,7 @@
 """Tests related to graylog functionality."""
 
 
-import mock
+from unittest import mock
 import zocalo
 
 

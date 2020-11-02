@@ -2,6 +2,11 @@
 History
 =======
 
+0.7.0 (2020-11-02)
+------------------
+* Drop support for Python 3.5
+* Update language constructs for Python 3.6+
+
 0.6.4 (2020-11-02)
 ------------------
 * Add support for Python 3.9

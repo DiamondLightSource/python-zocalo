@@ -9,10 +9,9 @@
 
 
 import base64
+import configparser
 import json
-
-from six.moves import configparser
-from six.moves import urllib
+import urllib
 
 
 class JMXAPIPath:
