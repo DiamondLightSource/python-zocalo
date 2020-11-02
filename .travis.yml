@@ -8,55 +8,11 @@ matrix:
     - python: 3.7
     - python: 3.6
     - python: 3.5
-    - os: osx
-      language: generic
-      env: PYTHON=3.7.7 TOXENV=py37
-
-  allow_failures:
-    - env: OPTIONAL=1
 
   fast_finish: true
-
-before_install: |
-  if [ "$TRAVIS_OS_NAME" == "osx" ]; then
-    brew update
-    # Per the `pyenv homebrew recommendations <https://github.com/yyuu/pyenv/wiki#suggested-build-environment>`_.
-    brew install openssl readline
-    # See https://docs.travis-ci.com/user/osx-ci-environment/#A-note-on-upgrading-packages.
-    # I didn't do this above because it works and I'm lazy.
-    brew outdated pyenv || brew upgrade pyenv
-    # virtualenv doesn't work without pyenv knowledge. venv in Python 3.3
-    # doesn't provide Pip by default. So, use `pyenv-virtualenv <https://github.com/yyuu/pyenv-virtualenv/blob/master/README.md>`_.
-    brew install pyenv-virtualenv
-    pyenv install $PYTHON
-    # I would expect something like ``pyenv init; pyenv local $PYTHON`` or
-    # ``pyenv shell $PYTHON`` would work, but ``pyenv init`` doesn't seem to
-    # modify the Bash environment. ??? So, I hand-set the variables instead.
-    export PYENV_VERSION=$PYTHON
-    export PATH="/Users/travis/.pyenv/shims:${PATH}"
-    pyenv-virtualenv venv
-    source venv/bin/activate
-    # A manual check that the correct version of Python is running.
-    python --version
-  fi
 
 # Command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install: pip install -U tox-travis
 
 # Command to run tests, e.g. python setup.py test
 script: tox
-
-# Assuming you have installed the travis-ci CLI tool, after you
-# create the Github repo and add it to Travis, run the
-# following command to finish PyPI deployment setup:
-# $ travis encrypt --pro --add deploy.password
-deploy:
-  provider: pypi
-  distributions: sdist bdist_wheel
-  user: mgerstel
-  password:
-    secure: ZFHdDy9403ojPxyxOyZnY3W0zxeG5tS/ZP9F1+0pHqzTw5jZZeLPf6MMylJ7Dg7API/v3/ecfl+xKsrgjDkauol+Jwk+2J/vSnzrHlBN/SM9ZLAhAvFZengC/h4rQy2HZfxbAG2t4PLu7933HJYQSYq19pxMX7gcfxVkxBvygHkh0Z7h4Q40nmnjacw3sZxl8nGpTeJxwvPmbwMCSEkvgMnio8vm3TSTyLAHprcnuMl5Hp9XAkKWLLzSUdwMVt9hl8DoDtKMMJ/0mQODo6DPOtTADxgqY380kurOtYjTIIgCohxz8nirs85ao+BTQuPUczrXhWTyL/D7XE+kZ+p515R2q1pR8HyyKzNhHe2TGwDmT+Zl8DG9uBC+BfCg+jyYzRTN02hiX4ARLgGr9C/san81UjZ4ETkt20C3FFl3NJT88QJnaqZfrwooTkO1BS9J1i+/GjnyyS4jUsNjP9fhrgCVEYOAnBWoDA1Ml3sBg7DPzeIdhocrpID0cXjbt/Lp12ZJY+VhsnvcgkYypvLBmSkJugFNLfT3bnH66sudmytDAEbtNbV2m4zK0rpDhUwlGc1GweEiV1I8ALAWzh2cqd2E7+uPGmvE9SL5+m8vxHJGwDjYanqjBeO5h8c64ZlcdhtsFoKeoxNjK5v1WxVcu9HUifGN+v1C/XczG8PGbKQ=
-  on:
-    tags: true
-    repo: DiamondLightSource/python-zocalo
-    python: 3.8
