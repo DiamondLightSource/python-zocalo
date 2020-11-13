@@ -2,6 +2,10 @@
 History
 =======
 
+0.7.1 (2020-11-13)
+------------------
+* Add a --dry-run option to zocalo.go
+
 0.7.0 (2020-11-02)
 ------------------
 * Drop support for Python 3.5
