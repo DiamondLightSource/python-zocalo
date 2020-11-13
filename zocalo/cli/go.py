@@ -98,6 +98,13 @@ def run():
         default=False,
         help="Show raw message before sending",
     )
+    parser.add_option(
+        "--dry-run",
+        dest="dryrun",
+        action="store_true",
+        default=False,
+        help="Verify that everything is in place that the message could be sent, but don't actually send the message",
+    )
 
     parser.add_option(
         "--test",
@@ -133,6 +140,9 @@ def run():
         )
 
         fallback = os.path.join("/dls_sw/apps/zocalo/dropfiles", str(uuid.uuid4()))
+        if options.dryrun:
+            print("Not storing message in %s (running with --dry-run)" % fallback)
+            return
         with open(fallback, "w") as fh:
             fh.write(message_serialized)
         print("Message successfully stored in %s" % fallback)
@@ -146,6 +156,9 @@ def run():
             return write_message_to_dropfile(message, headers)
         try:
             stomp = StompTransport()
+            if options.dryrun:
+                print("Not sending message (running with --dry-run)")
+                return
             stomp.connect()
             stomp.send("processing_recipe", message, headers=headers)
         except (
