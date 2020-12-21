@@ -3,6 +3,7 @@
 #   Process a datacollection
 #
 
+from __future__ import absolute_import, division, print_function
 
 import getpass
 import json
@@ -97,14 +98,7 @@ def run():
         dest="verbose",
         action="store_true",
         default=False,
-        help="Show raw message before sending",
-    )
-    parser.add_option(
-        "--dry-run",
-        dest="dryrun",
-        action="store_true",
-        default=False,
-        help="Verify that everything is in place that the message could be sent, but don't actually send the message",
+        help="Show message before sending",
     )
 
     parser.add_option(
@@ -141,9 +135,6 @@ def run():
         )
 
         fallback = os.path.join("/dls_sw/apps/zocalo/dropfiles", str(uuid.uuid4()))
-        if options.dryrun:
-            print("Not storing message in %s (running with --dry-run)" % fallback)
-            return
         with open(fallback, "w") as fh:
             fh.write(message_serialized)
         print("Message successfully stored in %s" % fallback)
@@ -157,9 +148,6 @@ def run():
             return write_message_to_dropfile(message, headers)
         try:
             stomp = StompTransport()
-            if options.dryrun:
-                print("Not sending message (running with --dry-run)")
-                return
             stomp.connect()
             stomp.send("processing_recipe", message, headers=headers)
         except (
@@ -172,7 +160,7 @@ def run():
             ValueError,
         ):
             raise
-        except Exception:
+        except Exception as e:
             if not allow_stomp_fallback:
                 raise
             print("\n\n")
@@ -182,10 +170,10 @@ def run():
             print("\n\nAttempting to store message in fallback location")
             write_message_to_dropfile(message, headers)
 
-    message = {"recipes": options.recipe, "parameters": {}}
+    message = {"load_named_recipes": options.recipe, "parameters": {}}
     for kv in options.parameters:
         if "=" not in kv:
-            sys.exit(f"Invalid variable specification '{kv}'")
+            sys.exit("Invalid variable specification '{}'".format(kv))
         key, value = kv.split("=", 1)
         message["parameters"][key] = value
 
@@ -198,10 +186,12 @@ def run():
         sys.exit("No recipes specified.")
 
     if options.recipefile:
-        with open(options.recipefile) as fh:
+        # If a recipefile is specified then pre-populate the 'recipe' field
+        # of the message
+        with open(options.recipefile, "r") as fh:
             custom_recipe = workflows.recipe.Recipe(json.load(fh))
         custom_recipe.validate()
-        message["custom_recipe"] = custom_recipe.recipe
+        message["recipe"] = custom_recipe.recipe
 
     if options.nodcid:
         if options.recipe:
@@ -237,7 +227,7 @@ def run():
     if options.recipefile:
         print("Running recipe from file", options.recipefile)
 
-    if not message["recipes"] and not message.get("custom_recipe"):
+    if not message["load_named_recipe"] and not message.get("recipe"):
         sys.exit("No recipes specified.")
     print("for data collection", dcid)
     message["parameters"]["ispyb_dcid"] = dcid
