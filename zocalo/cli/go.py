@@ -17,6 +17,8 @@ import workflows
 from workflows.transport.stomp_transport import StompTransport
 import workflows.recipe
 
+from zocalo.configuration import transport_from_config, config
+
 # Example: zocalo.go -r example-xia2 527189
 
 
@@ -114,14 +116,12 @@ def run():
         default=False,
         help="Run in ActiveMQ testing (zocdev) namespace",
     )
-    default_configuration = "/dls_sw/apps/zocalo/secrets/credentials-live.cfg"
     allow_stomp_fallback = not any("stomp" in s.lower() for s in sys.argv)
     if "--test" in sys.argv:
-        default_configuration = "/dls_sw/apps/zocalo/secrets/credentials-testing.cfg"
         allow_stomp_fallback = False
     # override default stomp host
     try:
-        StompTransport.load_configuration_file(default_configuration)
+        transport_from_config(env="test" if "--test" in sys.argv else "live")
     except workflows.Error as e:
         print("Error: %s\n" % str(e))
         allow_stomp_fallback = False
@@ -140,7 +140,7 @@ def run():
             json.dumps({"headers": headers, "message": message}, indent=2) + "\n"
         )
 
-        fallback = os.path.join("/dls_sw/apps/zocalo/dropfiles", str(uuid.uuid4()))
+        fallback = os.path.join(config["dropfile_path"], str(uuid.uuid4()))
         if options.dryrun:
             print("Not storing message in %s (running with --dry-run)" % fallback)
             return
