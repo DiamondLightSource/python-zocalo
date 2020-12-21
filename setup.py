@@ -43,6 +43,12 @@ setup(
             "Dispatcher = zocalo.service.dispatcher:Dispatcher",
             "Schlockmeister = zocalo.service.schlockmeister:Schlockmeister",
         ],
+        "zocalo.configuration.plugins": [
+            "stomp = zocalo.configuration.stomp",
+            "graylog = zocalo.configuration.graylog",
+            "jmx = zocalo.configuration.jmx",
+            "ispyb = zocalo.configuration.ispyb",
+        ],
         "zocalo.wrappers": ["dummy = zocalo.wrapper:DummyWrapper"],
     },
     install_requires=requirements,
