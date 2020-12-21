@@ -1,20 +1,22 @@
-from __future__ import absolute_import, division, print_function
-
 import copy
 import errno
 import os
 import timeit
 import uuid
+import json
 
 import workflows.recipe
 from workflows.services.common_service import CommonService
 
+from zocalo.configuration import parse
+
 
 class Dispatcher(CommonService):
-    """Single point of contact service that takes in job meta-information
-     (say, a data collection ID), a processing recipe, a list of recipes,
-     or pointers to recipes stored elsewhere, and mangles these into something
-     that can be processed by downstream services.
+    """
+    Single point of contact service that takes in job meta-information
+    (say, a data collection ID), a processing recipe, a list of recipes,
+    or pointers to recipes stored elsewhere, and mangles these into something
+    that can be processed by downstream services.
     """
 
     # Human readable service name
@@ -24,32 +26,38 @@ class Dispatcher(CommonService):
     _logger_name = "services.dispatcher"
 
     # Define a base path where your recipes are located (accessed with zocalo.go -r $recipename)
-    _recipe_basepath = "/dls_sw/apps/zocalo/live/recipes"
+    recipe_basepath = None
 
     def filter_parse_recipe_object(self, message, parameters):
         """If a recipe is specified as either a string or data structure in the
         message then parse it into a recipe object. Otherwise create an empty
         recipe object."""
-        if message.get("recipe"):
+        if message.get("custom_recipe"):
             try:
-                message["recipe"] = workflows.recipe.Recipe(recipe=message["recipe"])
+                message["recipe"] = workflows.recipe.Recipe(
+                    recipe=json.dumps(message["custom_recipe"])
+                )
             except Exception as e:
                 raise ValueError(
                     "Rejected message containing a custom recipe that caused parsing errors: %s"
                     % str(e)
                 )
-        else:
-            message["recipe"] = workflows.recipe.Recipe()
+
+            try:
+                message["recipe"].validate()
+            except workflows.Error as e:
+                raise ValueError("Recipe failed final validation step. %s" % str(e))
         return message, parameters
 
     def filter_load_recipes_from_files(self, message, parameters):
         """Loads named recipes from central location and merges them into the recipe object"""
-        for recipefile in message.get("load_named_recipes", []):
+        for recipefile in message.get("recipes", []):
             try:
                 with open(
-                    os.path.join(self._recipe_basepath, recipefile + ".json"), "r"
+                    os.path.join(self.recipe_basepath, recipefile + ".json"), "r"
                 ) as rcp:
-                    named_recipe = workflows.recipe.Recipe(recipe=rcp.read()).recipe
+                    recipe = rcp.read()
+                    named_recipe = workflows.recipe.Recipe(recipe=recipe)
             except ValueError as e:
                 raise ValueError("Error reading recipe '%s': %s", recipefile, str(e))
             except IOError as e:
@@ -64,7 +72,8 @@ class Dispatcher(CommonService):
                 raise ValueError(
                     "Named recipe %s failed validation. %s" % (recipefile, str(e))
                 )
-            message["recipe"].merge(named_recipe)
+            named_recipe.apply_parameters(parameters)
+            message["recipe"] = message["recipe"].merge(named_recipe)
         return message, parameters
 
     def filter_apply_parameters(self, message, parameters):
@@ -92,12 +101,22 @@ class Dispatcher(CommonService):
     def initializing(self):
         """Subscribe to the processing_recipe queue. Received messages must be acknowledged."""
         # self._environment.get('live') can be used to distinguish live/test mode
+
+        config = parse()
+        self.recipe_basepath = config["recipe_path"]
+
         self.log.info("Dispatcher starting")
-        self._transport.subscribe(
-            "processing_recipe", self.process, acknowledgement=True
+
+        workflows.recipe.wrap_subscribe(
+            self._transport,
+            "processing_recipe",
+            self.process,
+            acknowledgement=True,
+            log_extender=self.extend_log,
+            allow_non_recipe_messages=True,
         )
 
-    def process(self, header, message):
+    def process(self, rw, header, message):
         """Process an incoming processing request."""
         # Time execution
         start_time = timeit.default_timer()
@@ -112,11 +131,20 @@ class Dispatcher(CommonService):
             self._transport.nack(header)
             return
 
-        # Unless 'uuid' is already defined then generate a unique recipe IDs for
+        # Unless 'guid' is already defined then generate a unique recipe IDs for
         # this request, which is attached to all downstream log records and can
         # be used to determine unique file paths.
-        recipe_id = parameters.get("uuid") or str(uuid.uuid4())
-        parameters["uuid"] = recipe_id
+        recipe_id = parameters.get("guid") or str(uuid.uuid4())
+        parameters["guid"] = recipe_id
+
+        if rw:
+            # If we received a recipe wrapper then we already have a recipe_ID
+            # attached to logs. Make a note of the downstream recipe ID so that
+            # we can track execution beyond recipe boundaries.
+            self.log.info(
+                "Processing request with new recipe ID %s:\n%s", recipe_id, str(message)
+            )
+
         # From here on add the global ID to all log messages
         with self.extend_log("recipe_ID", recipe_id):
             self.log.debug("Received processing request:\n" + str(message))
@@ -127,11 +155,14 @@ class Dispatcher(CommonService):
 
             self.hook_before_filtering(header, message, recipe_id)
 
+            # Create empty recipe
+            filtered_message["recipe"] = workflows.recipe.Recipe()
+
             # Apply all specified filters in order to message and parameters
             for f in self._message_filters:
                 try:
                     filtered_message, filtered_parameters = f(
-                        filtered_message, filtered_parameters
+                        self, filtered_message, filtered_parameters
                     )
                 except Exception as e:
                     self.log.error(
@@ -147,26 +178,13 @@ class Dispatcher(CommonService):
                 "Mangled processing parameters:\n" + str(filtered_parameters)
             )
 
-            if not isinstance(message.get("recipe"), workflows.recipe.Recipe):
-                self.log.error(
-                    "Message contains no valid recipes or pointers to recipes"
-                )
-                self._transport.nack(header)
-                return
-
-            try:
-                message["recipe"].validate()
-            except workflows.Error as e:
-                self.log.error(
-                    "Recipe failed final validation step. %s", str(e), exc_info=True
-                )
-                self._transport.nack(header)
-                return
+            message = filtered_message
+            parameters = filtered_parameters
 
             # Create the RecipeWrapper object
             rw = workflows.recipe.RecipeWrapper(
                 environment={"ID": recipe_id},
-                recipe=full_recipe,
+                recipe=message["recipe"],
                 transport=self._transport,
             )
 
