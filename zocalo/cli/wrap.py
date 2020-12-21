@@ -18,7 +18,7 @@ import workflows.transport
 import workflows.util
 import zocalo.wrapper
 from zocalo import enable_graylog
-from workflows.transport.stomp_transport import StompTransport
+from zocalo.configuration import transport_from_config
 
 
 def run():
@@ -30,13 +30,10 @@ def run():
     logging.getLogger("zocalo").setLevel(logging.INFO)
     logging.getLogger().setLevel(logging.WARN)
     logging.getLogger().addHandler(console)
-    log = logging.getLogger("dlstbx.wrap")
+    log = logging.getLogger("zocalo.wrap")
 
     # Set up stomp defaults
-    default_configuration = "/dls_sw/apps/zocalo/secrets/credentials-live.cfg"
-    if "--test" in cmdline_args:
-        default_configuration = "/dls_sw/apps/zocalo/secrets/credentials-testing.cfg"
-    StompTransport.load_configuration_file(default_configuration)
+    transport_from_config(env="test" if "--test" in cmdline_args else "live")
 
     known_wrappers = {
         e.name: e.load for e in pkg_resources.iter_entry_points("zocalo.wrappers")
