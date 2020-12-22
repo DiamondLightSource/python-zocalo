@@ -2,6 +2,7 @@ import os
 import yaml
 import logging
 
+from marshmallow import Schema, fields, INCLUDE
 from workflows.transport.stomp_transport import StompTransport
 
 # To instantiate !include
@@ -57,6 +58,17 @@ class Configuration(dict):
             )
             return list(self._plugins[plugin].values())[0]
 
+    def has_plugin(self, plugin):
+        return plugin in self._plugins
+
+
+class ConfigSchema(Schema):
+    version = fields.Int(required=True)
+    environments = fields.Dict(keys=fields.Str(), values=fields.Dict(), required=True)
+    recipe_path = fields.Str()
+    dropfile_path = fields.Str()
+    dlq = fields.Str()
+
 
 def parse():
     if not hasattr(parse, "cache"):
@@ -68,6 +80,9 @@ def parse():
         with open(config_yml, "r") as stream:
             yml_dict = yaml.safe_load(stream)
 
+            schema = ConfigSchema()
+            schema.load(yml_dict, unknown=INCLUDE)
+
             setattr(parse, "cache", Configuration(yml_dict))
 
     return parse.cache
@@ -77,9 +92,7 @@ config = parse()
 
 
 def transport_from_config(env):
-    config = parse()
     transport_config = config.get_plugin("stomp", env)
-    print("transport_from_config", env)
 
     for cfgoption, target in [
         ("host", "--stomp-host"),
