@@ -8,5 +8,5 @@ Sphinx==3.3.0
 tox==3.20.1
 twine==3.2.0
 wheel==0.35.1
-pyyaml=5.3.1
+pyyaml==5.3.1
 marshmallow==3.10.0
