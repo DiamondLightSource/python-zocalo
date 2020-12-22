@@ -1,17 +1,14 @@
 #
 # simple API to obtain JMX information
 #
-# Point to a configuration file to use it, eg:
-#  jmx = JMXAPI('/dls_sw/apps/zocalo/secrets/credentials-jmx-access.cfg')
 # Then can access objects with eg.
 #  jmx.java.lang(type="Memory")
 #  jmx.org.apache.activemq(type="Broker", brokerName="localhost/TotalConsumerCount")
-
-
 import base64
-import configparser
 import json
-import urllib
+import urllib.request
+
+from zocalo.configuration import config
 
 
 class JMXAPIPath:
@@ -38,22 +35,13 @@ class JMXAPI:
     """Access to JMX via the Joloika/REST API to obtain monitoring information
      from a running JVM."""
 
-    def __init__(
-        self, configfile="/dls_sw/apps/zocalo/secrets/credentials-jmx-access.cfg"
-    ):
-        cfgparser = configparser.ConfigParser(allow_no_value=True)
-        if not cfgparser.read(configfile):
-            raise RuntimeError("Could not read from configuration file %s" % configfile)
-        host = cfgparser.get("jmx", "host")
-        port = cfgparser.get("jmx", "port")
-        base = cfgparser.get("jmx", "baseurl")
-        self.url = "http://{host}:{port}/{baseurl}/read/".format(
-            host=host, port=port, baseurl=base
-        )
+    def __init__(self):
+        jmx_config = config.get_plugin("jmx", env=None)
+        self.url = f"http://{jmx_config['host']}:{jmx_config['port']}/{jmx_config['base_url']}/read/"
         self.authstring = b"Basic " + base64.b64encode(
-            cfgparser.get("jmx", "username").encode("utf-8")
+            jmx_config.get("username").encode("utf-8")
             + b":"
-            + cfgparser.get("jmx", "password").encode("utf-8")
+            + jmx_config.get("password").encode("utf-8")
         )
 
     def __getattribute__(self, attribute):
