@@ -5,10 +5,12 @@ import timeit
 import uuid
 import json
 
+from pprint import pformat
+
 import workflows.recipe
 from workflows.services.common_service import CommonService
 
-from zocalo.configuration import parse
+from zocalo.configuration import config
 
 
 class Dispatcher(CommonService):
@@ -56,8 +58,7 @@ class Dispatcher(CommonService):
                 with open(
                     os.path.join(self.recipe_basepath, recipefile + ".json"), "r"
                 ) as rcp:
-                    recipe = rcp.read()
-                    named_recipe = workflows.recipe.Recipe(recipe=recipe)
+                    named_recipe = workflows.recipe.Recipe(recipe=rcp.read())
             except ValueError as e:
                 raise ValueError("Error reading recipe '%s': %s", recipefile, str(e))
             except IOError as e:
@@ -100,9 +101,7 @@ class Dispatcher(CommonService):
 
     def initializing(self):
         """Subscribe to the processing_recipe queue. Received messages must be acknowledged."""
-        # self._environment.get('live') can be used to distinguish live/test mode
-
-        config = parse()
+        # self._environment.get('live') can be used to distinguish live/test modes
         self.recipe_basepath = config["recipe_path"]
 
         self.log.info("Dispatcher starting")
@@ -131,11 +130,11 @@ class Dispatcher(CommonService):
             self._transport.nack(header)
             return
 
-        # Unless 'guid' is already defined then generate a unique recipe IDs for
+        # Unless 'uuid' is already defined then generate a unique recipe IDs for
         # this request, which is attached to all downstream log records and can
         # be used to determine unique file paths.
-        recipe_id = parameters.get("guid") or str(uuid.uuid4())
-        parameters["guid"] = recipe_id
+        recipe_id = parameters.get("uuid") or str(uuid.uuid4())
+        parameters["uuid"] = recipe_id
 
         if rw:
             # If we received a recipe wrapper then we already have a recipe_ID
@@ -173,9 +172,9 @@ class Dispatcher(CommonService):
                     self._transport.nack(header)
                     return
 
-            self.log.debug("Mangled processing request:\n" + str(filtered_message))
+            self.log.debug("Mangled processing request:\n" + pformat(filtered_message))
             self.log.debug(
-                "Mangled processing parameters:\n" + str(filtered_parameters)
+                "Mangled processing parameters:\n" + pformat(filtered_parameters)
             )
 
             message = filtered_message
@@ -193,7 +192,7 @@ class Dispatcher(CommonService):
             self._transport.ack(header, transaction=txn)
 
             # Call another hook just before dispatching the message
-            self.hook_before_dispatch(header, message, recipe_id, filtered_message, rw)
+            self.hook_before_dispatch(header, message, recipe_id, message, rw)
 
             rw.start(transaction=txn)
 
