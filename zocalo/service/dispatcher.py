@@ -64,7 +64,7 @@ class Dispatcher(CommonService):
             except IOError as e:
                 if e.errno == errno.ENOENT:
                     raise ValueError(
-                        "Message references non-existing recipe '%s'", recipefile
+                        f"Message references non-existing recipe {recipefile}. Recipe path is {self.recipe_basepath}",
                     )
                 raise
             try:
@@ -96,8 +96,7 @@ class Dispatcher(CommonService):
 
     def hook_before_dispatch(self, header, message, recipe_id, filtered_message, rw):
         """Actions to be taken just before dispatching message"""
-        print(header)
-        print(message)
+        pass
 
     def initializing(self):
         """Subscribe to the processing_recipe queue. Received messages must be acknowledged."""
@@ -177,13 +176,10 @@ class Dispatcher(CommonService):
                 "Mangled processing parameters:\n" + pformat(filtered_parameters)
             )
 
-            message = filtered_message
-            parameters = filtered_parameters
-
             # Create the RecipeWrapper object
             rw = workflows.recipe.RecipeWrapper(
                 environment={"ID": recipe_id},
-                recipe=message["recipe"],
+                recipe=filtered_message["recipe"],
                 transport=self._transport,
             )
 
@@ -192,7 +188,7 @@ class Dispatcher(CommonService):
             self._transport.ack(header, transaction=txn)
 
             # Call another hook just before dispatching the message
-            self.hook_before_dispatch(header, message, recipe_id, message, rw)
+            self.hook_before_dispatch(header, message, recipe_id, filtered_message, rw)
 
             rw.start(transaction=txn)
 
