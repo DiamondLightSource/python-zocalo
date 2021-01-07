@@ -48,7 +48,6 @@ setup(
             "stomp = zocalo.configuration.stomp",
             "graylog = zocalo.configuration.graylog",
             "jmx = zocalo.configuration.jmx",
-            "ispyb = zocalo.configuration.ispyb",
         ],
         "zocalo.wrappers": ["dummy = zocalo.wrapper:DummyWrapper"],
     },
