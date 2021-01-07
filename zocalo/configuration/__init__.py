@@ -43,6 +43,9 @@ class Configuration(dict):
         super().__init__(yml_dict)
 
     def get_plugin(self, plugin, env="test"):
+        if plugin not in self._plugins:
+            raise KeyError(f"Unconfigured plugin requested: {plugin}")
+
         if env is not None:
             if env in self["environments"]:
                 env_tag = self["environments"][env][plugin]
