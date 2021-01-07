@@ -4,10 +4,6 @@ recipe_path: /path/to/recipes
 dropfile_path: /path/to/dropfiles
 dlq: /path/to/dlq
 
-ispyb:
-  plugin: ispyb
-  config: /path/to/ispyb-sp.cfg
-
 jmx:
   plugin: jmx
   host: localhost
