@@ -3,7 +3,7 @@ import errno
 import os
 import timeit
 import uuid
-import json
+import pkg_resources
 
 from pprint import pformat
 
@@ -29,27 +29,6 @@ class Dispatcher(CommonService):
 
     # Define a base path where your recipes are located (accessed with zocalo.go -r $recipename)
     recipe_basepath = None
-
-    def filter_parse_recipe_object(self, message, parameters):
-        """If a recipe is specified as either a string or data structure in the
-        message then parse it into a recipe object. Otherwise create an empty
-        recipe object."""
-        if message.get("custom_recipe"):
-            try:
-                message["recipe"] = workflows.recipe.Recipe(
-                    recipe=json.dumps(message["custom_recipe"])
-                )
-            except Exception as e:
-                raise ValueError(
-                    "Rejected message containing a custom recipe that caused parsing errors: %s"
-                    % str(e)
-                )
-
-            try:
-                message["recipe"].validate()
-            except workflows.Error as e:
-                raise ValueError("Recipe failed final validation step. %s" % str(e))
-        return message, parameters
 
     def filter_load_recipes_from_files(self, message, parameters):
         """Loads named recipes from central location and merges them into the recipe object"""
@@ -82,13 +61,6 @@ class Dispatcher(CommonService):
         parameters data structure"""
         message["recipe"].apply_parameters(parameters)
         return message, parameters
-
-    # Put message filter functions in here and they will be run in order during filtering
-    _message_filters = [
-        filter_parse_recipe_object,
-        filter_load_recipes_from_files,
-        filter_apply_parameters,
-    ]
 
     def hook_before_filtering(self, header, message, recipe_id):
         """Actions to be taken before message filtering"""
@@ -157,10 +129,15 @@ class Dispatcher(CommonService):
             filtered_message["recipe"] = workflows.recipe.Recipe()
 
             # Apply all specified filters in order to message and parameters
-            for f in self._message_filters:
+            message_filters = [
+                f.load()
+                for f in pkg_resources.iter_entry_points("zocalo.dispatcher.filters")
+            ] + [self.filter_load_recipes_from_files, self.filter_apply_parameters]
+
+            for f in message_filters:
                 try:
                     filtered_message, filtered_parameters = f(
-                        self, filtered_message, filtered_parameters
+                        filtered_message, filtered_parameters
                     )
                 except Exception as e:
                     self.log.error(
