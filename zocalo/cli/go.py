@@ -211,7 +211,7 @@ def run():
     if message["recipes"]:
         print("Running recipes", message["recipes"])
 
-    if not message["recipes"] and not message.get("custom_recipe"):
+    if not message["recipes"]:
         sys.exit("No recipes specified.")
     print("for data collection", dcid)
     message["parameters"]["ispyb_dcid"] = dcid
