@@ -64,11 +64,19 @@ class Dispatcher(CommonService):
 
     def hook_before_filtering(self, header, message, recipe_id):
         """Actions to be taken before message filtering"""
-        pass
+        for entry in pkg_resources.iter_entry_points(
+            "zocalo.dispatcher.hooks_before_filtering"
+        ):
+            fn = entry.load()
+            fn(header, message, recipe_id)
 
     def hook_before_dispatch(self, header, message, recipe_id, filtered_message, rw):
         """Actions to be taken just before dispatching message"""
-        pass
+        for entry in pkg_resources.iter_entry_points(
+            "zocalo.dispatcher.hooks_before_dispatch"
+        ):
+            fn = entry.load()
+            fn(header, message, recipe_id, filtered_message, rw)
 
     def initializing(self):
         """Subscribe to the processing_recipe queue. Received messages must be acknowledged."""
