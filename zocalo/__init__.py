@@ -19,6 +19,7 @@ def enable_graylog(host="graylog2.diamond.ac.uk", port=12201, cache_dns=True):
     the default index at the Diamond Light Source central graylog instance.
     :param host: Graylog server hostname (optional)
     :param port: Graylog server UDP port (optional)
+    :param cache_dns: Look up the hostname only once on set up (default: True)
     :return: graypy log handler
     """
 
@@ -50,7 +51,10 @@ def enable_graylog(host="graylog2.diamond.ac.uk", port=12201, cache_dns=True):
     except AttributeError:
         handler = graypy.GELFHandler  # graypy < 1.0
     if cache_dns:
-        host = socket.gethostbyname(host)
+        try:
+            host = socket.gethostbyname(host)
+        except Exception:
+            pass
     graylog = handler(host, port, level_names=True)
     logger = logging.getLogger()
     logger.addHandler(graylog)
