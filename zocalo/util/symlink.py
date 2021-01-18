@@ -63,5 +63,14 @@ def symlink_to(
     # to where it should go, and then rename on top of a potentially existing link.
     tmp_link = link_path.parent / f".tmp.{link_path.name}"
     tmp_link.symlink_to(link_destination, target_is_directory=target_is_directory)
-    tmp_link.replace(link_path)
+    try:
+        tmp_link.replace(link_path)
+    except PermissionError as e:
+        if getattr(e, "winerror", None) == 5:
+            # Windows can't rename on top, so delete and retry
+            link_path.unlink()
+            tmp_link.replace(link_path)
+        else:
+            raise
+
     return True
