@@ -2,6 +2,10 @@
 History
 =======
 
+0.7.2 (2021-__-__)
+------------------
+* Add a symbolic link handling library function
+
 0.7.1 (2020-11-13)
 ------------------
 * Add a --dry-run option to zocalo.go
