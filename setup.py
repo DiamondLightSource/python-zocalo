@@ -2,6 +2,21 @@
 
 from setuptools import setup, find_packages
 
+import pathlib
+
+exit(
+    """
+The 'master' branch of the zocalo repository has been renamed to 'main'.
+Please run the following commands to update your local repository:
+    cd {path}
+    git branch -m master main
+    git fetch origin
+    git branch -u origin/main main
+""".format(
+        path=pathlib.Path.cwd().joinpath(__file__).parent
+    )  # pathlib.Path(__file__)
+)
+
 with open("README.rst") as readme_file:
     readme = readme_file.read()
 

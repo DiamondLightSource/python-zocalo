@@ -1,6 +1,7 @@
 """Top-level package for Zocalo."""
 
 import logging
+import pathlib
 
 import graypy
 import graypy.handler
@@ -10,6 +11,19 @@ __email__ = "scientificsoftware@diamond.ac.uk"
 __version__ = "0.7.1"
 
 logging.getLogger("zocalo").addHandler(logging.NullHandler())
+
+exit(
+    """
+The 'master' branch of the zocalo repository has been renamed to 'main'.
+Please run the following commands to update your local repository:
+    cd {path}
+    git branch -m master main
+    git fetch origin
+    git branch -u origin/main main
+""".format(
+        path=pathlib.Path.cwd().joinpath(__file__).parent.parent
+    )
+)
 
 
 def enable_graylog(host="graylog2.diamond.ac.uk", port=12201):
