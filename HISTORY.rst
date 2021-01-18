@@ -2,7 +2,7 @@
 History
 =======
 
-0.7.2 (2021-__-__)
+0.7.2 (2021-01-18)
 ------------------
 * Add a symbolic link handling library function
 * Cache the logserver hostname by default
