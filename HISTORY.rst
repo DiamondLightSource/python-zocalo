@@ -5,6 +5,7 @@ History
 0.7.2 (2021-__-__)
 ------------------
 * Add a symbolic link handling library function
+* Cache the logserver hostname by default
 
 0.7.1 (2020-11-13)
 ------------------

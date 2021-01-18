@@ -1,6 +1,7 @@
 """Top-level package for Zocalo."""
 
 import logging
+import socket
 
 import graypy
 import graypy.handler
@@ -12,7 +13,7 @@ __version__ = "0.7.1"
 logging.getLogger("zocalo").addHandler(logging.NullHandler())
 
 
-def enable_graylog(host="graylog2.diamond.ac.uk", port=12201):
+def enable_graylog(host="graylog2.diamond.ac.uk", port=12201, cache_dns=True):
     """
     Enable logging to a Graylog server. By default this is set up to log to
     the default index at the Diamond Light Source central graylog instance.
@@ -48,6 +49,8 @@ def enable_graylog(host="graylog2.diamond.ac.uk", port=12201):
         handler = graypy.GELFUDPHandler
     except AttributeError:
         handler = graypy.GELFHandler  # graypy < 1.0
+    if cache_dns:
+        host = socket.gethostbyname(host)
     graylog = handler(host, port, level_names=True)
     logger = logging.getLogger()
     logger.addHandler(graylog)
