@@ -3,6 +3,7 @@
 
 from unittest import mock
 import zocalo
+from zocalo.configuration import config
 
 
 @mock.patch("zocalo.logging")
@@ -13,10 +14,7 @@ def test_that_graypy_is_correctly_initialised(graypy, logging):
         graypy.GELFUDPHandler.return_value
     )
     graypy.GELFUDPHandler.assert_called_once()
-    assert graypy.GELFUDPHandler.call_args[0] == (
-        'localhost',
-        12201,
-    )
+    assert graypy.GELFUDPHandler.call_args[0] == ("127.0.0.1", 12201)
 
 
 @mock.patch("zocalo.logging")
@@ -33,7 +31,10 @@ def test_that_graypy_is_using_sensible_defaults(graypy, logging):
 @mock.patch("zocalo.logging")
 @mock.patch("zocalo.graypy")
 def test_that_the_hostname_is_resolved(graypy, logging):
-    zocalo.enable_graylog(host="github.com")
+    graylog_config = config.get_plugin("graylog", env=None)
+    graylog_config["host"] = "github.com"
+
+    zocalo.enable_graylog()
     graypy.GELFUDPHandler.assert_called_once()
     call_args = graypy.GELFUDPHandler.call_args[0]
     assert len(call_args) == 2
