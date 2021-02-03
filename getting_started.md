@@ -17,6 +17,11 @@ In `conf/activemq.xml` under `policyEntries` add:
 </policyEntry>
 ```
 
+Make sure to enable scheduling, in `conf/activemq.xml` in the `broker` tag add the following property:
+```
+schedulerSupport="true"
+```
+
 Then start ActiveMQ:
 ```bash
 docker run --name activemq -p 61613:61613 -p 8161:8161 \
