@@ -130,6 +130,19 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
         if self.options.service_restart:
             frontend.restart_service = True
 
+        def logging_call(record):
+            if frontend._transport.is_connected():
+                try:
+                    record = record.__dict__["records"]
+                except Exception:
+                    record = record.__dict__
+                frontend._transport.broadcast("transient.log", record)
+
+        amq_handler = workflows.logging.CallbackHandler(logging_call)
+        if not self.options.verbose:
+            amq_handler.setLevel(logging.INFO)
+        logging.getLogger().addHandler(amq_handler)
+
         extended_status = {"zocalo": zocalo.__version__}
         if self.options.tag:
             extended_status["tag"] = self.options.tag
