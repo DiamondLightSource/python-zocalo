@@ -2,6 +2,15 @@
 History
 =======
 
+0.7.3 (2021-01-19)
+------------------
+* Ignore error when logserver hostname can't be looked up immediately
+
+0.7.2 (2021-01-18)
+------------------
+* Add a symbolic link handling library function
+* Cache the logserver hostname by default
+
 0.7.1 (2020-11-13)
 ------------------
 * Add a --dry-run option to zocalo.go

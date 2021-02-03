@@ -30,8 +30,8 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
 
     def setup_logging(self):
         """Initialize common logging framework. Everything is logged to central
-       graylog server. Depending on setting messages of DEBUG or INFO and higher
-       go to console."""
+        graylog server. Depending on setting messages of DEBUG or INFO and higher
+        go to console."""
         logger = logging.getLogger()
         logger.setLevel(logging.WARN)
 
