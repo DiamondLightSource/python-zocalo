@@ -1,6 +1,6 @@
 # Getting Started
 
-Zocalo requires both ActiveMQ and Greylog to be setup and running. The easiest way of setting these up is via docker.
+Zocalo requires both ActiveMQ and Graylog to be setup and running. The easiest way of setting these up is via docker.
 
 ## Active MQ
 Pull and run the following image https://hub.docker.com/r/rmohr/activemq
@@ -37,7 +37,7 @@ Port | Description
 61613 | Stomp transport
 8161 | Web Console / Jolokia REST API
 
-## Greylog
+## Graylog
 
 This can be started easily with a docker-compose.yml. See https://docs.graylog.org/en/3.3/pages/installation/docker.html for full details.
 
@@ -182,17 +182,17 @@ Username and password are the same as the web console and defined in `users.prop
 Start the dispatcher
 ```bash
 conda activate zocalo
-zocalo.server -s Dispatcher (--test)
+zocalo.service -s Dispatcher (--test)
 ```
 
 Start the process runner
 ```bash
-zocalo.server -s Runner (--test)
+zocalo.service -s Runner (--test)
 ```
 
 Optionally start the IPSyB processor
 ```bash
-zocalo.server -s ISPyB (--test)
+zocalo.service -s ISPyB (--test)
 ```
 
 Run the test recipe:
