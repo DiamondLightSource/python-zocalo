@@ -36,7 +36,7 @@ class Configuration(dict):
                         ].default(cfg)
 
                     else:
-                        raise KeyError(
+                        logger.warning(
                             f"Unknown plugin being loaded for {key}: {cfg['plugin']}"
                         )
 
