@@ -47,7 +47,7 @@ Infrastructure components for automated data processing at Diamond Light Source.
 
 Further documentation is provided here_.
 
-.. _here: ./zocalo/READE.MD
+.. _here: ./zocalo/README.MD
 
 * Documentation: https://zocalo.readthedocs.io.
 
