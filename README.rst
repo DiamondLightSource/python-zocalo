@@ -43,10 +43,13 @@ Zocalo
         :target: https://pypi.python.org/pypi/zocalo
         :alt: BSD license
 
-Infrastructure components for automated data processing at Diamond Light Source
+Infrastructure components for automated data processing at Diamond Light Source.
+
+Further documentation is provided here_.
+
+.. _here: ./zocalo/READE.MD
 
 * Documentation: https://zocalo.readthedocs.io.
-
 
 Features
 --------
