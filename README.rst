@@ -90,7 +90,7 @@ This diagram illustrates the overall task management model of Zocalo. Services r
 The only public Zocalo service at present is ``Schlockmeister``, a garbage collection service that removes jobs that have been requeued mutliple times. Diamond operates a variety of internal Zocalo services which perform frequently required operations in a data analysis pipeline.
 
 .. _xia2: https://xia2.github.io/
-.. _fastep: https://github.com/DiamondLightSource/fast_ep
+.. _fast_ep: https://github.com/DiamondLightSource/fast_ep
 
 Working with Zocalo
 -------------------
