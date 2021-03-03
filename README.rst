@@ -131,11 +131,6 @@ Documentation
 
 Further documentation is available at https://zocalo.readthedocs.io.
 
-Features
---------
-
-* TODO
-
 Credits
 -------
 
