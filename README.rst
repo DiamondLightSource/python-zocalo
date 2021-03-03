@@ -43,9 +43,7 @@ Zocalo
         :target: https://pypi.python.org/pypi/zocalo
         :alt: BSD license
 
-Infrastructure components for automated data processing at Diamond Light Source.
-
-Zocalo is an automated data processing system designed at Diamond Light Source.
+Zocalo is an automated data processing system designed at Diamond Light Source. This repository contains infrastructure components for Zocalo.
 
 The idea of Zocalo is a simple one - to build a messaging framework, where text-based messages are sent between parts of the system to coordinate data analysis. In the wider scope of things this also covers things like archiving, but generally it is handling everything that happens after data aquisition.
 
@@ -112,9 +110,26 @@ Zocalo provides some command line tools. These tools are ``zocalo.go``, ``zocalo
         * - Q: How are services started?
         * - A: Zocalo itself is agnostic on this point. Some of the services are self-propagating and employ simple scaling behaviour - in particular the per-image-analysis services. The services in general all run on cluster nodes, although this means that they can not be long lived - beyond a couple of hours there is a high risk of the service cluster jobs being terminated or pre-empted. This also helps encourage programming more robust services if they could be killed.
 
+.. list-table:: 
+        :widths: 100
+        :header-rows: 1
 
+        * - Q: So if a service is terminated in the middle of processing it will still get processed?
+        * - A: Yes, messages are handled in transactions - while a service is processing a message, it's marked as "in-progress" but isn't completely dropped. If the service doesn't process the message, or it's connection to ActiveMQ gets dropped, then it get's requeued so that another instance of the service can pick it up.
 
-* Documentation: https://zocalo.readthedocs.io.
+Repeat Message Failure 
+----------------------
+
+How are repeat errors handled? This is a problem with the system - if e.g. an image or malformed message kills a service then it will get requeued, and will eventually kill all instances of the service running (which will get re-spawned, and then die, and so forth).
+
+We have a special service that looks for repeat failures and moves them to a special "Dead Letter Queue". This service is called Schlockmeister_, and is the only service at time of writing that has migrated to the public zocalo repository. This service looks inside the message that got sent, extracts some basic information from the message in as safe a way as possible and repackages to the DLQ with information on what it was working on, and the "history" of where the message chain has been routed.
+
+.. _Schlockmeister: https://github.com/DiamondLightSource/python-zocalo/tree/master/zocalo/service
+
+Documentation 
+-------------
+
+Further documentation is available at https://zocalo.readthedocs.io.
 
 Features
 --------
