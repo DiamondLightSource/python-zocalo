@@ -91,10 +91,27 @@ This diagram illustrates the overall task management model of Zocalo. Services r
 
 The only public Zocalo service at present is ``Schlockmeister``, a garbage collection service that removes jobs that have been requeued mutliple times. Diamond operates a variety of internal Zocalo services which perform frequently required operations in a data analysis pipeline.
 
-
-
 .. _xia2: https://xia2.github.io/
 .. _fastep: https://github.com/DiamondLightSource/fast_ep
+
+Working with Zocalo
+-------------------
+
+`Graylog <https://www.graylog.org/>`_ is used to manage the logs produced by Zocalo. Once Graylog and the message broker server are running then services and wrappers can be launched with Zocalo. 
+
+Zocalo provides some command line tools. These tools are ``zocalo.go``, ``zocalo.wrap`` and ``zocalo.service``: the first triggers the processing of a recipe and the second runs a command while exposing its status to Zocalo so that it can be tracked. Services are available through ``zocalo.service`` if they are linked through the ``workflows.services`` entry point in ``setup.py``. For example, to start a Schlockmeister service:
+
+.. code:: bash
+
+        $ zocalo.service -s Schlockmeister
+
+
++------------------------------+
+| Q: How are services started? |
++==============================+
+| A: Zocalo itself is agnostic on this point. Some of the services are self-propagating and employ simple scaling behaviour - in particular the per-image-analysis services. The services in general all run on cluster nodes, although this means that they can not be long lived - beyond a couple of hours there is a high risk of the service cluster jobs being terminated or pre-empted. This also helps encourage programming more robust services if they could be killed. |
++------------------------------+
+
 
 * Documentation: https://zocalo.readthedocs.io.
 
