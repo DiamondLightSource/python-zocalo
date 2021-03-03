@@ -105,12 +105,13 @@ Zocalo provides some command line tools. These tools are ``zocalo.go``, ``zocalo
 
         $ zocalo.service -s Schlockmeister
 
+.. list-table:: 
+        :widths: 100
+        :header-rows: 1
 
-+------------------------------+
-| Q: How are services started? |
-+==============================+
-| A: Zocalo itself is agnostic on this point. Some of the services are self-propagating and employ simple scaling behaviour - in particular the per-image-analysis services. The services in general all run on cluster nodes, although this means that they can not be long lived - beyond a couple of hours there is a high risk of the service cluster jobs being terminated or pre-empted. This also helps encourage programming more robust services if they could be killed. |
-+------------------------------+
+        * - Q: How are services started?
+        * - A: Zocalo itself is agnostic on this point. Some of the services are self-propagating and employ simple scaling behaviour - in particular the per-image-analysis services. The services in general all run on cluster nodes, although this means that they can not be long lived - beyond a couple of hours there is a high risk of the service cluster jobs being terminated or pre-empted. This also helps encourage programming more robust services if they could be killed.
+
 
 
 * Documentation: https://zocalo.readthedocs.io.
