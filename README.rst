@@ -54,7 +54,7 @@ Zocalo as a wider whole is made up of two repositories (plus some private intern
 
 As mentioned, Zocalo is currently built on top of ActiveMQ. ActiveMQ is an apache project that provides a `message broker <https://en.wikipedia.org/wiki/Message_broker>`_ server, acting as a central dispatch that allows various services to communicate. Messages are plaintext, but from the Zocalo point of view it's passing aroung python objects (json dictionaries). Every message sent has a destination to help the message broker route. Messages may either be sent to a specific queue or broadcast to multiple queues. These queues are subscribed to by the services that run in Zocalo. In developing with Zocalo, you may have to interact with ActiveMQ or RabbitMQ, but it is unlikely that you will have to configure it.
 
-Zocalo allows for the monitoring of jobs executing ``python-workflows`` services or recipe wrappers. The ``python-workflows`` package contains most of the infrastructure required for the jobs themselves and more detailed documentation of its components can be found `here <https://github.com/DiamondLightSource/python-workflows/>`_ and `here <https://zocalo.readthedocs.io>`_. 
+Zocalo allows for the monitoring of jobs executing ``python-workflows`` services or recipe wrappers. The ``python-workflows`` package contains most of the infrastructure required for the jobs themselves and more detailed documentation of its components can be found in the ``python-workflows`` `GitHub repository <https://github.com/DiamondLightSource/python-workflows/>`_ and `the Zocalo documentation <https://zocalo.readthedocs.io>`_. 
 
 .. _ActiveMQ: http://activemq.apache.org/
 .. _STOMP: https://stomp.github.io/
