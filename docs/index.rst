@@ -6,6 +6,7 @@ Welcome to Zocalo's documentation!
    :caption: Contents:
 
    readme
+   workflows
    installation
    usage
    modules

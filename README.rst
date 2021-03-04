@@ -54,11 +54,7 @@ Zocalo as a wider whole is made up of two repositories (plus some private intern
 
 As mentioned, Zocalo is currently built on top of ActiveMQ. ActiveMQ is an apache project that provides a `message broker <https://en.wikipedia.org/wiki/Message_broker>`_ server, acting as a central dispatch that allows various services to communicate. Messages are plaintext, but from the Zocalo point of view it's passing aroung python objects (json dictionaries). Every message sent has a destination to help the message broker route. Messages may either be sent to a specific queue or broadcast to multiple queues. These queues are subscribed to by the services that run in Zocalo. In developing with Zocalo, you may have to interact with ActiveMQ or RabbitMQ, but it is unlikely that you will have to configure it.
 
-Zocalo allows for the monitoring of jobs executing ``python-workflows`` services or recipe wrappers. The ``python-workflows`` package contains most of the infrastructure required for the jobs themselves and more detailed documentation of its components can be found `here <https://github.com/DiamondLightSource/python-workflows/>`_. These components are schematically represented below.
-
-.. image:: ./zocalo/zocalo_graphic.jpg
-
-``python-workflows`` interfaces directly with an externally provided client library for a message broker such as ActiveMQ or RabbitMQ through its ``transport`` module. Services then take messages, process them, and maybe produce some output. The outputs of services can be piped together through a recipe. Services can also be used to monitor message queues. ``python-zocalo`` runs ``python-workflows`` services and recipes, wrapping them so that they are all visible to Zocalo.
+Zocalo allows for the monitoring of jobs executing ``python-workflows`` services or recipe wrappers. The ``python-workflows`` package contains most of the infrastructure required for the jobs themselves and more detailed documentation of its components can be found `here <https://github.com/DiamondLightSource/python-workflows/>`_ and `here <https://zocalo.readthedocs.io>`_. 
 
 .. _ActiveMQ: http://activemq.apache.org/
 .. _STOMP: https://stomp.github.io/
@@ -82,10 +78,6 @@ At Diamond, everything goes to one service to start with: the **Dispatcher**. Th
         message -> Dispatcher -> [Services]
 
 At end of processing there might be information that needs to go back into the databases, for which Diamond has a special ISPyB service to do the writing. If the DB goes down, that is fine - things will queue up for the ISPyB service and get processed when the database becomes available again, and written to the database when ready. This isolates us somewhat from intermittent failures.
-
-.. image:: ./zocalo/zocalo_queues.jpg
-
-This diagram illustrates the overall task management model of Zocalo. Services run continuosly, consuming from the relevant queues. Recipes inside of wrappers dictate the flow of data from queue to queue and, therefore, from service to service. The nodes represent input data which is given to the service with the output of a service becoming the input for the next.
 
 The only public Zocalo service at present is ``Schlockmeister``, a garbage collection service that removes jobs that have been requeued mutliple times. Diamond operates a variety of internal Zocalo services which perform frequently required operations in a data analysis pipeline.
 
