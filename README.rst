@@ -121,7 +121,7 @@ We have a special service that looks for repeat failures and moves them to a spe
 Documentation 
 -------------
 
-Further documentation is available at https://zocalo.readthedocs.io.
+Further documentation is available at https://zocalo.readthedocs.io. Conference proceedings describing Zocalo are also available on `JACoW <http://accelconf.web.cern.ch/icalepcs2019/doi/JACoW-ICALEPCS2019-WEMPR001.html>`_ or `Inspire-HEP <https://inspirehep.net/literature/1828069>`_. 
 
 Credits
 -------
