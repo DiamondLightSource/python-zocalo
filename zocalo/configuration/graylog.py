@@ -1,9 +1,9 @@
 from zocalo.configuration.plugins import Plugin, PluginSchema
-from marshmallow import fields
+from marshmallow import fields, validate
 
 
 class GraylogSchema(PluginSchema):
-    protocol = fields.Str(enum=["UPD", "TCP"], required=True)
+    protocol = fields.Str(validate=validate.OneOf(["UDP", "TCP"]), required=True)
     host = fields.Str(required=True)
     port = fields.Int(required=True)
 
