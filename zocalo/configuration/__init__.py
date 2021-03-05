@@ -14,7 +14,7 @@ logger = logging.getLogger("zocalo.configuration")
 
 
 class Configuration(dict):
-    _implicit_keys = ["configuration-version", "environments"]
+    _implicit_keys = ["version", "environments"]
     _plugins = {}
 
     def __init__(self, yml_dict):
@@ -56,7 +56,7 @@ class Configuration(dict):
                 )
 
         else:
-            logger.warning(
+            logger.debug(
                 f"No env specificed for plugin {plugin}, will return first plugin instance"
             )
             return list(self._plugins[plugin].values())[0]
