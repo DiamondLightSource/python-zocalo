@@ -17,12 +17,20 @@ class Runner(CommonService):
     # Logger name
     _logger_name = "zocalo.runner"
 
+    @property
+    def custom_queue(self):
+        return os.environ.get("CUSTOM_QUEUE") or ""
+
     def initializing(self):
         self.log.info("Runner Service starting")
 
+        custom_queue = f"{self.custom_queue}." if self.custom_queue else ""
+        queue = f"runner.{custom_queue}submission"
+        self.log.info("Subscribing to: %s", queue)
+
         workflows.recipe.wrap_subscribe(
             self._transport,
-            "runner.submission",
+            queue,
             self.process,
             acknowledgement=True,
             log_extender=self.extend_log,
@@ -180,8 +188,11 @@ class Runner(CommonService):
 
         except (subprocess.CalledProcessError, FileNotFoundError):
             self.log.exception(f"Had error running command: {cmd}")
+            
         except subprocess.TimeoutExpired:
             self.log.exception(f"Time ran out running command: {cmd}")
+            rw.send_to("timeout", "")
+
         except Exception:
             self.log.exception(f"Could not execute commands")
 
