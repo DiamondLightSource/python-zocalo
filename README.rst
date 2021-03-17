@@ -43,6 +43,17 @@ Zocalo
         :target: https://pypi.python.org/pypi/zocalo
         :alt: BSD license
 
+..
+
+        |
+        | `M. Gerstel, A. Ashton, R.J. Gildea, K. Levik, and G. Winter, "Data Analysis Infrastructure for Diamond Light Source Macromolecular & Chemical Crystallography and Beyond", in Proc. ICALEPCS'19, New York, NY, USA, Oct. 2019, pp. 1031-1035. <https://doi.org/10.18429/JACoW-ICALEPCS2019-WEMPR001>`_ |DOI|
+
+        .. |DOI| image:: https://img.shields.io/badge/DOI-10.18429/JACoW--ICALEPCS2019--WEMPR001-blue.svg
+                :target: https://doi.org/10.18429/JACoW-ICALEPCS2019-WEMPR001
+                :alt: Primary Reference DOI
+
+|
+
 Zocalo is an automated data processing system designed at Diamond Light Source. This repository contains infrastructure components for Zocalo.
 
 The idea of Zocalo is a simple one - to build a messaging framework, where text-based messages are sent between parts of the system to coordinate data analysis. In the wider scope of things this also covers things like archiving, but generally it is handling everything that happens after data aquisition.
@@ -50,7 +61,7 @@ The idea of Zocalo is a simple one - to build a messaging framework, where text-
 Zocalo as a wider whole is made up of two repositories (plus some private internal repositories when deployed at Diamond):
 
 * `DiamondLightSource/python-zocalo <https://github.com/DiamondLightSource/python-zocalo>`_ - Infrastructure components for automated data processing, developed by Diamond Light Source. The package is available through `PyPi <https://pypi.org/project/zocalo/>`_ and `conda-forge <https://anaconda.org/conda-forge/zocalo>`_.
-* `DiamondLightSource/python-workflows <https://github.com/DiamondLightSource/python-workflows/>`_ - Zocalo is built on the workflows package. It shouldn't be necessary to interact too much with this package, as the details are abstracted by Zocalo. workflows controls the logic of how services connect to each other and what a service is, and actually send the messages to a message broker. Currently this is an ActiveMQ_ broker (via STOMP_) but support for a RabbitMQ_ broker (via pika_) is being added. Also on `PyPi <https://pypi.org/project/workflows/>`_ and `conda-forge <https://anaconda.org/conda-forge/workflows>`_.
+* `DiamondLightSource/python-workflows <https://github.com/DiamondLightSource/python-workflows/>`_ - Zocalo is built on the workflows package. It shouldn't be necessary to interact too much with this package, as the details are abstracted by Zocalo. workflows controls the logic of how services connect to each other and what a service is, and actually send the messages to a message broker. Currently this is an ActiveMQ_ broker (via STOMP_) but support for a RabbitMQ_ broker (via pika_) is being added. This is also available on `PyPi <https://pypi.org/project/workflows/>`_ and `conda-forge <https://anaconda.org/conda-forge/workflows>`_.
 
 As mentioned, Zocalo is currently built on top of ActiveMQ. ActiveMQ is an apache project that provides a `message broker <https://en.wikipedia.org/wiki/Message_broker>`_ server, acting as a central dispatch that allows various services to communicate. Messages are plaintext, but from the Zocalo point of view it's passing aroung python objects (json dictionaries). Every message sent has a destination to help the message broker route. Messages may either be sent to a specific queue or broadcast to multiple queues. These queues are subscribed to by the services that run in Zocalo. In developing with Zocalo, you may have to interact with ActiveMQ or RabbitMQ, but it is unlikely that you will have to configure it.
 
@@ -118,15 +129,4 @@ We have a special service that looks for repeat failures and moves them to a spe
 
 .. _Schlockmeister: https://github.com/DiamondLightSource/python-zocalo/tree/master/zocalo/service
 
-Documentation 
--------------
 
-Further documentation is available at https://zocalo.readthedocs.io. Conference proceedings describing Zocalo are also available on `JACoW <http://accelconf.web.cern.ch/icalepcs2019/doi/JACoW-ICALEPCS2019-WEMPR001.html>`_ or `Inspire-HEP <https://inspirehep.net/literature/1828069>`_. 
-
-Credits
--------
-
-This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
-
-.. _Cookiecutter: https://github.com/audreyr/cookiecutter
-.. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage

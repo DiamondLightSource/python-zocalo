@@ -2,6 +2,10 @@
 History
 =======
 
+0.7.4 (2021-03-17)
+------------------
+* Documentation improvements
+
 0.7.3 (2021-01-19)
 ------------------
 * Ignore error when logserver hostname can't be looked up immediately
