@@ -21,6 +21,10 @@ stages:
         inputs:
           versionSpec: 3.7
 
+      - bash: |
+          python -m pip install -r requirements_dev.txt
+        displayName: Install dependencies
+
       # Run syntax validation on a shallow clone
       - bash: |
           python .azure-pipelines/syntax-validation.py
@@ -28,9 +32,23 @@ stages:
 
       # Run flake8 validation on a shallow clone
       - bash: |
-          pip install flake8
           python .azure-pipelines/flake8-validation.py
         displayName: Flake8 validation
+
+      - bash: |
+          python setup.py sdist bdist_wheel
+          ls -la dist
+        displayName: Build python package
+
+      - task: PublishBuildArtifacts@1
+        inputs:
+          pathToPublish: dist/
+          artifactName: python-release
+        displayName: Save a copy of the package
+
+      - bash: |
+          python -m twine check dist/*
+        displayName: Validate python package
 
 - stage: tests
   displayName: Run unit tests
