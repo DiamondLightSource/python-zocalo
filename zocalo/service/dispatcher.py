@@ -62,21 +62,50 @@ class Dispatcher(CommonService):
         message["recipe"].apply_parameters(parameters)
         return message, parameters
 
-    def hook_before_filtering(self, header, message, recipe_id):
-        """Actions to be taken before message filtering"""
+    def hook_before_filtering(self, header, message, parameters, recipe_id):
+        """Actions to be taken before message filtering
+        
+        If this function returns false then processing of this message 
+        will stop
+        """
+        return_code = True
         for entry in pkg_resources.iter_entry_points(
             "zocalo.dispatcher.hooks_before_filtering"
         ):
             fn = entry.load()
-            fn(header, message, recipe_id)
+            val = fn(header, message, parameters, recipe_id, self.transport, self.log)
+            if not val:
+                return_code = False
 
-    def hook_before_dispatch(self, header, message, recipe_id, filtered_message, rw):
-        """Actions to be taken just before dispatching message"""
+        return return_code
+
+    def hook_before_dispatch(
+        self, header, message, parameters, recipe_id, filtered_message, rw,
+    ):
+        """Actions to be taken just before dispatching message
+        
+        If this function returns false then processing of this message
+        will stop
+        """
+        return_code = True
         for entry in pkg_resources.iter_entry_points(
             "zocalo.dispatcher.hooks_before_dispatch"
         ):
             fn = entry.load()
-            fn(header, message, recipe_id, filtered_message, rw)
+            val = fn(
+                header,
+                message,
+                parameterrs,
+                recipe_id,
+                filtered_message,
+                rw,
+                self.transport,
+                self.log,
+            )
+            if not val:
+                return_code = False
+
+        return return_code
 
     def initializing(self):
         """Subscribe to the processing_recipe queue. Received messages must be acknowledged."""
@@ -131,7 +160,9 @@ class Dispatcher(CommonService):
             filtered_message = copy.deepcopy(message)
             filtered_parameters = copy.deepcopy(parameters)
 
-            self.hook_before_filtering(header, message, recipe_id)
+            # Call a hook before processing the message
+            if not self.hook_before_filtering(header, message, parameters, recipe_id):
+                return
 
             # Create empty recipe
             filtered_message["recipe"] = workflows.recipe.Recipe()
@@ -173,7 +204,10 @@ class Dispatcher(CommonService):
             self._transport.ack(header, transaction=txn)
 
             # Call another hook just before dispatching the message
-            self.hook_before_dispatch(header, message, recipe_id, filtered_message, rw)
+            if not self.hook_before_dispatch(
+                header, message, parameters, recipe_id, filtered_message, rw,
+            ):
+                return
 
             rw.start(transaction=txn)
 
