@@ -95,7 +95,7 @@ class Dispatcher(CommonService):
             val = fn(
                 header,
                 message,
-                parameterrs,
+                parameters,
                 recipe_id,
                 filtered_message,
                 rw,
