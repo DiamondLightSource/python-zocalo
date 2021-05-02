@@ -14,8 +14,8 @@ from optparse import SUPPRESS_HELP, OptionParser
 from pprint import pprint
 
 import workflows
-from workflows.transport.stomp_transport import StompTransport
 import workflows.recipe
+from workflows.transport.stomp_transport import StompTransport
 
 # Example: zocalo.go -r example-xia2 527189
 
