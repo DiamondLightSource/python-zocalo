@@ -2,6 +2,7 @@
 
 
 from unittest import mock
+
 import zocalo
 
 
@@ -13,7 +14,7 @@ def test_that_graypy_is_correctly_initialised(graypy, logging):
         graypy.GELFUDPHandler.return_value
     )
     graypy.GELFUDPHandler.assert_called_once()
-    assert graypy.GELFUDPHandler.call_args[0] == ("127.0.0.2", mock.sentinel.port,)
+    assert graypy.GELFUDPHandler.call_args[0] == ("127.0.0.2", mock.sentinel.port)
 
 
 @mock.patch("zocalo.logging")

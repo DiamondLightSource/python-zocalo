@@ -9,16 +9,17 @@ import logging
 import os
 import sys
 from optparse import SUPPRESS_HELP, OptionParser
-import pkg_resources
 
+import pkg_resources
 import workflows
 import workflows.recipe.wrapper
 import workflows.services.common_service
 import workflows.transport
 import workflows.util
+from workflows.transport.stomp_transport import StompTransport
+
 import zocalo.wrapper
 from zocalo import enable_graylog
-from workflows.transport.stomp_transport import StompTransport
 
 
 def run():

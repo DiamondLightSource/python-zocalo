@@ -1,20 +1,36 @@
 steps:
+- checkout: none
+
 - task: UsePythonVersion@0
   inputs:
     versionSpec: '$(PYTHON_VERSION)'
   displayName: 'Use Python $(PYTHON_VERSION)'
 
-- script: |
-    python -m pip install --upgrade pip
-    pip install tox
-  displayName: "Set up tox"
-
-- script: |
-    tox -e azure
-  displayName: "Run tests"
-
-- task: PublishTestResults@2
-  condition: succeededOrFailed()
+- task: DownloadBuildArtifacts@0
+  displayName: Get pre-built package
   inputs:
-    testResultsFiles: '**/test-*.xml'
-    testRunTitle: 'Publish test results for Python $(PYTHON_VERSION)'
+    buildType: 'current'
+    downloadType: 'single'
+    artifactName: 'package'
+    downloadPath: '$(System.ArtifactsDirectory)'
+
+- task: ExtractFiles@1
+  displayName: Checkout sources
+  inputs:
+    archiveFilePatterns: "$(System.ArtifactsDirectory)/package/repo-source.tar.gz"
+    destinationFolder: "$(Pipeline.Workspace)/src"
+
+- script: |
+    pip install --disable-pip-version-check -r "$(Pipeline.Workspace)/src/requirements_dev.txt" pytest-azurepipelines
+    pip install --no-deps --disable-pip-version-check -e "$(Pipeline.Workspace)/src"
+  displayName: Install package
+
+- bash: PYTHONDEVMODE=1 pytest -v -ra --cov=zocalo --cov-report=xml --cov-branch
+  displayName: Run tests
+  workingDirectory: $(Pipeline.Workspace)/src
+
+- bash: bash <(curl -s https://codecov.io/bash) -t $(CODECOV_TOKEN) -n "Python $(PYTHON_VERSION) $(Agent.OS)"
+  displayName: Publish coverage stats
+  continueOnError: True
+  workingDirectory: $(Pipeline.Workspace)/src
+  timeoutInMinutes: 2

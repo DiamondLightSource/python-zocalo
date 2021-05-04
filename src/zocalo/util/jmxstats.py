@@ -36,7 +36,7 @@ class JMXAPIPath:
 
 class JMXAPI:
     """Access to JMX via the Joloika/REST API to obtain monitoring information
-     from a running JVM."""
+    from a running JVM."""
 
     def __init__(
         self, configfile="/dls_sw/apps/zocalo/secrets/credentials-jmx-access.cfg"
