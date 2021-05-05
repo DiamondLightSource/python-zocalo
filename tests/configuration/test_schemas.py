@@ -1,6 +1,8 @@
 import os
 from unittest import mock
 
+import zocalo.configuration
+
 
 def test(tmp_path):
     config_file = tmp_path / "configuration.yml"
@@ -52,4 +54,4 @@ environments:
         )
 
     with mock.patch.dict(os.environ, {"ZOCALO_CONFIG": os.fspath(config_file)}):
-        import zocalo.configuration
+        zocalo.configuration.load()

@@ -90,7 +90,9 @@ def parse():
     return parse.cache
 
 
-config = parse()
+def load():
+    global config
+    config = parse()
 
 
 def transport_from_config(env):
