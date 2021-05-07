@@ -3,74 +3,53 @@ import logging
 import os
 import pathlib
 import typing
-from pprint import pprint
 
 import marshmallow as mm
 import pkg_resources
 import yaml
-from workflows.transport.stomp_transport import StompTransport
-
-# To instantiate !include
-import zocalo.configuration.utils  # noqa: F401
-from zocalo.configuration.plugins import get_known_plugins
 
 logger = logging.getLogger("zocalo.configuration")
 
 
-@functools.lru_cache
-def _get_plugins():
-    return {
-        e.name: e.load
-        for e in pkg_resources.iter_entry_points("zocalo.configuration.plugins")
-    }
+class ConfigSchema(mm.Schema):
+    version = mm.fields.Int(required=True)
+    environments = mm.fields.Dict(keys=mm.fields.Str(), values=mm.fields.Dict())
 
 
-@functools.lru_cache
+class PluginSchema(mm.Schema):
+    plugin = mm.fields.Str(
+        required=True,
+        error_messages={"required": "definition lacks the mandatory 'plugin' key"},
+    )
+
+
+@functools.lru_cache(maxsize=None)
 def _get_plugin(name: str):
-    plugin = _get_plugins().get(name)
-    if not plugin:
+    if not hasattr(_get_plugin, "cache"):
+        _get_plugin.cache = {
+            e.name: e.load
+            for e in pkg_resources.iter_entry_points("zocalo.configuration.plugins")
+        }
+    try:
+        return _get_plugin.cache[name]()
+    except KeyError:
         logger.warning(f"Zocalo configuration plugin '{name}' missing")
         return False
-    return plugin()
 
 
-class Configuration(dict):
-    _implicit_keys = ["version", "environments"]
-    _plugins = {}
-
-    def __init__(self, yml_dict: dict):
-        self._environments: typing.Dict[str, typing.List[str]] = yml_dict.get(
+class Configuration:
+    def __init__(self, yaml_dict: dict):
+        self._activated: typing.List[str] = []
+        self._environments: typing.Dict[str, typing.List[str]] = yaml_dict.get(
             "environments", {}
         )
         self._plugin_configurations: typing.Dict[
             str, typing.Union[pathlib.Path, typing.Dict[str, typing.Any]]
         ] = {
             name: config
-            for name, config in yml_dict.items()
+            for name, config in yaml_dict.items()
             if name not in ConfigSchema().fields
         }
-
-        #       plugins = get_known_plugins()
-        #       for key, cfg in yml_dict.items():
-        #           if key in self._implicit_keys:
-        #               continue
-        #
-        #           if isinstance(cfg, dict):
-        ##              if "plugin" in cfg:
-        #                   if cfg["plugin"] in plugins:
-        #                       if cfg["plugin"] not in self._plugins:
-        #                           self._plugins[cfg["plugin"]] = {}
-        #                       self._plugins[cfg["plugin"]][key] = plugins[
-        #                           cfg["plugin"]
-        #                       ].default(cfg)
-        #
-        #                   else:
-        #                       logger.warning(
-        #                           f"Unknown plugin being loaded for {key}: {cfg['plugin']}"
-        #                       )
-
-        self._activated: typing.List[str] = []
-        super().__init__(yml_dict)
 
     @property
     def environments(self) -> typing.Set[str]:
@@ -80,13 +59,13 @@ class Configuration(dict):
     def active_environments(self) -> typing.List[str]:
         return self._activated[:]
 
-    def get_plugin_configuration(self, name: str):
-        return self._plugin_configurations[name]
-
     def _resolve(self, plugin_configuration: str) -> bool:
-        print(f"Attempting to resolve <{self._plugin_configurations[config_name]}>")
+        print(
+            f"Attempting to resolve <{self._plugin_configurations[plugin_configuration]}>"
+        )
         raise ValueError(
-            f"Plugin configuration {plugin_configuration} could not be resolved, could not read {self._plugin_configurations[config_name]}"
+            f"Plugin configuration {plugin_configuration} could not be resolved, "
+            f"could not read {self._plugin_configurations[plugin_configuration]}"
         )
 
     def activate_environment(self, name: str):
@@ -122,46 +101,9 @@ class Configuration(dict):
             activated = f", environments {self._activated} activated"
         return f"<ZocaloConfiguration containing {environments} environments, {plugin_configurations} plugin configurations{unresolved}{activated}>"
 
-    def get_plugin(self, plugin, env="test"):
-        if plugin not in self._plugins:
-            raise KeyError(f"Unconfigured plugin requested: {plugin}")
-
-        if env is not None:
-            if env in self["environments"]:
-                env_tag = self["environments"][env][plugin]
-                return self._plugins[plugin][env_tag]
-            else:
-                raise KeyError(
-                    f"Requesting unknown tag {env} from config for plugin {plugin}"
-                )
-
-        else:
-            logger.debug(
-                f"No env specificed for plugin {plugin}, will return first plugin instance"
-            )
-            return list(self._plugins[plugin].values())[0]
-
-    def has_plugin(self, plugin):
-        return plugin in self._plugins
-
-
-class ConfigSchema(mm.Schema):
-    version = mm.fields.Int(required=True)
-    environments = mm.fields.Dict(keys=mm.fields.Str(), values=mm.fields.Dict())
-
-
-class PluginSchema(mm.Schema):
-    plugin = mm.fields.Str(
-        required=True,
-        error_messages={"required": "definition lacks the mandatory 'plugin' key"},
-    )
-
 
 def _read_configuration_yaml(configuration: str) -> dict:
-    try:
-        yaml_dict = yaml.safe_load(configuration)
-    except yaml.MarkedYAMLError as e:
-        raise RuntimeError(f"Invalid YAML configuration: {e}")
+    yaml_dict = yaml.safe_load(configuration)
 
     if not isinstance(yaml_dict, dict) or "version" not in yaml_dict:
         raise RuntimeError("Invalid configuration specified")
@@ -187,6 +129,9 @@ def _read_configuration_yaml(configuration: str) -> dict:
     for key in yaml_dict:
         if key in ConfigSchema().fields:
             continue
+        plugin_fields[key] = mm.fields.Nested(
+            PluginSchema, unknown=mm.EXCLUDE, required=True
+        )
         if isinstance(yaml_dict[key], str):
             raise RuntimeError("Resolution not yet supported")
         elif isinstance(yaml_dict[key], dict) and isinstance(
@@ -198,14 +143,10 @@ def _read_configuration_yaml(configuration: str) -> dict:
                 and isinstance(plugin, type(PluginSchema))
                 and issubclass(plugin, PluginSchema)
             ):
-                # type check is required as issubclass() may throw TypeError
+                # type check with isinstance() is required as issubclass() may throw TypeError
                 plugin_fields[key] = mm.fields.Nested(
                     plugin, unknown=mm.EXCLUDE, required=True
                 )
-                continue
-        plugin_fields[key] = mm.fields.Nested(
-            PluginSchema, unknown=mm.EXCLUDE, required=True
-        )
 
     class _ConfigSchema(ConfigSchema):
         class Meta:
@@ -234,7 +175,7 @@ def _merge_configuration(
         configuration = file_.read_text()
         try:
             parsed = _read_configuration_yaml(configuration)
-        except RuntimeError as e:
+        except (RuntimeError, yaml.MarkedYAMLError) as e:
             raise RuntimeError(
                 f"Error reading configuration file {file_}: {e}"
             ) from None
@@ -255,7 +196,7 @@ def _merge_configuration(
     if parsed.get("include"):
         raise RuntimeError("Importing configurations is not yet supported")
 
-    # Flatten the data structure for environments to an ordered list of plugins to activate for each environment
+    # Flatten the data structure for each environment to a deduplicated ordered list of plugins
     for environment in parsed["environments"]:
         parsed["environments"][environment] = list(
             dict.fromkeys(
@@ -282,30 +223,12 @@ def _merge_configuration(
     return parsed
 
 
-def from_file(config_file=None):
+def from_file(config_file=None) -> Configuration:
     if not config_file:
         config_file = os.environ.get("ZOCALO_CONFIG", "zocalo.yml")
     config_file = pathlib.Path(config_file)
     return Configuration(_merge_configuration(None, config_file, config_file.parent))
 
 
-def from_string(configuration):
+def from_string(configuration: str) -> Configuration:
     return Configuration(_merge_configuration(configuration, None, pathlib.Path.cwd()))
-
-
-# def load(source=None):
-#    global config
-#    config = from_file(source)
-
-
-def transport_from_config(env):
-    transport_config = config.get_plugin("stomp", env)
-
-    for cfgoption, target in [
-        ("host", "--stomp-host"),
-        ("port", "--stomp-port"),
-        ("password", "--stomp-pass"),
-        ("username", "--stomp-user"),
-        ("prefix", "--stomp-prfx"),
-    ]:
-        StompTransport.defaults[target] = transport_config.get(cfgoption)
