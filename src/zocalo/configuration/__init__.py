@@ -1,4 +1,5 @@
 import functools
+import inspect
 import logging
 import os
 import pathlib
@@ -78,7 +79,17 @@ class Configuration:
             configuration = self._plugin_configurations[config_name]
             plugin = _get_plugin(configuration["plugin"])
             if plugin:
-                plugin.activate(configuration)
+                plugin_parameters = inspect.signature(plugin.activate).parameters
+                arguments = {"configuration": configuration, "config_object": self}
+                if not any(
+                    p.kind == inspect.Parameter.VAR_KEYWORD
+                    for p in plugin_parameters.values()
+                ):
+                    arguments = {
+                        p: arguments[p]
+                        for p in set(arguments).intersection(plugin_parameters)
+                    }
+                plugin.activate(**arguments)
         self._activated.append(name)
 
     def __str__(self):

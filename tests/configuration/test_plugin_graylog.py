@@ -26,3 +26,12 @@ def test_plugin_is_available():
 def test_invalid_configuration_is_rejected():
     with pytest.raises(RuntimeError, match="TCP"):
         zocalo.configuration.from_string(sample_configuration.replace("UDP", "banana"))
+
+    with pytest.raises(RuntimeError, match="host"):
+        zocalo.configuration.from_string(
+            """
+            version: 1
+            graylog:
+              plugin: graylog
+            """
+        )
