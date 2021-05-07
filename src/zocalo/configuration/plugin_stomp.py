@@ -11,15 +11,13 @@ class Stomp(PluginSchema):
     password = fields.Str(required=True)
     prefix = fields.Str(required=True)
 
-
-def transport_from_config(config):
-    transport_config = config.get_plugin("stomp")
-
-    for cfgoption, target in [
-        ("host", "--stomp-host"),
-        ("port", "--stomp-port"),
-        ("password", "--stomp-pass"),
-        ("username", "--stomp-user"),
-        ("prefix", "--stomp-prfx"),
-    ]:
-        StompTransport.defaults[target] = transport_config.get(cfgoption)
+    @staticmethod
+    def activate(configuration):
+        for cfgoption, target in [
+            ("host", "--stomp-host"),
+            ("port", "--stomp-port"),
+            ("password", "--stomp-pass"),
+            ("username", "--stomp-user"),
+            ("prefix", "--stomp-prfx"),
+        ]:
+            StompTransport.defaults[target] = configuration[cfgoption]
