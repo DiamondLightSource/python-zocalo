@@ -55,9 +55,7 @@ stomp-test:
 # that is only accessible by certain users. File paths can be absolute or
 # relative to the referencing configuration file.
 stomp-live:
-  th/secrets.yml
-
-
+  /path/secrets.yml
 
 # In a deviation to the 12factor model the configuration file groups
 # configurations together into environments. You can declare as many
@@ -76,7 +74,6 @@ environments:
   test:
     transport: stomp-test
 
-
 # The configuration is modular. You can merge additional configuration files
 # into this file by listing them under the 'include' key.
 # Every file is loaded individually and unconditionally. All files must be
@@ -85,5 +82,3 @@ environments:
 # Included files overwrite transport and plugin definitions in this file.
 include:
   - /local/site/common_configuration.yml
-
-

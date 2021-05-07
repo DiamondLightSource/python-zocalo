@@ -11,9 +11,11 @@ def test(tmp_path):
             """
 version: 1
 
-recipe_path: /path/to/recipes
-dropfile_path: /path/to/dropfiles
-dlq: /path/to/dlq
+constants:
+  plugin: storage
+  recipe_path: /path/to/recipes
+  dropfile_path: /path/to/dropfiles
+  dlq: /path/to/dlq
 
 jmx:
   plugin: jmx
@@ -54,4 +56,4 @@ environments:
         )
 
     with mock.patch.dict(os.environ, {"ZOCALO_CONFIG": os.fspath(config_file)}):
-        zocalo.configuration.load()
+        zocalo.configuration.from_file()
