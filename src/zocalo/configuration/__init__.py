@@ -247,13 +247,13 @@ def _merge_configuration(
 
         # Ensure all referenced plugins are defined and valid
         for plugin in parsed["environments"][environment]:
-            if plugin not in parsed:
-                raise RuntimeError(
-                    f"Configuration error: environment {environment} references undefined plugin {plugin}"
-                )
             if plugin in ConfigSchema().fields:
                 raise RuntimeError(
                     f"Configuration error: environment {environment} references reserved name {plugin}"
+                )
+            if plugin not in parsed:
+                raise RuntimeError(
+                    f"Configuration error: environment {environment} references undefined plugin {plugin}"
                 )
 
     return parsed

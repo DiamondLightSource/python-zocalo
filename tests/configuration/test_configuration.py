@@ -148,6 +148,19 @@ def test_activate_multiple_environments():
     assert "part-2" in str(zc)
 
 
+@pytest.mark.parametrize("name", ("include", "environments", "version"))
+def test_environment_can_not_reference_reserved_name(name):
+    with pytest.raises(RuntimeError, match="reserved"):
+        zocalo.configuration.from_string(
+            f"""
+            version: 1
+            environments:
+              test:
+                - {name}
+            """
+        )
+
+
 def test_configuration_can_specify_a_missing_resolution_file(tmp_path):
     zocalo.configuration.from_string(
         f"""
