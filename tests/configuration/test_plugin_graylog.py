@@ -1,3 +1,5 @@
+from unittest import mock
+
 import pytest
 
 import zocalo.configuration
@@ -17,10 +19,18 @@ environments:
 """
 
 
-def test_plugin_is_available():
+@mock.patch("zocalo.configuration.plugin_graylog.graypy")
+@mock.patch("zocalo.configuration.plugin_graylog.graypy.handler")
+@mock.patch("zocalo.configuration.plugin_graylog.logging")
+def test_plugin_sets_up_logging(logging, handler, graypy):
     zc = zocalo.configuration.from_string(sample_configuration)
-    with pytest.raises(NotImplementedError):
-        zc.activate_environment("live")
+    graypy.GELFUDPHandler.assert_not_called()
+    logging.getLogger.return_value.addHandler.assert_not_called()
+
+    zc.activate_environment("live")
+    graypy.GELFUDPHandler.assert_called_once_with("127.0.0.1", 12201, level_names=True)
+    relevant_handler = graypy.GELFUDPHandler.return_value
+    logging.getLogger.return_value.addHandler.assert_called_once_with(relevant_handler)
 
 
 def test_invalid_configuration_is_rejected():
