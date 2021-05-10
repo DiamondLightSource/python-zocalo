@@ -1,3 +1,4 @@
+import logging
 import os
 from unittest import mock
 
@@ -159,6 +160,19 @@ def test_environment_can_not_reference_reserved_name(name):
                 - {name}
             """
         )
+
+
+def test_unknown_plugin_definition_triggers_a_warning(caplog):
+    unique_plugin_name = "testcase-for-an-unknown-plugin"
+    with caplog.at_level(logging.WARNING):
+        zocalo.configuration.from_string(
+            f"""
+            version: 1
+            undefined-plugin:
+              plugin: {unique_plugin_name}
+            """
+        )
+    assert unique_plugin_name in caplog.text
 
 
 def test_configuration_can_specify_a_missing_resolution_file(tmp_path):
