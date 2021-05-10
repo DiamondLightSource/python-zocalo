@@ -69,6 +69,9 @@ def test_loading_minimal_valid_configuration_from_file(tmp_path):
     _assert_configuration_is_empty(zc)
     zc = zocalo.configuration.from_file(config_file)
     _assert_configuration_is_empty(zc)
+    with mock.patch.dict(os.environ, {"ZOCALO_CONFIG": os.fspath(config_file)}):
+        zc = zocalo.configuration.from_file()
+    _assert_configuration_is_empty(zc)
 
 
 def test_cannot_load_missing_file(tmp_path):
