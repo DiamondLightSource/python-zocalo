@@ -1,4 +1,5 @@
 import os
+from unittest import mock
 
 import pytest
 
@@ -145,3 +146,112 @@ def test_activate_multiple_environments():
     assert zc.active_environments == ["partial", "part-2"]
     assert "partial" in str(zc)
     assert "part-2" in str(zc)
+
+
+def test_configuration_can_specify_a_missing_resolution_file(tmp_path):
+    zocalo.configuration.from_string(
+        f"""
+        version: 1
+        unused-plugin:
+          {tmp_path / 'missing_file'}
+        """
+    )
+
+
+@mock.patch("pathlib.io.open")
+def test_configuration_can_specify_an_unreadable_resolution_file(mock_open, tmp_path):
+    mock_open.side_effect = PermissionError("Access denied to mock file")
+    zc = zocalo.configuration.from_string(
+        f"""
+        version: 1
+        forbidden-plugin:
+          {tmp_path / 'forbidden_file'}
+        environments:
+         forbidden:
+           - forbidden-plugin
+        """
+    )
+    with pytest.raises(PermissionError):
+        zc.activate_environment("forbidden")
+
+
+def test_plugins_can_be_configured_in_an_external_file(tmp_path):
+    external_plugin = tmp_path / "external.yml"
+    external_plugin.write_text(
+        """
+        plugin: storage
+        value: sentinel
+        """
+    )
+    zc = zocalo.configuration.from_string(
+        f"""
+        version: 1
+        external:
+          {tmp_path / 'external.yml'}
+        environments:
+          ext:
+            - external
+        """
+    )
+    assert "1 of" in str(zc)
+    zc.activate_environment("ext")
+    assert "1 of" not in str(zc)
+    assert zc.storage["value"] == "sentinel"
+
+
+@pytest.mark.xfail(raises=NotImplementedError, strict=True)
+def test_loading_modular_configuration_from_string(tmp_path):
+    secondary_file = tmp_path / "config.yml"
+    secondary_file.write_text(sample_configuration)
+
+    zc = zocalo.configuration.from_string(
+        f"""
+        version: 1
+        include:
+          - {secondary_file}
+        """
+    )
+    assert zc.environments
+
+
+@pytest.mark.xfail(raises=NotImplementedError, strict=True)
+def test_loading_modular_configuration_from_file(tmp_path):
+    secondary_file = tmp_path / "config.yml"
+    secondary_file.write_text(sample_configuration)
+    primary_file = tmp_path / "primary.yml"
+    primary_file.write_text(
+        f"""
+        version: 1
+        include:
+          - config.yml
+        """
+    )
+
+    zc = zocalo.configuration.from_file(primary_file)
+    assert zc.environments
+
+
+def test_cannot_load_modular_configuration_with_missing_reference(tmp_path):
+    secondary_file = tmp_path / "non-existing-file.yml"
+
+    with pytest.raises(FileNotFoundError):
+        zocalo.configuration.from_string(
+            f"""
+            version: 1
+            include:
+              - {secondary_file}
+            """
+        )
+
+
+def test_cannot_load_modular_configuration_with_broken_reference(tmp_path):
+    secondary_file = tmp_path / "invalid.yml"
+    secondary_file.write_text("x: y: z:")
+    with pytest.raises(RuntimeError, match="invalid.yml"):
+        zocalo.configuration.from_string(
+            f"""
+            version: 1
+            include:
+              - {secondary_file}
+            """
+        )

@@ -15,6 +15,7 @@ logger = logging.getLogger("zocalo.configuration")
 class ConfigSchema(mm.Schema):
     version = mm.fields.Int(required=True)
     environments = mm.fields.Dict(keys=mm.fields.Str(), values=mm.fields.Dict())
+    include = mm.fields.List(mm.fields.Str())
 
 
 class PluginSchema(mm.Schema):
@@ -61,13 +62,28 @@ class Configuration:
         return self._activated[:]
 
     def _resolve(self, plugin_configuration: str) -> bool:
-        print(
-            f"Attempting to resolve <{self._plugin_configurations[plugin_configuration]}>"
-        )
-        raise ValueError(
-            f"Plugin configuration {plugin_configuration} could not be resolved, "
-            f"could not read {self._plugin_configurations[plugin_configuration]}"
-        )
+        try:
+            configuration = self._plugin_configurations[
+                plugin_configuration
+            ].read_text()
+        except PermissionError as e:
+            raise PermissionError(
+                f"Plugin configuration {plugin_configuration} could not be resolved, "
+                f"{e}"
+            ) from None
+        try:
+            yaml_dict = yaml.safe_load(configuration)
+        except yaml.MarkedYAMLError as e:
+            raise ValueError(
+                f"Plugin configuration {plugin_configuration} could not be resolved, "
+                f"could not read {self._plugin_configurations[plugin_configuration]}: {e}"
+            ) from None
+        if not isinstance(yaml_dict, dict) or not yaml_dict.get("plugin"):
+            raise RuntimeError(
+                f"Error reading configuration for plugin {plugin_configuration}: "
+                f"Configuration file {self._plugin_configurations[plugin_configuration]} is invalid"
+            )
+        self._plugin_configurations[plugin_configuration] = yaml_dict
 
     def activate_environment(self, name: str):
         if name not in self._environments:
@@ -101,7 +117,7 @@ class Configuration:
             if isinstance(conf, pathlib.Path)
         )
         if unresolved:
-            unresolved = ", {unresolved} of which are unresolved"
+            unresolved = f", {unresolved} of which are unresolved"
         else:
             unresolved = ""
         if not self._activated:
@@ -144,7 +160,7 @@ def _read_configuration_yaml(configuration: str) -> dict:
             PluginSchema, unknown=mm.EXCLUDE, required=True
         )
         if isinstance(yaml_dict[key], str):
-            raise RuntimeError("Resolution not yet supported")
+            plugin_fields[key] = mm.fields.Str()
         elif isinstance(yaml_dict[key], dict) and isinstance(
             yaml_dict[key].get("plugin"), str
         ):
@@ -205,7 +221,16 @@ def _merge_configuration(
 
     # Recursively identify and merge external files (DFS)
     if parsed.get("include"):
-        raise RuntimeError("Importing configurations is not yet supported")
+        for include_file in parsed["include"]:
+            try:
+                file_reference = context.joinpath(include_file).resolve()
+                include = _read_configuration_yaml(file_reference.read_text())
+                assert include
+            except (RuntimeError, yaml.MarkedYAMLError) as e:
+                raise RuntimeError(
+                    f"Error reading configuration file {file_reference}: {e}"
+                ) from None
+        raise NotImplementedError("Importing configurations is not yet supported")
 
     # Flatten the data structure for each environment to a deduplicated ordered list of plugins
     for environment in parsed["environments"]:
