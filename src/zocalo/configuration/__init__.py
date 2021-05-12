@@ -1,5 +1,6 @@
 import functools
 import inspect
+import itertools
 import keyword
 import logging
 import operator
@@ -289,19 +290,17 @@ def _merge_configuration(
 
     # Flatten the data structure for each environment to a deduplicated ordered list of plugins
     for environment in parsed["environments"]:
-        # order groups alphabetically - except 'plugins', which always comes last
+        # First, order groups alphabetically - except 'plugins', which always comes last
+        ordered_plugins = [
+            parsed["environments"][environment][group]
+            for group in sorted(parsed["environments"][environment])
+            if group != "plugins"
+        ]
+        ordered_plugins.append(parsed["environments"][environment].get("plugins", []))
+
+        # Flatten the individual lists and discard duplicates
         parsed["environments"][environment] = list(
-            dict.fromkeys(
-                sum(
-                    (
-                        parsed["environments"][environment][key]
-                        for key in sorted(parsed["environments"][environment])
-                        if key != "plugins"
-                    ),
-                    start=[],
-                )
-                + parsed["environments"][environment].get("plugins", [])
-            )
+            dict.fromkeys(itertools.chain.from_iterable(ordered_plugins))
         )
 
         # Ensure all referenced plugins are defined and valid
