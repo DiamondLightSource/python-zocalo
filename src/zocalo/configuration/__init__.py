@@ -155,9 +155,6 @@ class Configuration:
             activated = f", environments {self._activated} activated"
         return f"<ZocaloConfiguration containing {environments} environments, {plugin_configurations} plugin configurations{unresolved}{activated}>"
 
-    def plugin(self, name: str):
-        pass
-
 
 for _plugin in _configuration_plugins:
     if hasattr(Configuration, _plugin):

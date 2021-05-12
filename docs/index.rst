@@ -7,8 +7,8 @@ Welcome to Zocalo's documentation!
 
    readme
    workflows
+   siteconfig
    installation
-   usage
    modules
    contributing
    authors
