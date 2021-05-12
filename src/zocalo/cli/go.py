@@ -3,10 +3,9 @@
 #   Process a datacollection
 #
 
-
 import getpass
 import json
-import os
+import pathlib
 import socket
 import sys
 import uuid
@@ -116,9 +115,7 @@ def run():
         help="Run in ActiveMQ testing (zocdev) namespace",
     )
     zc = zocalo.configuration.from_file()
-    allow_stomp_fallback = not any("stomp" in s.lower() for s in sys.argv)
     if "--test" in sys.argv:
-        allow_stomp_fallback = False
         if "test" in zc.environments:
             zc.activate_environment("test")
     else:
@@ -127,6 +124,11 @@ def run():
 
     StompTransport.add_command_line_options(parser)
     (options, args) = parser.parse_args(sys.argv[1:])
+
+    if zc.storage and zc.storage.get("zocalo.go.fallback_location"):
+        dropfile_fallback = pathlib.Path(zc.storage["zocalo.go.fallback_location"])
+    else:
+        dropfile_fallback = False
 
     def generate_headers():
         return {
@@ -139,12 +141,11 @@ def run():
             json.dumps({"headers": headers, "message": message}, indent=2) + "\n"
         )
 
-        fallback = os.path.join("/dls_sw/apps/zocalo/dropfiles", str(uuid.uuid4()))
+        fallback = dropfile_fallback / str(uuid.uuid4())
         if options.dryrun:
             print("Not storing message in %s (running with --dry-run)" % fallback)
             return
-        with open(fallback, "w") as fh:
-            fh.write(message_serialized)
+        fallback.write_text(message_serialized)
         print("Message successfully stored in %s" % fallback)
 
     def send_to_stomp_or_defer(message, headers=None):
@@ -152,7 +153,7 @@ def run():
             headers = generate_headers()
         if options.verbose:
             pprint(message)
-        if allow_stomp_fallback and options.dropfile:
+        if dropfile_fallback and options.dropfile:
             return write_message_to_dropfile(message, headers)
         try:
             stomp = StompTransport()
@@ -172,7 +173,7 @@ def run():
         ):
             raise
         except Exception:
-            if not allow_stomp_fallback:
+            if not dropfile_fallback:
                 raise
             print("\n\n")
             import traceback

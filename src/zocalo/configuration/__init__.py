@@ -18,7 +18,12 @@ logger = logging.getLogger("zocalo.configuration")
 
 class ConfigSchema(mm.Schema):
     version = mm.fields.Int(required=True)
-    environments = mm.fields.Dict(keys=mm.fields.Str(), values=mm.fields.Dict())
+    environments = mm.fields.Dict(
+        keys=mm.fields.Str(),
+        values=mm.fields.Dict(
+            keys=mm.fields.Str(), values=mm.fields.List(mm.fields.Str())
+        ),
+    )
     include = mm.fields.List(mm.fields.Str())
 
 
@@ -181,8 +186,10 @@ def _read_configuration_yaml(configuration: str) -> dict:
             f"This version of Zocalo does not understand v{yaml_dict['version']} configurations"
         )
 
-    # Convert environment shorthand lists to dictionaries
+    # Convert environment shorthands: environment lists to dictionaries
+    # and individual plugin configurations to single element lists
     for environment in yaml_dict.setdefault("environments", {}):
+        # Convert shorthand stringsenvironment shorthand lists to dictionaries
         if isinstance(yaml_dict["environments"][environment], dict):
             pass
         elif isinstance(yaml_dict["environments"][environment], list):
@@ -193,6 +200,17 @@ def _read_configuration_yaml(configuration: str) -> dict:
             raise ConfigurationError(
                 f"Invalid YAML configuration: Environment {environment} is not a list or dictionary"
             )
+        for group in yaml_dict["environments"][environment]:
+            if isinstance(yaml_dict["environments"][environment][group], list):
+                pass
+            elif isinstance(yaml_dict["environments"][environment][group], str):
+                yaml_dict["environments"][environment][group] = [
+                    yaml_dict["environments"][environment][group]
+                ]
+            else:
+                raise ConfigurationError(
+                    f"Invalid YAML configuration: Environment {environment} contains group {group} which is not a string or a list"
+                )
 
     plugin_fields = {}
     for key in yaml_dict:
@@ -271,13 +289,17 @@ def _merge_configuration(
 
     # Flatten the data structure for each environment to a deduplicated ordered list of plugins
     for environment in parsed["environments"]:
+        # order groups alphabetically - except 'plugins', which always comes last
         parsed["environments"][environment] = list(
             dict.fromkeys(
-                [
-                    parsed["environments"][environment][key]
-                    for key in sorted(parsed["environments"][environment])
-                    if key != "plugins"
-                ]
+                sum(
+                    (
+                        parsed["environments"][environment][key]
+                        for key in sorted(parsed["environments"][environment])
+                        if key != "plugins"
+                    ),
+                    start=[],
+                )
                 + parsed["environments"][environment].get("plugins", [])
             )
         )
