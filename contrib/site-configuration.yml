@@ -9,8 +9,9 @@
 # source code. The approach taken in this file is close to the 12-factor best
 # practice gold standard (https://12factor.net/config) with a few exceptions.
 
-# This file conforms to v1 of the configuration file specification.
-configuration-version: 1
+# Site configuration files need to specify a specification version. The only
+# version that exists at this time is v1.
+version: 1
 
 # Most of the entries in a configuration file are plugin configurations.
 # They follow the general format
@@ -21,6 +22,7 @@ configuration-version: 1
 #     ...                                          # optional
 #
 # Plugins are registered via the zocalo.configuration.plugins entry point.
+
 #
 
 # Configure a logging plugin that forwards log messages to a specific
@@ -32,7 +34,7 @@ graylog-live:
   host: loghost.diamond.ac.uk
   port: 12345
 
-# This is an alternative configuration using the same plugin but with
+# This is an alternative configuration using the same plugin, but with
 # different settings.
 graylog-alternative:
   plugin: graylog
@@ -40,8 +42,8 @@ graylog-alternative:
   host: loghost.diamond.ac.uk
   port: 12346
 
-# Configure a transport mechanism based on stomp. This uses the plugin named
-# 'stomp', which is also included with the zocalo package.
+# Configure a transport mechanism based on stomp. This uses a plugin named
+# 'stomp' which will be included in the workflows package.
 stomp-test:
   plugin: stomp
   username: user
@@ -57,7 +59,13 @@ stomp-test:
 stomp-live:
   /path/secrets.yml
 
-# In a deviation to the 12factor model the configuration file groups
+# Configuration files can reference plugins that do not exist on the system.
+# If these plugins are supposed to be loaded via an environment then a warning
+# will be logged.
+unknown:
+  plugin: a-plugin-you-dont-have
+
+# Deviating from the 12factor model, the configuration file groups
 # configurations together into environments. You can declare as many
 # environments as you like, the names may translate into command line
 # parameters, eg. "zocalo.service --live" will start from the 'live'
@@ -68,6 +76,11 @@ environments:
   live:
     # Each environment definition can contain named elements as well as a
     # generic list of plugins to be initialised in this environment.
+    # The difference between these two only matters if you use include files:
+    # When a file is included, and it defines a matching environment and
+    # element name then the plugin configuration will be overwritten.
+    # Whereas if the included file lists plugins unterneath 'plugins:' for the
+    # same environment name the lists are concatenated.
     transport: stomp-live
     plugins:
       - graylog-live
