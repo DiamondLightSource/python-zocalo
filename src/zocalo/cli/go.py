@@ -17,6 +17,8 @@ import workflows
 import workflows.recipe
 from workflows.transport.stomp_transport import StompTransport
 
+import zocalo.configuration
+
 # Example: zocalo.go -r example-xia2 527189
 
 
@@ -113,17 +115,15 @@ def run():
         default=False,
         help="Run in ActiveMQ testing (zocdev) namespace",
     )
-    default_configuration = "/dls_sw/apps/zocalo/secrets/credentials-live.cfg"
+    zc = zocalo.configuration.from_file()
     allow_stomp_fallback = not any("stomp" in s.lower() for s in sys.argv)
     if "--test" in sys.argv:
-        default_configuration = "/dls_sw/apps/zocalo/secrets/credentials-testing.cfg"
         allow_stomp_fallback = False
-    # override default stomp host
-    try:
-        StompTransport.load_configuration_file(default_configuration)
-    except workflows.Error as e:
-        print("Error: %s\n" % str(e))
-        allow_stomp_fallback = False
+        if "test" in zc.environments:
+            zc.activate_environment("test")
+    else:
+        if "live" in zc.environments:
+            zc.activate_environment("live")
 
     StompTransport.add_command_line_options(parser)
     (options, args) = parser.parse_args(sys.argv[1:])
