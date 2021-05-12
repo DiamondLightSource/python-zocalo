@@ -35,10 +35,10 @@ def test_plugin_sets_up_logging(logging, handler, graypy):
 
 
 def test_invalid_configuration_is_rejected():
-    with pytest.raises(RuntimeError, match="TCP"):
+    with pytest.raises(zocalo.ConfigurationError, match="TCP"):
         zocalo.configuration.from_string(sample_configuration.replace("UDP", "banana"))
 
-    with pytest.raises(RuntimeError, match="host"):
+    with pytest.raises(zocalo.ConfigurationError, match="host"):
         zocalo.configuration.from_string(
             """
             version: 1

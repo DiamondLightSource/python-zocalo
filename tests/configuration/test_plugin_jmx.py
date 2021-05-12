@@ -28,10 +28,10 @@ def test_plugin_makes_jmx_config_available():
 
 
 def test_invalid_configuration_is_rejected():
-    with pytest.raises(RuntimeError, match="integer"):
+    with pytest.raises(zocalo.ConfigurationError, match="integer"):
         zocalo.configuration.from_string(sample_configuration.replace("8080", "banana"))
 
-    with pytest.raises(RuntimeError, match="username"):
+    with pytest.raises(zocalo.ConfigurationError, match="username"):
         zocalo.configuration.from_string(
             """
             version: 1

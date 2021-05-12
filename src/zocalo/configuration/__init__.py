@@ -11,6 +11,8 @@ import marshmallow as mm
 import pkg_resources
 import yaml
 
+from zocalo import ConfigurationError
+
 logger = logging.getLogger("zocalo.configuration")
 
 
@@ -105,7 +107,7 @@ class Configuration:
                 f"could not read {self._plugin_configurations[plugin_configuration]}: {e}"
             ) from None
         if not isinstance(yaml_dict, dict) or not yaml_dict.get("plugin"):
-            raise RuntimeError(
+            raise ConfigurationError(
                 f"Error reading configuration for plugin {plugin_configuration}: "
                 f"Configuration file {self._plugin_configurations[plugin_configuration]} "
                 "is missing a plugin specification"
@@ -173,9 +175,9 @@ def _read_configuration_yaml(configuration: str) -> dict:
     yaml_dict = yaml.safe_load(configuration)
 
     if not isinstance(yaml_dict, dict) or "version" not in yaml_dict:
-        raise RuntimeError("Invalid configuration specified")
+        raise ConfigurationError("Invalid configuration specified")
     if yaml_dict["version"] != 1:
-        raise RuntimeError(
+        raise ConfigurationError(
             f"This version of Zocalo does not understand v{yaml_dict['version']} configurations"
         )
 
@@ -188,7 +190,7 @@ def _read_configuration_yaml(configuration: str) -> dict:
                 "plugins": yaml_dict["environments"][environment]
             }
         else:
-            raise RuntimeError(
+            raise ConfigurationError(
                 f"Invalid YAML configuration: Environment {environment} is not a list or dictionary"
             )
 
@@ -218,7 +220,7 @@ def _read_configuration_yaml(configuration: str) -> dict:
     try:
         schema.load(yaml_dict, unknown=mm.RAISE)
     except mm.ValidationError as e:
-        raise RuntimeError(f"Invalid YAML configuration: {e}") from None
+        raise ConfigurationError(f"Invalid YAML configuration: {e}") from None
 
     return yaml_dict
 
@@ -233,12 +235,12 @@ def _merge_configuration(
     parsed_files = set()
     if file_:
         if not file_.is_file():
-            raise RuntimeError(f"Zocalo configuration file {file_} not found")
+            raise ConfigurationError(f"Zocalo configuration file {file_} not found")
         configuration = file_.read_text()
         try:
             parsed = _read_configuration_yaml(configuration)
-        except (RuntimeError, yaml.MarkedYAMLError) as e:
-            raise RuntimeError(
+        except (ConfigurationError, yaml.MarkedYAMLError) as e:
+            raise ConfigurationError(
                 f"Error reading configuration file {file_}: {e}"
             ) from None
         parsed_files.add(file_)
@@ -261,8 +263,8 @@ def _merge_configuration(
                 file_reference = context.joinpath(include_file).resolve()
                 include = _read_configuration_yaml(file_reference.read_text())
                 assert include
-            except (RuntimeError, yaml.MarkedYAMLError) as e:
-                raise RuntimeError(
+            except (ConfigurationError, yaml.MarkedYAMLError) as e:
+                raise ConfigurationError(
                     f"Error reading configuration file {file_reference}: {e}"
                 ) from None
         raise NotImplementedError("Importing configurations is not yet supported")
@@ -283,11 +285,11 @@ def _merge_configuration(
         # Ensure all referenced plugins are defined and valid
         for plugin in parsed["environments"][environment]:
             if plugin in ConfigSchema().fields:
-                raise RuntimeError(
+                raise ConfigurationError(
                     f"Configuration error: environment {environment} references reserved name {plugin}"
                 )
             if plugin not in parsed:
-                raise RuntimeError(
+                raise ConfigurationError(
                     f"Configuration error: environment {environment} references undefined plugin {plugin}"
                 )
 

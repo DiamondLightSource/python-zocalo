@@ -14,6 +14,10 @@ __version__ = "0.7.4"
 logging.getLogger("zocalo").addHandler(logging.NullHandler())
 
 
+class ConfigurationError(Exception):
+    pass
+
+
 def enable_graylog(host="graylog2.diamond.ac.uk", port=12201, cache_dns=True):
     """
     Enable logging to a Graylog server. By default this is set up to log to

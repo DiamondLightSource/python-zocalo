@@ -59,12 +59,12 @@ def test_loading_minimal_valid_configuration():
 
 
 def test_cannot_load_unversioned_yaml_files():
-    with pytest.raises(RuntimeError, match="Invalid configuration"):
+    with pytest.raises(zocalo.ConfigurationError, match="Invalid configuration"):
         zocalo.configuration.from_string("value: 1")
 
 
 def test_cannot_load_unknown_configuration_file_versions():
-    with pytest.raises(RuntimeError, match="not understand"):
+    with pytest.raises(zocalo.ConfigurationError, match="not understand"):
         zocalo.configuration.from_string("version: 0")
 
 
@@ -81,14 +81,14 @@ def test_loading_minimal_valid_configuration_from_file(tmp_path):
 
 
 def test_cannot_load_missing_file(tmp_path):
-    with pytest.raises(RuntimeError, match="not found"):
+    with pytest.raises(zocalo.ConfigurationError, match="not found"):
         zocalo.configuration.from_file(tmp_path / "missing.yml")
 
 
 def test_cannot_load_invalid_file(tmp_path):
     config = tmp_path / "invalid.yml"
     config.write_text("x: y: z:")
-    with pytest.raises(RuntimeError, match="invalid.yml"):
+    with pytest.raises(zocalo.ConfigurationError, match="invalid.yml"):
         zocalo.configuration.from_file(config)
 
 
@@ -101,7 +101,7 @@ def test_loading_sample_configuration():
 
 
 def test_cannot_load_inconsistent_configuration():
-    with pytest.raises(RuntimeError):
+    with pytest.raises(zocalo.ConfigurationError):
         zocalo.configuration.from_string(
             """
             version: 1
@@ -113,7 +113,7 @@ def test_cannot_load_inconsistent_configuration():
 
 
 def test_cannot_load_configuration_where_environments_specifies_plugin_as_string():
-    with pytest.raises(RuntimeError, match="invalid-spec"):
+    with pytest.raises(zocalo.ConfigurationError, match="invalid-spec"):
         zocalo.configuration.from_string(
             """
             version: 1
@@ -160,7 +160,7 @@ def test_activate_multiple_environments():
 
 @pytest.mark.parametrize("name", ("include", "environments", "version"))
 def test_environment_can_not_reference_reserved_name(name):
-    with pytest.raises(RuntimeError, match="reserved"):
+    with pytest.raises(zocalo.ConfigurationError, match="reserved"):
         zocalo.configuration.from_string(
             f"""
             version: 1
@@ -284,7 +284,7 @@ def test_cannot_load_modular_configuration_with_missing_reference(tmp_path):
 def test_cannot_load_modular_configuration_with_broken_reference(tmp_path):
     secondary_file = tmp_path / "invalid.yml"
     secondary_file.write_text("x: y: z:")
-    with pytest.raises(RuntimeError, match="invalid.yml"):
+    with pytest.raises(zocalo.ConfigurationError, match="invalid.yml"):
         zocalo.configuration.from_string(
             f"""
             version: 1
