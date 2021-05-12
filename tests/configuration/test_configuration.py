@@ -129,23 +129,23 @@ def test_cannot_activate_missing_environment():
     zc = zocalo.configuration.from_string("version: 1")
     with pytest.raises(ValueError):
         zc.activate_environment("live")
-    assert zc.active_environments == []
+    assert zc.active_environments == ()
     assert "live" not in str(zc)
 
 
 def test_activate_an_empty_environment():
     zc = zocalo.configuration.from_string(sample_configuration)
     zc.activate_environment("empty")
-    zc.active_environments.append("list should not be mutable")
-    assert zc.active_environments == ["empty"]
+    assert zc.active_environments == ("empty",)
     assert "empty" in str(zc)
 
 
 def test_activate_one_environment():
     zc = zocalo.configuration.from_string(sample_configuration)
     zc.activate_environment("live")
-    zc.active_environments.append("list should not be mutable")
-    assert zc.active_environments == ["live"]
+    assert zc.active_environments == ("live",)
+    with pytest.raises(AttributeError):
+        zc.active_environments = ("this-should-not-be-writeable",)
     assert "live" in str(zc)
 
 
@@ -153,7 +153,7 @@ def test_activate_multiple_environments():
     zc = zocalo.configuration.from_string(sample_configuration)
     zc.activate_environment("partial")
     zc.activate_environment("part-2")
-    assert zc.active_environments == ["partial", "part-2"]
+    assert zc.active_environments == ("partial", "part-2")
     assert "partial" in str(zc)
     assert "part-2" in str(zc)
 

@@ -84,8 +84,8 @@ class Configuration:
         return frozenset(self._environments)
 
     @property
-    def active_environments(self) -> typing.List[str]:
-        return self._activated[:]
+    def active_environments(self) -> typing.Tuple[str]:
+        return tuple(self._activated)
 
     def _resolve(self, plugin_configuration: str) -> bool:
         try:
