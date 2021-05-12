@@ -31,14 +31,15 @@ class _PythonLevelToSyslogConverter:
             return 1  # ALERT
 
 
-class Graylog(PluginSchema):
+class Graylog:
     """
     A plugin to enable logging to a Graylog server using graypy.
     """
 
-    protocol = fields.Str(validate=validate.OneOf(["UDP", "TCP"]), required=True)
-    host = fields.Str(required=True)
-    port = fields.Int(required=True)
+    class Schema(PluginSchema):
+        protocol = fields.Str(validate=validate.OneOf(["UDP", "TCP"]), required=True)
+        host = fields.Str(required=True)
+        port = fields.Int(required=True)
 
     @staticmethod
     def activate(configuration):

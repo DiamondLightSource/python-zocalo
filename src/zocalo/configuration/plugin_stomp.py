@@ -4,12 +4,13 @@ from workflows.transport.stomp_transport import StompTransport
 from zocalo.configuration import PluginSchema
 
 
-class Stomp(PluginSchema):
-    host = fields.Str(required=True)
-    port = fields.Int(required=True)
-    username = fields.Str(required=True)
-    password = fields.Str(required=True)
-    prefix = fields.Str(required=True)
+class Stomp:
+    class Schema(PluginSchema):
+        host = fields.Str(required=True)
+        port = fields.Int(required=True)
+        username = fields.Str(required=True)
+        password = fields.Str(required=True)
+        prefix = fields.Str(required=True)
 
     @staticmethod
     def activate(configuration):

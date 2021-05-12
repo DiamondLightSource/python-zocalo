@@ -202,14 +202,9 @@ def _read_configuration_yaml(configuration: str) -> dict:
             yaml_dict[key].get("plugin"), str
         ):
             plugin = _load_plugin(yaml_dict[key]["plugin"])
-            if (
-                plugin
-                and isinstance(plugin, type(PluginSchema))
-                and issubclass(plugin, PluginSchema)
-            ):
-                # type check with isinstance() is required as issubclass() may throw TypeError
+            if plugin and hasattr(plugin, "Schema"):
                 plugin_fields[key] = mm.fields.Nested(
-                    plugin, unknown=mm.EXCLUDE, required=True
+                    plugin.Schema, unknown=mm.EXCLUDE, required=True
                 )
 
     class _ConfigSchema(ConfigSchema):
