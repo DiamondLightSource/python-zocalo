@@ -107,7 +107,8 @@ class Configuration:
         if not isinstance(yaml_dict, dict) or not yaml_dict.get("plugin"):
             raise RuntimeError(
                 f"Error reading configuration for plugin {plugin_configuration}: "
-                f"Configuration file {self._plugin_configurations[plugin_configuration]} is invalid"
+                f"Configuration file {self._plugin_configurations[plugin_configuration]} "
+                "is missing a plugin specification"
             )
         self._plugin_configurations[plugin_configuration] = yaml_dict
 
@@ -115,7 +116,7 @@ class Configuration:
         if name not in self._environments:
             raise ValueError(f"Environment '{name}' is not defined")
         for config_name in self._environments[name]:
-            print(f"Loading plugin configuration '{config_name}'")
+            logger.debug("Loading plugin configuration %s", config_name)
             if isinstance(self._plugin_configurations[config_name], pathlib.Path):
                 self._resolve(config_name)
             configuration = self._plugin_configurations[config_name]
