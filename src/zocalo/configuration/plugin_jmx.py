@@ -12,5 +12,5 @@ class JMX:
         password = fields.Str(required=True)
 
     @staticmethod
-    def activate():
-        pass
+    def activate(configuration):
+        return configuration
