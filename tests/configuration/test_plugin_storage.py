@@ -38,15 +38,15 @@ sane-constants:
 
 def test_assert_plain_configuration_object_does_not_have_storage_attribute():
     zc = zocalo.configuration.from_string(sample_configuration)
-    assert not hasattr(zc, "storage")
+    assert zc.storage is None
     zc.activate_environment("nothing")
-    assert not hasattr(zc, "storage")
+    assert zc.storage is None
 
 
 def test_plugin_is_available():
     zc = zocalo.configuration.from_string(sample_configuration)
     zc.activate_environment("empty")
-    assert hasattr(zc, "storage")
+    assert zc.storage is not None
 
 
 def test_simple_plugin_usage():

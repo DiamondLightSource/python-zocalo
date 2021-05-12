@@ -31,6 +31,7 @@ def test_plugin_sets_up_logging(logging, handler, graypy):
     graypy.GELFUDPHandler.assert_called_once_with("127.0.0.1", 12201, level_names=True)
     relevant_handler = graypy.GELFUDPHandler.return_value
     logging.getLogger.return_value.addHandler.assert_called_once_with(relevant_handler)
+    assert zc.graylog == relevant_handler
 
 
 def test_invalid_configuration_is_rejected():

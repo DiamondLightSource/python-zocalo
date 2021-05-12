@@ -47,6 +47,12 @@ def _assert_configuration_is_empty(zc):
     assert "0 plugin configurations" in str(zc)
 
 
+def test_return_empty_configuration_if_no_path_specified():
+    with mock.patch.dict(os.environ, {"ZOCALO_CONFIG": ""}):
+        zc = zocalo.configuration.from_file()
+    _assert_configuration_is_empty(zc)
+
+
 def test_loading_minimal_valid_configuration():
     zc = zocalo.configuration.from_string("version: 1")
     _assert_configuration_is_empty(zc)
@@ -166,9 +172,9 @@ def test_environment_can_not_reference_reserved_name(name):
 
 
 def test_unknown_plugin_definition_triggers_a_warning(caplog):
-    unique_plugin_name = "testcase-for-an-unknown-plugin"
+    unique_plugin_name = "testcase_for_an_unknown_plugin"
     with caplog.at_level(logging.WARNING):
-        zocalo.configuration.from_string(
+        zc = zocalo.configuration.from_string(
             f"""
             version: 1
             undefined-plugin:
@@ -176,6 +182,7 @@ def test_unknown_plugin_definition_triggers_a_warning(caplog):
             """
         )
     assert unique_plugin_name in caplog.text
+    assert not hasattr(zc, unique_plugin_name)
 
 
 def test_configuration_can_specify_a_missing_resolution_file(tmp_path):

@@ -1,6 +1,8 @@
 import functools
 import inspect
+import keyword
 import logging
+import operator
 import os
 import pathlib
 import typing
@@ -25,21 +27,43 @@ class PluginSchema(mm.Schema):
     )
 
 
+_reserved_names = {"activated", "environments", "plugin_configurations"}
+
+
+def _check_valid_plugin_name(name: str) -> bool:
+    valid = (
+        name.isidentifier()
+        and not keyword.iskeyword(name)
+        and name not in _reserved_names
+    )
+    if not valid:
+        logger.warning(
+            f"Zocalo configuration plugin '{name}' is not a valid plugin name"
+        )
+    return valid
+
+
+_configuration_plugins = {
+    e.name: e
+    for e in pkg_resources.iter_entry_points("zocalo.configuration.plugins")
+    if _check_valid_plugin_name(e.name)
+}
+
+
 @functools.lru_cache(maxsize=None)
-def _get_plugin(name: str):
-    if not hasattr(_get_plugin, "cache"):
-        _get_plugin.cache = {
-            e.name: e.load
-            for e in pkg_resources.iter_entry_points("zocalo.configuration.plugins")
-        }
-    try:
-        return _get_plugin.cache[name]()
-    except KeyError:
+def _load_plugin(name: str):
+    if name not in _configuration_plugins:
         logger.warning(f"Zocalo configuration plugin '{name}' missing")
         return False
+    return _configuration_plugins[name].load()
 
 
 class Configuration:
+    __slots__ = tuple(
+        ["_" + name for name in _configuration_plugins]
+        + ["_" + name for name in _reserved_names]
+    )
+
     def __init__(self, yaml_dict: dict):
         self._activated: typing.List[str] = []
         self._environments: typing.Dict[str, typing.List[str]] = yaml_dict.get(
@@ -52,6 +76,8 @@ class Configuration:
             for name, config in yaml_dict.items()
             if name not in ConfigSchema().fields
         }
+        for name in _configuration_plugins:
+            setattr(self, "_" + name, None)
 
     @property
     def environments(self) -> typing.Set[str]:
@@ -93,7 +119,7 @@ class Configuration:
             if isinstance(self._plugin_configurations[config_name], pathlib.Path):
                 self._resolve(config_name)
             configuration = self._plugin_configurations[config_name]
-            plugin = _get_plugin(configuration["plugin"])
+            plugin = _load_plugin(configuration["plugin"])
             if plugin:
                 plugin_parameters = inspect.signature(plugin.activate).parameters
                 arguments = {"configuration": configuration, "config_object": self}
@@ -105,7 +131,8 @@ class Configuration:
                         p: arguments[p]
                         for p in set(arguments).intersection(plugin_parameters)
                     }
-                plugin.activate(**arguments)
+                return_value = plugin.activate(**arguments)
+                setattr(self, "_" + configuration["plugin"], return_value)
         self._activated.append(name)
 
     def __str__(self):
@@ -127,6 +154,19 @@ class Configuration:
         else:
             activated = f", environments {self._activated} activated"
         return f"<ZocaloConfiguration containing {environments} environments, {plugin_configurations} plugin configurations{unresolved}{activated}>"
+
+    def plugin(self, name: str):
+        pass
+
+
+for _plugin in _configuration_plugins:
+    if hasattr(Configuration, _plugin):
+        logger.warning(
+            f"Zocalo configuration plugin '{_plugin}' is not a valid plugin name"
+        )
+    else:
+        setattr(Configuration, _plugin, property(operator.attrgetter("_" + _plugin)))
+del _plugin
 
 
 def _read_configuration_yaml(configuration: str) -> dict:
@@ -164,7 +204,7 @@ def _read_configuration_yaml(configuration: str) -> dict:
         elif isinstance(yaml_dict[key], dict) and isinstance(
             yaml_dict[key].get("plugin"), str
         ):
-            plugin = _get_plugin(yaml_dict[key]["plugin"])
+            plugin = _load_plugin(yaml_dict[key]["plugin"])
             if (
                 plugin
                 and isinstance(plugin, type(PluginSchema))
@@ -261,7 +301,9 @@ def _merge_configuration(
 
 def from_file(config_file=None) -> Configuration:
     if not config_file:
-        config_file = os.environ.get("ZOCALO_CONFIG", "zocalo.yml")
+        config_file = os.environ.get("ZOCALO_CONFIG")
+    if not config_file:
+        return Configuration({})
     config_file = pathlib.Path(config_file)
     return Configuration(_merge_configuration(None, config_file, config_file.parent))
 
