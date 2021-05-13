@@ -2,6 +2,10 @@
 History
 =======
 
+0.8.0
+-----
+* Support for Zocalo configuration files
+
 0.7.4 (2021-03-17)
 ------------------
 * Documentation improvements
