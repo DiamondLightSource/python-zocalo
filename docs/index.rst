@@ -9,7 +9,6 @@ Welcome to Zocalo's documentation!
    workflows
    siteconfig
    installation
-   modules
    contributing
    authors
    history

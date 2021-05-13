@@ -33,6 +33,7 @@ then this `YAML primer`_ may prove useful.
 This documentation describes version 1 of the configuration file format. There
 is currently no other version. Every site configuration file must declare its
 version by including, at the top level:
+
 .. code-block:: yaml
 
    version: 1
@@ -50,6 +51,7 @@ Plugin configurations
 ---------------------
 
 Each plugin configuration block follows this basic format:
+
 .. code-block:: yaml
 
    some-unique-name:
@@ -91,6 +93,7 @@ Graylog plugin
 tbd.
 
 .. _environments:
+
 Environment definitions
 -----------------------
 
@@ -121,6 +124,7 @@ References to further files
 
 tbd.
 
+========================
 Writing your own plugins
 ========================
 
