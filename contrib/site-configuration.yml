@@ -1,0 +1,97 @@
+# Zocalo site configuration file
+
+# This is a YAML formatted configuration file, see for example
+# https://getopentest.org/reference/yaml-primer.html if you are not familiar
+# with YAML.
+
+# The intention of this file is to contain all site-specific configuration in a
+# sufficiently flexible format so that we can remove all configuration from the
+# source code. The approach taken in this file is close to the 12-factor best
+# practice gold standard (https://12factor.net/config) with a few exceptions.
+
+# Site configuration files need to specify a specification version. The only
+# version that exists at this time is v1.
+version: 1
+
+# Most of the entries in a configuration file are plugin configurations.
+# They follow the general format
+#
+#   unique_name:
+#     plugin: plugin_name                          # required
+#     key: value_that_is_understood_by_the_plugin  # optional
+#     ...                                          # optional
+#
+# Plugins are registered via the zocalo.configuration.plugins entry point.
+
+#
+
+# Configure a logging plugin that forwards log messages to a specific
+# graylog endpoint. All of the specifics are handled by the plugin 'graylog',
+# which is included in the zocalo package.
+graylog-live:
+  plugin: graylog
+  protocol: UDP
+  host: loghost.diamond.ac.uk
+  port: 12345
+
+# This is an alternative configuration using the same plugin, but with
+# different settings.
+graylog-alternative:
+  plugin: graylog
+  protocol: UDP
+  host: loghost.diamond.ac.uk
+  port: 12346
+
+# Configure a transport mechanism based on stomp. This uses a plugin named
+# 'stomp' which will be included in the workflows package.
+stomp-test:
+  plugin: stomp
+  username: user
+  password: 12345
+  host: stomp.server.localhost.example.com
+  port: 61613
+  prefix: zocalo
+
+# Configurations can also be contained in a separate file. These files are read
+# on demand only. You can use this to store user credentials in a secure place
+# that is only accessible by certain users. File paths can be absolute or
+# relative to the referencing configuration file.
+stomp-live:
+  /path/secrets.yml
+
+# Configuration files can reference plugins that do not exist on the system.
+# If these plugins are supposed to be loaded via an environment then a warning
+# will be logged.
+unknown:
+  plugin: a-plugin-you-dont-have
+
+# Deviating from the 12factor model, the configuration file groups
+# configurations together into environments. You can declare as many
+# environments as you like, the names may translate into command line
+# parameters, eg. "zocalo.service --live" will start from the 'live'
+# configuration, and "zocalo.service --test" from the 'test' configuration.
+# Be mindful that names you declare here may therefore collide with command
+# line parameters declared elsewhere.
+environments:
+  live:
+    # Each environment definition can contain named elements as well as a
+    # generic list of plugins to be initialised in this environment.
+    # The difference between these two only matters if you use include files:
+    # When a file is included, and it defines a matching environment and
+    # element name then the plugin configuration will be overwritten.
+    # Whereas if the included file lists plugins unterneath 'plugins:' for the
+    # same environment name the lists are concatenated.
+    transport: stomp-live
+    plugins:
+      - graylog-live
+  test:
+    transport: stomp-test
+
+# The configuration is modular. You can merge additional configuration files
+# into this file by listing them under the 'include' key.
+# Every file is loaded individually and unconditionally. All files must be
+# readable. Each file can have their own 'include:' section where further files
+# are included, these recursive includes are loaded in a depth-first manner.
+# Included files overwrite transport and plugin definitions in this file.
+include:
+  - /local/site/common_configuration.yml

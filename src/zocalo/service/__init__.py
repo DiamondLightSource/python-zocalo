@@ -14,6 +14,7 @@ import workflows.contrib.start_service
 from workflows.transport.stomp_transport import StompTransport
 
 import zocalo
+import zocalo.configuration
 
 
 def start_service():
@@ -52,20 +53,25 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
         self.log = logging.getLogger("zocalo.service")
         self.log.setLevel(logging.DEBUG)
 
-        # Enable logging to graylog
-        zocalo.enable_graylog()
-
     def __init__(self):
         # initialize logging
-        self.setup_logging()
+        self._zc = zocalo.configuration.from_file()
 
         # change settings when in live mode
         default_configuration = "/dls_sw/apps/zocalo/secrets/credentials-testing.cfg"
         if "--live" in sys.argv:
             self.use_live_infrastructure = True
             default_configuration = "/dls_sw/apps/zocalo/secrets/credentials-live.cfg"
+            if "live" in self._zc.environments:
+                self._zc.activate_environment("live")
         else:
             self.use_live_infrastructure = False
+        self.setup_logging()
+
+        if "graylog" not in self._zc.plugin:
+            # Enable logging to graylog
+            zocalo.enable_graylog()
+
         if os.path.exists(default_configuration):
             StompTransport.load_configuration_file(default_configuration)
 

@@ -16,10 +16,9 @@ import workflows.recipe.wrapper
 import workflows.services.common_service
 import workflows.transport
 import workflows.util
-from workflows.transport.stomp_transport import StompTransport
 
+import zocalo.configuration
 import zocalo.wrapper
-from zocalo import enable_graylog
 
 
 def run():
@@ -33,11 +32,13 @@ def run():
     logging.getLogger().addHandler(console)
     log = logging.getLogger("dlstbx.wrap")
 
-    # Set up stomp defaults
-    default_configuration = "/dls_sw/apps/zocalo/secrets/credentials-live.cfg"
+    zc = zocalo.configuration.from_file()
     if "--test" in cmdline_args:
-        default_configuration = "/dls_sw/apps/zocalo/secrets/credentials-testing.cfg"
-    StompTransport.load_configuration_file(default_configuration)
+        if "test" in zc.environments:
+            zc.activate_environment("test")
+    else:
+        if "live" in zc.environments:
+            zc.activate_environment("live")
 
     known_wrappers = {
         e.name: e.load for e in pkg_resources.iter_entry_points("zocalo.wrappers")
@@ -109,8 +110,6 @@ def run():
     if options.verbose:
         console.setLevel(logging.DEBUG)
 
-    # Enable logging to graylog
-    graylog_handler = enable_graylog()
     log.info(
         "Starting wrapper for %s with recipewrapper file %s",
         options.wrapper,
@@ -137,14 +136,14 @@ def run():
             )
         instance.set_recipe_wrapper(recwrap)
 
-        if recwrap.environment.get("ID"):
+        if zc.graylog and recwrap.environment.get("ID"):
             # If recipe ID available then include that in all future log messages
             class ContextFilter(logging.Filter):
                 def filter(self, record):
                     record.recipe_ID = recwrap.environment["ID"]
                     return True
 
-            graylog_handler.addFilter(ContextFilter())
+            zc.graylog.addFilter(ContextFilter())
 
         if recwrap.recipe_step.get("wrapper", {}).get("task_information"):
             # If the recipe contains an extra task_information field then add this to the status display

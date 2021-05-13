@@ -2,6 +2,7 @@
 
 import logging
 import socket
+import warnings
 
 import graypy
 import graypy.handler
@@ -13,6 +14,10 @@ __version__ = "0.7.4"
 logging.getLogger("zocalo").addHandler(logging.NullHandler())
 
 
+class ConfigurationError(Exception):
+    pass
+
+
 def enable_graylog(host="graylog2.diamond.ac.uk", port=12201, cache_dns=True):
     """
     Enable logging to a Graylog server. By default this is set up to log to
@@ -22,6 +27,13 @@ def enable_graylog(host="graylog2.diamond.ac.uk", port=12201, cache_dns=True):
     :param cache_dns: Look up the hostname only once on set up (default: True)
     :return: graypy log handler
     """
+
+    warnings.warn(
+        "zocalo.enable_graylog has deprecated and will be removed in a future version. "
+        "You should use a zocalo configuration file instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
     # Monkeypatch graypy to support graylog log levels:
     # Translate Python integer level numbers to syslog levels
