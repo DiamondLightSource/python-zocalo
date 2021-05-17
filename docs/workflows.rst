@@ -10,4 +10,4 @@ Zocalo is built on top of the `python-workflows` package. This provides the faci
 
 .. image:: ./zocalo_queues.jpg
 
-This diagram illustrates the overall task management model of Zocalo. Services run continuosly, consuming from the relevant queues. Recipes inside of wrappers dictate the flow of data from queue to queue and, therefore, from service to service. The nodes represent input data which is given to the service with the output of a service becoming the input for the next.
+This diagram illustrates the overall task management model of Zocalo. Services run continuously, consuming from the relevant queues. Recipes inside of wrappers dictate the flow of data from queue to queue and, therefore, from service to service. The nodes represent input data which is given to the service with the output of a service becoming the input for the next.
