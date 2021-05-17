@@ -68,8 +68,8 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
             self.use_live_infrastructure = False
         self.setup_logging()
 
-        if "graylog" not in self._zc.plugin:
-            # Enable logging to graylog
+        if not hasattr(self._zc, "graylog") or not self._zc.graylog:
+            # Enable logging to graylog, obsolete
             zocalo.enable_graylog()
 
         if os.path.exists(default_configuration):
