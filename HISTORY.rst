@@ -2,8 +2,8 @@
 History
 =======
 
-0.8.0
------
+0.8.0 (2021-05-18)
+------------------
 * Support for Zocalo configuration files
 
 0.7.4 (2021-03-17)
