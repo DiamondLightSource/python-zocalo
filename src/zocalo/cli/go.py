@@ -50,16 +50,6 @@ def run():
         help="An auto processing scaling ID for downstream processing recipes.",
     )
     parser.add_option(
-        "-f",
-        "--file",
-        dest="recipefile",
-        metavar="FILE",
-        action="store",
-        type="string",
-        default="",
-        help="Run recipe contained in this file.",
-    )
-    parser.add_option(
         "-n",
         "--no-dcid",
         dest="nodcid",
@@ -189,25 +179,12 @@ def run():
         key, value = kv.split("=", 1)
         message["parameters"][key] = value
 
-    if (
-        not options.recipe
-        and not options.recipefile
-        and not options.nodcid
-        and not options.reprocess
-    ):
+    if not options.recipe and not options.nodcid and not options.reprocess:
         sys.exit("No recipes specified.")
-
-    if options.recipefile:
-        with open(options.recipefile) as fh:
-            custom_recipe = workflows.recipe.Recipe(json.load(fh))
-        custom_recipe.validate()
-        message["custom_recipe"] = custom_recipe.recipe
 
     if options.nodcid:
         if options.recipe:
             print("Running recipes", options.recipe)
-        if options.recipefile:
-            print("Running recipe from file", options.recipefile)
         print("without specified data collection.")
         send_to_stomp_or_defer(message)
         print("\nSubmitted.")
@@ -234,10 +211,7 @@ def run():
     if message["recipes"]:
         print("Running recipes", message["recipes"])
 
-    if options.recipefile:
-        print("Running recipe from file", options.recipefile)
-
-    if not message["recipes"] and not message.get("custom_recipe"):
+    if not message["recipes"]:
         sys.exit("No recipes specified.")
     print("for data collection", dcid)
     message["parameters"]["ispyb_dcid"] = dcid
