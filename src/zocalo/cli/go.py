@@ -24,9 +24,8 @@ import zocalo.configuration
 def run():
     parser = OptionParser(
         usage="zocalo.go [options] dcid",
-        description="Triggers processing of a standard "
-        "recipe, of an arbitrary recipe from a local file, or of an entry in "
-        "the ISPyB processing table.",
+        description="Triggers processing of a recipe, or of an"
+        " entry in the ISPyB processing table.",
     )
 
     parser.add_option("-?", action="help", help=SUPPRESS_HELP)
@@ -37,7 +36,9 @@ def run():
         metavar="RCP",
         action="append",
         default=[],
-        help="Name of a recipe to run. Can be used multiple times. Recipe names correspond to filenames (excluding .json) in /dls_sw/apps/zocalo/live/recipes",
+        help="Name of a recipe to run. Can be used multiple times. "
+        "Recipe names correspond to filenames (excluding .json) in "
+        "/dls_sw/apps/zocalo/live/recipes",
     )
     parser.add_option(
         "-a",
