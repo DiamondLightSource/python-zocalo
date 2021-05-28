@@ -12,8 +12,6 @@ import uuid
 from optparse import SUPPRESS_HELP, OptionParser
 from pprint import pprint
 
-import workflows
-import workflows.recipe
 from workflows.transport.stomp_transport import StompTransport
 
 import zocalo.configuration
