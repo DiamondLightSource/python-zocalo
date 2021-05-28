@@ -57,7 +57,7 @@ def run():
         action="store",
         type="string",
         default="",
-        help="Run recipe contained in this file.",
+        help=SUPPRESS_HELP,
     )
     parser.add_option(
         "-n",
@@ -198,6 +198,10 @@ def run():
         sys.exit("No recipes specified.")
 
     if options.recipefile:
+        print(
+            "Using recipe files in zocalo.go is deprecated, and "
+            "the option to do this will be removed in the future"
+        )
         with open(options.recipefile) as fh:
             custom_recipe = workflows.recipe.Recipe(json.load(fh))
         custom_recipe.validate()
