@@ -119,6 +119,18 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
             dest="test",
             help="Run in ActiveMQ live namespace (zocalo)",
         )
+        parser.add_option(
+            "-e",
+            "--environment",
+            dest="environment",
+            metavar="ENV",
+            action="append",
+            default=[],
+            type="choice",
+            choices=sorted(self._zc.environments),
+            help="Enable site-specific settings. Choices are: "
+            + ", ".join(sorted(self._zc.environments)),
+        )
         self.log.debug("Launching " + str(sys.argv))
 
     def on_parsing(self, options, args):
