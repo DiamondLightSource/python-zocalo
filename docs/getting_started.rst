@@ -26,6 +26,23 @@ Make sure to enable scheduling, in `conf/activemq.xml` in the `broker` tag add t
 
     schedulerSupport="true"
 
+Its also a good idea to enable removal of unused queues, see https://activemq.apache.org/delete-inactive-destinations
+
+In `conf/activemq.xml` in the `broker` tag add the following property:
+
+.. code-block:: xml
+
+    schedulePeriodForDestinationPurge="10000"
+
+Then in the `policyEntry` tag for `queue=">"` add the following properties:
+
+.. code-block:: xml
+
+    gcInactiveDestinations="true" inactiveTimoutBeforeGC="120000"
+
+Which will purge unused queues on a 120s basis.
+
+
 Then start ActiveMQ:
 
 .. code-block:: bash
