@@ -30,7 +30,7 @@ def run():
     logging.getLogger("zocalo").setLevel(logging.INFO)
     logging.getLogger().setLevel(logging.WARN)
     logging.getLogger().addHandler(console)
-    log = logging.getLogger("dlstbx.wrap")
+    log = logging.getLogger("zocalo.wrap")
 
     zc = zocalo.configuration.from_file()
     if "--test" in cmdline_args:
