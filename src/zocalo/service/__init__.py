@@ -4,17 +4,15 @@
 # interfering with live data processing.
 # To run a live server you must specify '--live'
 
-
 import logging
+import optparse
 import os
 import sys
 
 import workflows
 import workflows.contrib.start_service
-from workflows.transport.stomp_transport import StompTransport
 
-import zocalo
-import zocalo.configuration
+import zocalo.configuration.argparse
 
 
 def start_service():
@@ -54,26 +52,25 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
         self.log.setLevel(logging.DEBUG)
 
     def __init__(self):
-        # initialize logging
+        # load configuration and initialize logging
         self._zc = zocalo.configuration.from_file()
+        envs = zocalo.configuration.argparse.get_specified_environments()
 
-        # change settings when in live mode
-        default_configuration = "/dls_sw/apps/zocalo/secrets/credentials-testing.cfg"
-        if "--live" in sys.argv:
-            self.use_live_infrastructure = True
-            default_configuration = "/dls_sw/apps/zocalo/secrets/credentials-live.cfg"
-            if "live" in self._zc.environments:
-                self._zc.activate_environment("live")
-        else:
-            self.use_live_infrastructure = False
+        if not envs:  # deprecated
+            if "--live" in sys.argv:
+                envs = ["live"]
+            else:
+                envs = ["test"]
+        self.use_live_infrastructure = "live" in envs  # deprecated
+
+        for env in envs:
+            if env in self._zc.environments:
+                self._zc.activate_environment(env)
         self.setup_logging()
 
         if not hasattr(self._zc, "graylog") or not self._zc.graylog:
-            # Enable logging to graylog, obsolete
+            # Enable logging to graylog, deprecated
             zocalo.enable_graylog()
-
-        if os.path.exists(default_configuration):
-            StompTransport.load_configuration_file(default_configuration)
 
     def on_parser_preparation(self, parser):
         parser.add_option(
@@ -107,17 +104,31 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
             default=False,
             help="Restart service on failure",
         )
-        parser.add_option(
+        parser.add_option(  # deprecated
             "--test",
             action="store_true",
             dest="test",
-            help="Run in ActiveMQ testing namespace (zocdev, default)",
+            default=False,
+            help=optparse.SUPPRESS_HELP,
         )
-        parser.add_option(
+        parser.add_option(  # deprecated
             "--live",
             action="store_true",
-            dest="test",
-            help="Run in ActiveMQ live namespace (zocalo)",
+            dest="live",
+            default=False,
+            help=optparse.SUPPRESS_HELP,
+        )
+        parser.add_option(
+            "-e",
+            "--environment",
+            dest="environment",
+            metavar="ENV",
+            action="append",
+            default=[],
+            type="choice",
+            choices=sorted(self._zc.environments),
+            help="Enable site-specific settings. Choices are: "
+            + ", ".join(sorted(self._zc.environments)),
         )
         self.log.debug("Launching " + str(sys.argv))
 
@@ -129,6 +140,10 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
             logging.getLogger("stomp.py").setLevel(logging.DEBUG)
             logging.getLogger("workflows").setLevel(logging.DEBUG)
         self.options = options
+        if options.live:
+            print("--live is deprecated. Use -e=live")
+        if options.test:
+            print("--test is deprecated. Use -e=test")
 
     def before_frontend_construction(self, kwargs):
         kwargs["verbose_service"] = True
