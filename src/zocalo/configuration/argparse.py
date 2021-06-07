@@ -41,7 +41,7 @@ def add_env_option(zc, parser):
             dest="environment",
             metavar="ENV",
             action="append",
-            default=zc.default,
+            default=[zc.default],
             choices=sorted(zc.environments),
             help="Enable site-specific settings. Choices are: "
             + ", ".join(sorted(zc.environments))
@@ -54,7 +54,7 @@ def add_env_option(zc, parser):
             dest="environment",
             metavar="ENV",
             action="append",
-            default=zc.default,
+            default=[zc.default],
             type="choice",
             choices=sorted(zc.environments),
             help="Enable site-specific settings. Choices are: "
