@@ -149,6 +149,7 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
         kwargs["verbose_service"] = True
         kwargs["environment"] = kwargs.get("environment", {})
         kwargs["environment"]["live"] = self.use_live_infrastructure
+        kwargs["environment"]["config"] = self._zc
         return kwargs
 
     def on_frontend_preparation(self, frontend):
