@@ -360,5 +360,7 @@ def activate_from_file(default_env="live") -> Configuration:
     for env in envs:
         if env in zc.environments:
             zc.activate_environment(env)
+        else:
+            logger.warning(f"Trying to activate {env} which is not a valid environment")
 
     return zc, envs
