@@ -3,6 +3,7 @@
 #   Process a datacollection
 #
 
+import argparse
 import getpass
 import json
 import pathlib
@@ -17,6 +18,7 @@ import workflows.recipe
 from workflows.transport.stomp_transport import StompTransport
 
 import zocalo.configuration
+import zocalo.configuration.argparse
 
 # Example: zocalo.go -r example-xia2 527189
 
@@ -112,15 +114,10 @@ def run():
         action="store_true",
         dest="test",
         default=False,
-        help="Run in ActiveMQ testing (zocdev) namespace",
+        help=argparse.SUPPRESS,
     )
-    zc = zocalo.configuration.from_file()
-    if "--test" in sys.argv:
-        if "test" in zc.environments:
-            zc.activate_environment("test")
-    else:
-        if "live" in zc.environments:
-            zc.activate_environment("live")
+    zc, _ = zocalo.configuration.activate_from_file()
+    zocalo.configuration.argparse.add_env_option(zc, parser)
 
     StompTransport.add_command_line_options(parser)
     (options, args) = parser.parse_args(sys.argv[1:])
@@ -196,6 +193,9 @@ def run():
         and not options.reprocess
     ):
         sys.exit("No recipes specified.")
+
+    if options.test:
+        print("--test is deprecated. Use -e=test")
 
     if options.recipefile:
         with open(options.recipefile) as fh:

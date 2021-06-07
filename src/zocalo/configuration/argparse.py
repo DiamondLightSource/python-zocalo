@@ -24,13 +24,40 @@ def get_specified_environments(
 
     env_parser = _EnvParser()
     env_parser.add_argument(
-        *arguments,
-        dest="envs",
-        action="append",
-        default=[],
+        *arguments, dest="envs", action="append", default=[],
     )
     selected_environments = env_parser.parse_known_args()
     if not selected_environments:
         return []
 
     return selected_environments[0].envs
+
+
+def add_env_option(zc, parser, default="live"):
+    if isinstance(parser, argparse.ArgumentParser):
+        parser.add_argument(
+            "-e",
+            "--environment",
+            dest="environment",
+            metavar="ENV",
+            action="append",
+            default=default,
+            choices=sorted(zc.environments),
+            help="Enable site-specific settings. Choices are: "
+            + ", ".join(sorted(zc.environments))
+            + " (default: %(default)s)",
+        )
+    else:
+        parser.add_option(
+            "-e",
+            "--environment",
+            dest="environment",
+            metavar="ENV",
+            action="append",
+            default=default,
+            type="choice",
+            choices=sorted(zc.environments),
+            help="Enable site-specific settings. Choices are: "
+            + ", ".join(sorted(zc.environments))
+            + " (default: %default)",
+        )

@@ -53,19 +53,8 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
 
     def __init__(self):
         # load configuration and initialize logging
-        self._zc = zocalo.configuration.from_file()
-        envs = zocalo.configuration.argparse.get_specified_environments()
-
-        if not envs:  # deprecated
-            if "--live" in sys.argv:
-                envs = ["live"]
-            else:
-                envs = ["test"]
+        self._zc, envs = zocalo.configuration.activate_from_file(default="test")
         self.use_live_infrastructure = "live" in envs  # deprecated
-
-        for env in envs:
-            if env in self._zc.environments:
-                self._zc.activate_environment(env)
         self.setup_logging()
 
         if not hasattr(self._zc, "graylog") or not self._zc.graylog:
@@ -118,18 +107,7 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
             default=False,
             help=optparse.SUPPRESS_HELP,
         )
-        parser.add_option(
-            "-e",
-            "--environment",
-            dest="environment",
-            metavar="ENV",
-            action="append",
-            default=[],
-            type="choice",
-            choices=sorted(self._zc.environments),
-            help="Enable site-specific settings. Choices are: "
-            + ", ".join(sorted(self._zc.environments)),
-        )
+        zocalo.configuration.argparse.add_env_option(self._zc, parser, default="test")
         self.log.debug("Launching " + str(sys.argv))
 
     def on_parsing(self, options, args):

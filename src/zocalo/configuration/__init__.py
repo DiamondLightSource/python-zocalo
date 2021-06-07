@@ -6,6 +6,7 @@ import logging
 import operator
 import os
 import pathlib
+import sys
 import typing
 
 import marshmallow as mm
@@ -13,6 +14,7 @@ import pkg_resources
 import yaml
 
 from zocalo import ConfigurationError
+import zocalo.configuration.argparse
 
 logger = logging.getLogger("zocalo.configuration")
 
@@ -328,3 +330,23 @@ def from_file(config_file=None) -> Configuration:
 
 def from_string(configuration: str) -> Configuration:
     return Configuration(_merge_configuration(configuration, None, pathlib.Path.cwd()))
+
+
+def activate_from_file(default="live") -> Configuration:
+    zc = from_file()
+    envs = zocalo.configuration.argparse.get_specified_environments()
+
+    if "--live" in sys.argv:  # deprecated
+        envs = ["live"]
+    if "--test" in sys.argv:
+        envs = ["test"]
+
+    for env in envs:
+        if env in zc.environments:
+            zc.activate_environment(env)
+
+    if not envs and default is not None:
+        envs = [default]
+        zc.activate_environment(default)
+
+    return zc, envs
