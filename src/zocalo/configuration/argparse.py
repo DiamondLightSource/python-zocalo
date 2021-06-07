@@ -33,7 +33,7 @@ def get_specified_environments(
     return selected_environments[0].envs
 
 
-def add_env_option(zc, parser, default="live"):
+def add_env_option(zc, parser):
     if isinstance(parser, argparse.ArgumentParser):
         parser.add_argument(
             "-e",
@@ -41,7 +41,7 @@ def add_env_option(zc, parser, default="live"):
             dest="environment",
             metavar="ENV",
             action="append",
-            default=default,
+            default=zc.default,
             choices=sorted(zc.environments),
             help="Enable site-specific settings. Choices are: "
             + ", ".join(sorted(zc.environments))
@@ -54,7 +54,7 @@ def add_env_option(zc, parser, default="live"):
             dest="environment",
             metavar="ENV",
             action="append",
-            default=default,
+            default=zc.default,
             type="choice",
             choices=sorted(zc.environments),
             help="Enable site-specific settings. Choices are: "

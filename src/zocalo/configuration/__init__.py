@@ -37,7 +37,12 @@ class PluginSchema(mm.Schema):
     )
 
 
-_reserved_names = {"activated", "environments", "plugin_configurations"}
+_reserved_names = {
+    "activated",
+    "environments",
+    "plugin_configurations",
+    "default_environment",
+}
 
 
 def _check_valid_plugin_name(name: str) -> bool:
@@ -74,7 +79,8 @@ class Configuration:
         + ["_" + name for name in _reserved_names]
     )
 
-    def __init__(self, yaml_dict: dict):
+    def __init__(self, yaml_dict: dict, default_env=None):
+        self._default_environment: str = default_env
         self._activated: typing.List[str] = []
         self._environments: typing.Dict[str, typing.List[str]] = yaml_dict.get(
             "environments", {}
@@ -88,6 +94,10 @@ class Configuration:
         }
         for name in _configuration_plugins:
             setattr(self, "_" + name, None)
+
+    @property
+    def default(self) -> str:
+        return self._default_environment
 
     @property
     def environments(self) -> typing.Set[str]:
@@ -319,21 +329,24 @@ def _merge_configuration(
     return parsed
 
 
-def from_file(config_file=None) -> Configuration:
+def from_file(config_file=None, default_env=None) -> Configuration:
     if not config_file:
         config_file = os.environ.get("ZOCALO_CONFIG")
     if not config_file:
-        return Configuration({})
+        return Configuration({}, default_env=default_env)
     config_file = pathlib.Path(config_file)
-    return Configuration(_merge_configuration(None, config_file, config_file.parent))
+    return Configuration(
+        _merge_configuration(None, config_file, config_file.parent),
+        default_env=default_env,
+    )
 
 
 def from_string(configuration: str) -> Configuration:
     return Configuration(_merge_configuration(configuration, None, pathlib.Path.cwd()))
 
 
-def activate_from_file(default="live") -> Configuration:
-    zc = from_file()
+def activate_from_file(default_env="live") -> Configuration:
+    zc = from_file(default_env=default_env)
     envs = zocalo.configuration.argparse.get_specified_environments()
 
     if "--live" in sys.argv:  # deprecated
@@ -341,12 +354,11 @@ def activate_from_file(default="live") -> Configuration:
     if "--test" in sys.argv:
         envs = ["test"]
 
+    if not envs:
+        envs = [default_env]
+
     for env in envs:
         if env in zc.environments:
             zc.activate_environment(env)
-
-    if not envs:
-        envs = [default]
-        zc.activate_environment(default)
 
     return zc, envs

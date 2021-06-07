@@ -53,7 +53,7 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
 
     def __init__(self):
         # load configuration and initialize logging
-        self._zc, envs = zocalo.configuration.activate_from_file(default="test")
+        self._zc, envs = zocalo.configuration.activate_from_file(default_env="test")
         self.use_live_infrastructure = "live" in envs  # deprecated
         self.setup_logging()
 
@@ -107,7 +107,7 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
             default=False,
             help=optparse.SUPPRESS_HELP,
         )
-        zocalo.configuration.argparse.add_env_option(self._zc, parser, default="test")
+        zocalo.configuration.argparse.add_env_option(self._zc, parser)
         self.log.debug("Launching " + str(sys.argv))
 
     def on_parsing(self, options, args):
