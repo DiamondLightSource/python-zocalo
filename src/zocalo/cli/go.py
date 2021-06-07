@@ -3,7 +3,6 @@
 #   Process a datacollection
 #
 
-import argparse
 import getpass
 import json
 import pathlib
@@ -114,7 +113,7 @@ def run():
         action="store_true",
         dest="test",
         default=False,
-        help=argparse.SUPPRESS,
+        help=SUPPRESS_HELP,
     )
     zc, _ = zocalo.configuration.activate_from_file()
     zocalo.configuration.argparse.add_env_option(zc, parser)
