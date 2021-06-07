@@ -345,7 +345,7 @@ def activate_from_file(default="live") -> Configuration:
         if env in zc.environments:
             zc.activate_environment(env)
 
-    if not envs and default is not None:
+    if not envs:
         envs = [default]
         zc.activate_environment(default)
 
