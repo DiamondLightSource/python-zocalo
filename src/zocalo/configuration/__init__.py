@@ -19,8 +19,14 @@ import zocalo.configuration.argparse
 logger = logging.getLogger("zocalo.configuration")
 
 
+class DefaultConfigSchema(mm.Schema):
+    service = mm.fields.Str(required=True)
+    cli = mm.fields.Str(required=True)
+
+
 class ConfigSchema(mm.Schema):
     version = mm.fields.Int(required=True)
+    defaults = mm.fields.Nested(DefaultConfigSchema, required=True)
     environments = mm.fields.Dict(
         keys=mm.fields.Str(),
         values=mm.fields.Dict(
@@ -41,7 +47,8 @@ _reserved_names = {
     "activated",
     "environments",
     "plugin_configurations",
-    "default_environment",
+    "defaults",
+    "caller",
 }
 
 
@@ -79,8 +86,9 @@ class Configuration:
         + ["_" + name for name in _reserved_names]
     )
 
-    def __init__(self, yaml_dict: dict, default_env=None):
-        self._default_environment: str = default_env
+    def __init__(self, yaml_dict: dict, caller=None):
+        self._defaults: typing.Dict[str, str] = yaml_dict.get("defaults", {})
+        self._caller = caller if caller is not None else "cli"
         self._activated: typing.List[str] = []
         self._environments: typing.Dict[str, typing.List[str]] = yaml_dict.get(
             "environments", {}
@@ -97,7 +105,8 @@ class Configuration:
 
     @property
     def default(self) -> str:
-        return self._default_environment
+        if self._caller in self._defaults:
+            return self._defaults[self._caller]
 
     @property
     def environments(self) -> typing.Set[str]:
@@ -329,24 +338,25 @@ def _merge_configuration(
     return parsed
 
 
-def from_file(config_file=None, default_env=None) -> Configuration:
+def from_file(config_file=None, caller=None) -> Configuration:
     if not config_file:
         config_file = os.environ.get("ZOCALO_CONFIG")
     if not config_file:
-        return Configuration({}, default_env=default_env)
+        return Configuration({}, caller=caller)
     config_file = pathlib.Path(config_file)
     return Configuration(
-        _merge_configuration(None, config_file, config_file.parent),
-        default_env=default_env,
+        _merge_configuration(None, config_file, config_file.parent), caller=caller,
     )
 
 
-def from_string(configuration: str) -> Configuration:
-    return Configuration(_merge_configuration(configuration, None, pathlib.Path.cwd()))
+def from_string(configuration: str, caller=None) -> Configuration:
+    return Configuration(
+        _merge_configuration(configuration, None, pathlib.Path.cwd()), caller=caller
+    )
 
 
-def activate_from_file(default_env="live") -> Configuration:
-    zc = from_file(default_env=default_env)
+def activate_from_file(caller=None) -> Configuration:
+    zc = from_file(caller=caller)
     envs = zocalo.configuration.argparse.get_specified_environments()
 
     if "--live" in sys.argv:  # deprecated
@@ -354,11 +364,12 @@ def activate_from_file(default_env="live") -> Configuration:
     if "--test" in sys.argv:
         envs = ["test"]
 
-    if not envs:
-        envs = [default_env]
+    if not envs and zc.default:
+        envs = [zc.default]
 
     for env in envs:
         if env in zc.environments:
+            logger.debug(f"Activating environment '{env}'")
             zc.activate_environment(env)
         else:
             logger.warning(f"Trying to activate {env} which is not a valid environment")
