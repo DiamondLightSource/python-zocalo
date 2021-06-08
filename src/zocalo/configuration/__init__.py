@@ -26,7 +26,7 @@ class DefaultConfigSchema(mm.Schema):
 
 class ConfigSchema(mm.Schema):
     version = mm.fields.Int(required=True)
-    defaults = mm.fields.Nested(DefaultConfigSchema, required=True)
+    defaults = mm.fields.Nested(DefaultConfigSchema)
     environments = mm.fields.Dict(
         keys=mm.fields.Str(),
         values=mm.fields.Dict(
