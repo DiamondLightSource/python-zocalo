@@ -9,10 +9,6 @@ import zocalo.configuration
 sample_configuration = """
 version: 1
 
-defaults:
-  cli: live
-  service: partial
-
 graylog:
   plugin: graylog
   protocol: UDP
@@ -32,6 +28,8 @@ sane-constants:
   units: metric
 
 environments:
+  default: live
+
   live:
     plugins:
       - constants
@@ -132,9 +130,6 @@ def test_cannot_load_configuration_where_environments_specifies_plugin_as_string
 def test_loading_sample_configuration_get_default():
     zc = zocalo.configuration.from_string(sample_configuration)
     assert zc.default == "live"
-
-    zc = zocalo.configuration.from_string(sample_configuration, caller="service")
-    assert zc.default == "partial"
 
 
 def test_cannot_activate_missing_environment():

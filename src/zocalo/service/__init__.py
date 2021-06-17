@@ -53,7 +53,7 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
 
     def __init__(self):
         # load configuration and initialize logging
-        self._zc, envs = zocalo.configuration.activate_from_file(caller="service")
+        self._zc, envs = zocalo.configuration.activate_from_file()
         self.use_live_infrastructure = "live" in envs  # deprecated
         self.setup_logging()
 

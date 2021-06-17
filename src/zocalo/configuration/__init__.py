@@ -19,20 +19,29 @@ import zocalo.configuration.argparse
 logger = logging.getLogger("zocalo.configuration")
 
 
-class DefaultConfigSchema(mm.Schema):
-    service = mm.fields.Str(required=True)
-    cli = mm.fields.Str(required=True)
+class EnvironmentsField(mm.fields.Dict):
+    def _deserialize(
+        self,
+        value: typing.Any,
+        attr: str = None,
+        data: typing.Mapping[str, typing.Any] = None,
+        **kwargs,
+    ):
+        super()._deserialize(value, attr, data)
+        env_dict = mm.fields.Dict(
+            keys=mm.fields.Str(), values=mm.fields.List(mm.fields.Str())
+        )
+
+        for key, val in value.items():
+            if key == "default":
+                mm.fields.Str().deserialize(val, attr, data)
+            else:
+                env_dict.deserialize(val, attr, data)
 
 
 class ConfigSchema(mm.Schema):
     version = mm.fields.Int(required=True)
-    defaults = mm.fields.Nested(DefaultConfigSchema)
-    environments = mm.fields.Dict(
-        keys=mm.fields.Str(),
-        values=mm.fields.Dict(
-            keys=mm.fields.Str(), values=mm.fields.List(mm.fields.Str())
-        ),
-    )
+    environments = EnvironmentsField(keys=mm.fields.Str())
     include = mm.fields.List(mm.fields.Str())
 
 
@@ -43,13 +52,7 @@ class PluginSchema(mm.Schema):
     )
 
 
-_reserved_names = {
-    "activated",
-    "environments",
-    "plugin_configurations",
-    "defaults",
-    "caller",
-}
+_reserved_names = {"activated", "environments", "plugin_configurations", "default"}
 
 
 def _check_valid_plugin_name(name: str) -> bool:
@@ -86,13 +89,15 @@ class Configuration:
         + ["_" + name for name in _reserved_names]
     )
 
-    def __init__(self, yaml_dict: dict, caller=None):
-        self._defaults: typing.Dict[str, str] = yaml_dict.get("defaults", {})
-        self._caller = caller if caller is not None else "cli"
+    def __init__(self, yaml_dict: dict):
         self._activated: typing.List[str] = []
         self._environments: typing.Dict[str, typing.List[str]] = yaml_dict.get(
             "environments", {}
         )
+        try:
+            self._default = self._environments.pop("default")
+        except KeyError:
+            self._default = None
         self._plugin_configurations: typing.Dict[
             str, typing.Union[pathlib.Path, typing.Dict[str, typing.Any]]
         ] = {
@@ -105,8 +110,7 @@ class Configuration:
 
     @property
     def default(self) -> str:
-        if self._caller in self._defaults:
-            return self._defaults[self._caller]
+        return self._default
 
     @property
     def environments(self) -> typing.Set[str]:
@@ -183,7 +187,11 @@ class Configuration:
             activated = f", environment '{self._activated[0]}' activated"
         else:
             activated = f", environments {self._activated} activated"
-        return f"<ZocaloConfiguration containing {environments} environments, {plugin_configurations} plugin configurations{unresolved}{activated}>"
+        if self.default:
+            default = f" (default '{self.default}')"
+        else:
+            default = ""
+        return f"<ZocaloConfiguration containing {environments} environments{default}, {plugin_configurations} plugin configurations{unresolved}{activated}>"
 
     __repr__ = __str__
 
@@ -212,7 +220,12 @@ def _read_configuration_yaml(configuration: str) -> dict:
     # and individual plugin configurations to single element lists
     for environment in yaml_dict.setdefault("environments", {}):
         # Convert shorthand stringsenvironment shorthand lists to dictionaries
-        if isinstance(yaml_dict["environments"][environment], dict):
+        if (
+            isinstance(yaml_dict["environments"][environment], str)
+            and environment == "default"
+        ):
+            continue
+        elif isinstance(yaml_dict["environments"][environment], dict):
             pass
         elif isinstance(yaml_dict["environments"][environment], list):
             yaml_dict["environments"][environment] = {
@@ -311,6 +324,9 @@ def _merge_configuration(
 
     # Flatten the data structure for each environment to a deduplicated ordered list of plugins
     for environment in parsed["environments"]:
+        if environment == "default":
+            continue
+
         # First, order groups alphabetically - except 'plugins', which always comes last
         ordered_plugins = [
             parsed["environments"][environment][group]
@@ -338,25 +354,21 @@ def _merge_configuration(
     return parsed
 
 
-def from_file(config_file=None, caller=None) -> Configuration:
+def from_file(config_file=None) -> Configuration:
     if not config_file:
         config_file = os.environ.get("ZOCALO_CONFIG")
     if not config_file:
-        return Configuration({}, caller=caller)
+        return Configuration({})
     config_file = pathlib.Path(config_file)
-    return Configuration(
-        _merge_configuration(None, config_file, config_file.parent), caller=caller,
-    )
+    return Configuration(_merge_configuration(None, config_file, config_file.parent))
 
 
-def from_string(configuration: str, caller=None) -> Configuration:
-    return Configuration(
-        _merge_configuration(configuration, None, pathlib.Path.cwd()), caller=caller
-    )
+def from_string(configuration: str) -> Configuration:
+    return Configuration(_merge_configuration(configuration, None, pathlib.Path.cwd()))
 
 
-def activate_from_file(caller=None) -> Configuration:
-    zc = from_file(caller=caller)
+def activate_from_file() -> Configuration:
+    zc = from_file()
     envs = zocalo.configuration.argparse.get_specified_environments()
 
     if "--live" in sys.argv:  # deprecated
