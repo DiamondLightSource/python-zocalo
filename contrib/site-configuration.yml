@@ -87,11 +87,7 @@ environments:
   test:
     transport: stomp-test
 
-# Define the default environment for the two distinct invocations of
-# zocalo, as a service, or via the cli:
-defaults:
-  service: test
-  cli: live
+  default: live
 
 # The configuration is modular. You can merge additional configuration files
 # into this file by listing them under the 'include' key.
