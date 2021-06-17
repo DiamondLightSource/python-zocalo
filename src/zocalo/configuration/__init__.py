@@ -91,13 +91,10 @@ class Configuration:
 
     def __init__(self, yaml_dict: dict):
         self._activated: typing.List[str] = []
-        self._environments: typing.Dict[str, typing.List[str]] = yaml_dict.get(
-            "environments", {}
-        )
-        try:
-            self._default = self._environments.pop("default")
-        except KeyError:
-            self._default = None
+        self._environments: typing.Dict[str, typing.List[str]] = {
+            k: v for k, v in yaml_dict.get("environments", {}).items() if k != "default"
+        }
+        self._default = yaml_dict.get("environments", {}).get("default")
         self._plugin_configurations: typing.Dict[
             str, typing.Union[pathlib.Path, typing.Dict[str, typing.Any]]
         ] = {
