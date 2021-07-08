@@ -60,7 +60,7 @@ class StatusNotifications(threading.Thread):
     def __init__(self, send_function, taskname):
         super().__init__(name="zocalo status notification")
         self.daemon = True
-        self.send_status = send_function
+        self._send_status = send_function
         self._lock = threading.Condition(threading.Lock())
         self._status_dict = {
             "host": workflows.util.generate_unique_host_id(),
@@ -102,6 +102,12 @@ class StatusNotifications(threading.Thread):
     def shutdown(self):
         """Stop the status notification thread."""
         self._keep_running = False
+
+    def send_status(self, dictionary):
+        try:
+            self._send_status(dictionary)
+        except workflows.Disconnected:
+            pass
 
     def run(self):
         """Status notification thread main loop."""
