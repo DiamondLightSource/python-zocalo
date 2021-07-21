@@ -1,7 +1,7 @@
 PyYAML==5.4.1
 graypy==2.1.0
-marshmallow==3.12.1
+marshmallow==3.13.0
 pytest-cov==2.12.1
 pytest==6.2.4
 setuptools==56.2.0
-workflows==2.9
+workflows==2.10
