@@ -143,6 +143,9 @@ identical to the environment named ``real``:
         - ...
     alias: real
 
+Aliases are resolved immediately when they are encountered. The aliased
+environment therefore has to be specified in the same configuration file.
+
 
 References to further files
 ---------------------------
