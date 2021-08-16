@@ -3,6 +3,8 @@
 # This is a YAML formatted configuration file, see for example
 # https://getopentest.org/reference/yaml-primer.html if you are not familiar
 # with YAML.
+# You can find the full site configuration file documentation at
+# https://zocalo.readthedocs.io/en/latest/siteconfig.html#configuration-file-format
 
 # The intention of this file is to contain all site-specific configuration in a
 # sufficiently flexible format so that we can remove all configuration from the
@@ -72,6 +74,8 @@ unknown:
 # configuration, and "zocalo.service --test" from the 'test' configuration.
 # Be mindful that names you declare here may therefore collide with command
 # line parameters declared elsewhere.
+# The only special configuration name is 'default', which will be the
+# environment that is loaded if no other environment is specified.
 environments:
   live:
     # Each environment definition can contain named elements as well as a
@@ -84,10 +88,13 @@ environments:
     transport: stomp-live
     plugins:
       - graylog-live
+
   test:
     transport: stomp-test
 
   default: live
+    # Environment definitions can also consist of a simple string only. In this
+    # case they are purely an alias for another environment definition.
 
 # The configuration is modular. You can merge additional configuration files
 # into this file by listing them under the 'include' key.
