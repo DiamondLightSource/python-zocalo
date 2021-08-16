@@ -2,6 +2,10 @@
 History
 =======
 
+0.8.1 (2021-07-08)
+------------------
+* Keep wrapper status threads alive through transport disconnection events
+
 0.8.0 (2021-05-18)
 ------------------
 * Support for Zocalo configuration files

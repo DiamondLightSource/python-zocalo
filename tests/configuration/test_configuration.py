@@ -264,7 +264,7 @@ def test_loading_modular_configuration_from_file(tmp_path):
     secondary_file.write_text(sample_configuration)
     primary_file = tmp_path / "primary.yml"
     primary_file.write_text(
-        f"""
+        """
         version: 1
         include:
           - config.yml
