@@ -52,7 +52,7 @@ class PluginSchema(mm.Schema):
     )
 
 
-_reserved_names = {"activated", "environments", "plugin_configurations", "default"}
+_reserved_names = {"activated", "environments", "plugin_configurations"}
 
 
 def _check_valid_plugin_name(name: str) -> bool:
