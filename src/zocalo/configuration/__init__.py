@@ -13,8 +13,8 @@ import marshmallow as mm
 import pkg_resources
 import yaml
 
-from zocalo import ConfigurationError
 import zocalo.configuration.argparse
+from zocalo import ConfigurationError
 
 logger = logging.getLogger("zocalo.configuration")
 

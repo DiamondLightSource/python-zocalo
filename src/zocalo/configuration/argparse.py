@@ -24,7 +24,10 @@ def get_specified_environments(
 
     env_parser = _EnvParser()
     env_parser.add_argument(
-        *arguments, dest="envs", action="append", default=[],
+        *arguments,
+        dest="envs",
+        action="append",
+        default=[],
     )
     selected_environments = env_parser.parse_known_args()
     if not selected_environments:
