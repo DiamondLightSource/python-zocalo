@@ -76,10 +76,9 @@ class Configuration:
 
     def __init__(self, yaml_dict: dict):
         self._activated: typing.List[str] = []
-        self._environments: typing.Dict[str, typing.List[str]] = {
-            k: v for k, v in yaml_dict.get("environments", {}).items() if k != "default"
-        }
-        self._default = yaml_dict.get("environments", {}).get("default")
+        self._environments: typing.Dict[str, typing.List[str]] = yaml_dict.get(
+            "environments", {}
+        )
         self._plugin_configurations: typing.Dict[
             str, typing.Union[pathlib.Path, typing.Dict[str, typing.Any]]
         ] = {
@@ -89,10 +88,6 @@ class Configuration:
         }
         for name in _configuration_plugins:
             setattr(self, "_" + name, None)
-
-    @property
-    def default(self) -> str:
-        return self._default
 
     @property
     def environments(self) -> typing.Set[str]:
@@ -169,11 +164,7 @@ class Configuration:
             activated = f", environment '{self._activated[0]}' activated"
         else:
             activated = f", environments {self._activated} activated"
-        if self.default:
-            default = f" (default '{self.default}')"
-        else:
-            default = ""
-        return f"<ZocaloConfiguration containing {environments} environments{default}, {plugin_configurations} plugin configurations{unresolved}{activated}>"
+        return f"<ZocaloConfiguration containing {environments} environments, {plugin_configurations} plugin configurations{unresolved}{activated}>"
 
     __repr__ = __str__
 
@@ -329,9 +320,6 @@ def _merge_configuration(
 
     # Flatten the data structure for each environment to a deduplicated ordered list of plugins
     for environment in parsed["environments"]:
-        if environment == "default":
-            continue
-
         # First, order groups alphabetically - except 'plugins', which always comes last
         ordered_plugins = [
             parsed["environments"][environment][group]

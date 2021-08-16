@@ -97,8 +97,10 @@ def test_cannot_load_invalid_file(tmp_path):
 def test_loading_sample_configuration():
     zc = zocalo.configuration.from_string(sample_configuration)
 
-    assert zc.environments == frozenset({"live", "partial", "part-2", "empty"})
-    assert "4 environments" in str(zc)
+    assert zc.environments == frozenset(
+        {"live", "partial", "part-2", "empty", "alias", "default"}
+    )
+    assert "6 environments" in str(zc)
     assert "3 plugin configurations" in str(zc)
 
 
@@ -150,17 +152,19 @@ def test_cannot_load_configuration_where_environments_specifies_plugin_as_string
         )
 
 
-def test_loading_sample_configuration_get_default():
-    zc = zocalo.configuration.from_string(sample_configuration)
-    assert zc.default == "live"
-
-
 def test_cannot_activate_missing_environment():
     zc = zocalo.configuration.from_string("version: 1")
     with pytest.raises(ValueError):
         zc.activate_environment("live")
     assert zc.active_environments == ()
     assert "live" not in str(zc)
+
+
+def test_activate_an_aliased_environment():
+    zc = zocalo.configuration.from_string(sample_configuration)
+    zc.activate_environment("default")
+    assert zc.active_environments == ("default",)
+    assert "default" in str(zc)
 
 
 def test_activate_an_empty_environment():
