@@ -114,6 +114,29 @@ def test_cannot_load_inconsistent_configuration():
         )
 
 
+def test_detect_circular_aliasing_in_environment_configuration():
+    with pytest.raises(zocalo.ConfigurationError, match="circular"):
+        zocalo.configuration.from_string(
+            """
+            version: 1
+            environments:
+              broken: circular
+              circular: broken
+            """
+        )
+
+
+def test_detect_undefined_alias_target_in_environment_configuration():
+    with pytest.raises(zocalo.ConfigurationError, match="undefined"):
+        zocalo.configuration.from_string(
+            """
+            version: 1
+            environments:
+              broken: unresolvable-alias
+            """
+        )
+
+
 def test_cannot_load_configuration_where_environments_specifies_plugin_as_string():
     with pytest.raises(zocalo.ConfigurationError, match="invalid-spec"):
         zocalo.configuration.from_string(

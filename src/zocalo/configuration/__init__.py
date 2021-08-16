@@ -19,29 +19,14 @@ from zocalo import ConfigurationError
 logger = logging.getLogger("zocalo.configuration")
 
 
-class EnvironmentsField(mm.fields.Dict):
-    def _deserialize(
-        self,
-        value: typing.Any,
-        attr: str = None,
-        data: typing.Mapping[str, typing.Any] = None,
-        **kwargs,
-    ):
-        super()._deserialize(value, attr, data)
-        env_dict = mm.fields.Dict(
-            keys=mm.fields.Str(), values=mm.fields.List(mm.fields.Str())
-        )
-
-        for key, val in value.items():
-            if key == "default":
-                mm.fields.Str().deserialize(val, attr, data)
-            else:
-                env_dict.deserialize(val, attr, data)
-
-
 class ConfigSchema(mm.Schema):
     version = mm.fields.Int(required=True)
-    environments = EnvironmentsField(keys=mm.fields.Str())
+    environments = mm.fields.Dict(
+        keys=mm.fields.Str(),
+        values=mm.fields.Dict(
+            keys=mm.fields.Str(), values=mm.fields.List(mm.fields.Str())
+        ),
+    )
     include = mm.fields.List(mm.fields.Str())
 
 
@@ -213,14 +198,17 @@ def _read_configuration_yaml(configuration: str) -> dict:
             f"This version of Zocalo does not understand v{yaml_dict['version']} configurations"
         )
 
-    # Convert environment shorthands: environment lists to dictionaries
-    # and individual plugin configurations to single element lists
+    # Convert environment lists to dictionaries
+    # Convert individual plugin configurations within environments to single element lists
     for environment in yaml_dict.setdefault("environments", {}):
-        if (
-            isinstance(yaml_dict["environments"][environment], str)
-            and environment == "default"
-        ):
-            continue
+        if isinstance(yaml_dict["environments"][environment], str):
+            # Environment is an alias to another environment. Ensure the target exists.
+            aliased_env = yaml_dict["environments"][environment]
+            if aliased_env not in yaml_dict["environments"]:
+                raise ConfigurationError(
+                    f"Invalid YAML configuration: Environment {environment} aliases undefined environment {aliased_env}"
+                )
+            continue  # alias will be resolved after this loop
         elif isinstance(yaml_dict["environments"][environment], dict):
             pass
         elif isinstance(yaml_dict["environments"][environment], list):
@@ -242,6 +230,27 @@ def _read_configuration_yaml(configuration: str) -> dict:
                 raise ConfigurationError(
                     f"Invalid YAML configuration: Environment {environment} contains group {group} which is not a string or a list"
                 )
+    # Resolve environment aliases
+    environment_aliases = {
+        environment
+        for environment in yaml_dict["environments"]
+        if isinstance(yaml_dict["environments"][environment], str)
+    }
+    while environment_aliases:
+        for environment in environment_aliases:
+            aliased_env = yaml_dict["environments"][environment]
+            if isinstance(yaml_dict["environments"][aliased_env], str):
+                # This environment links to an alias. Skip for now.
+                continue
+            yaml_dict["environments"][environment] = yaml_dict["environments"][
+                aliased_env
+            ]
+            environment_aliases.remove(environment)
+            break
+        else:
+            raise ConfigurationError(
+                f"Invalid YAML configuration: circular environment definitions for {environment_aliases}"
+            )
 
     plugin_fields = {}
     for key in yaml_dict:
