@@ -118,6 +118,31 @@ Groups are loaded alphabetically, with one exception: ``plugins`` is special
 and is always loaded last. Within each group the plugin configurations are
 loaded in the specified order.
 
+A special environment name is ``default``, which is the environment that will
+be loaded if no other environment is loaded. You can use aliasing (see below
+under :ref:`environment_aliases`) to point ``default`` to a different, more
+self-explanatory environment name.
+
+.. _environment_aliases:
+
+Environment aliases
+^^^^^^^^^^^^^^^^^^^
+
+You can create aliases for environment names by just giving the name of the
+underlying environment name. You can only do pure aliasing here, you can not
+override parts of the referenced environment at this time.
+
+This configuration gives you an ``alias`` environment, that is exactly
+identical to the environment named ``real``:
+
+.. code-block:: yaml
+
+  environments:
+    real:
+      plugins:
+        - ...
+    alias: real
+
 
 References to further files
 ---------------------------
