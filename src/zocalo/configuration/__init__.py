@@ -216,7 +216,6 @@ def _read_configuration_yaml(configuration: str) -> dict:
     # Convert environment shorthands: environment lists to dictionaries
     # and individual plugin configurations to single element lists
     for environment in yaml_dict.setdefault("environments", {}):
-        # Convert shorthand stringsenvironment shorthand lists to dictionaries
         if (
             isinstance(yaml_dict["environments"][environment], str)
             and environment == "default"

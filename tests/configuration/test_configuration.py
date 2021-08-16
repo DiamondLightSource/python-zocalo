@@ -29,7 +29,6 @@ sane-constants:
 
 environments:
   default: live
-
   live:
     plugins:
       - constants
@@ -37,6 +36,7 @@ environments:
   partial:
     plugins:
       - constants
+  alias: partial
   part-2:
     - sane-constants
   empty: {}
