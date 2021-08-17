@@ -61,7 +61,7 @@ def run():
         dest="recipewrapper",
         metavar="RW",
         default=None,
-        help="A serialized recipe wrapper file " "for downstream communication",
+        help="A serialized recipe wrapper file for downstream communication",
     )
 
     parser.add_option(
