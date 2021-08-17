@@ -97,7 +97,7 @@ class Configuration:
     def active_environments(self) -> typing.Tuple[str]:
         return tuple(self._activated)
 
-    def _resolve(self, plugin_configuration: str) -> bool:
+    def _resolve(self, plugin_configuration: str):
         try:
             configuration = self._plugin_configurations[
                 plugin_configuration
