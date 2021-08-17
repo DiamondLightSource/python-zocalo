@@ -183,13 +183,55 @@ def test_activate_one_environment():
     assert "live" in str(zc)
 
 
-def test_activate_multiple_environments():
+def test_activate_two_environments():
     zc = zocalo.configuration.from_string(sample_configuration)
     zc.activate_environment("partial")
     zc.activate_environment("part-2")
     assert zc.active_environments == ("partial", "part-2")
     assert "partial" in str(zc)
     assert "part-2" in str(zc)
+
+
+def test_activate_multiple_environments():
+    zc = zocalo.configuration.from_string(sample_configuration)
+    e = zc.activate(envs=["partial", "part-2"])
+    assert e == ("partial", "part-2")
+    assert zc.active_environments == ("partial", "part-2")
+    assert "partial" in str(zc)
+    assert "part-2" in str(zc)
+
+
+def test_activate_additional_environments():
+    zc = zocalo.configuration.from_string(sample_configuration)
+    zc.activate_environment("default")
+    e = zc.activate(envs=["partial", "part-2"])
+    assert e == ("partial", "part-2")
+    assert zc.active_environments == ("default", "partial", "part-2")
+    assert "partial" in str(zc)
+    assert "part-2" in str(zc)
+
+
+def test_activate_default_environment():
+    zc = zocalo.configuration.from_string(sample_configuration)
+    e = zc.activate([])
+    assert e == ("default",)
+    assert zc.active_environments == ("default",)
+    assert "default" in str(zc)
+
+
+def test_activate_call_honours_default_flag():
+    zc = zocalo.configuration.from_string(sample_configuration)
+    e = zc.activate([], default=False)
+    assert e == ()
+    assert zc.active_environments == ()
+    assert "default" not in str(zc)
+
+
+def test_activate_call_works_without_default_environment():
+    zc = zocalo.configuration.from_string("version: 1")
+    e = zc.activate([])
+    assert e == ()
+    assert zc.active_environments == ()
 
 
 @pytest.mark.parametrize("name", ("include", "environments", "version"))

@@ -164,10 +164,10 @@ class Configuration:
         """
         if envs is None:
             envs = zocalo.configuration.argparse.get_specified_environments(**kwargs)
-        if not envs and "default" in self._environments:
+        if default and not envs and "default" in self._environments:
             envs = ["default"]
         for environment in envs:
-            self.activate(environment)
+            self.activate_environment(environment)
 
         return tuple(envs)
 
