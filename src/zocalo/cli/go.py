@@ -24,8 +24,7 @@ import zocalo.configuration.argparse
 
 def run():
     zc = zocalo.configuration.from_file()
-    envs = zocalo.configuration.argparse.get_specified_environments()
-    zc.activate_environments(envs)
+    zc.activate()
 
     parser = OptionParser(
         usage="zocalo.go [options] dcid",

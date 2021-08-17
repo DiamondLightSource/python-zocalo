@@ -1,11 +1,4 @@
-# zocalo.service defaults to running in the testing ActiveMQ namespace (zocdev),
-# rather than the live namespace (zocalo).
-# This is to stop servers started by developers on their machines accidentally
-# interfering with live data processing.
-# To run a live server you must specify '--live'
-
 import logging
-import optparse
 import os
 import sys
 
@@ -54,12 +47,10 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
     def __init__(self):
         # load configuration and initialize logging
         self._zc = zocalo.configuration.from_file()
-        envs = zocalo.configuration.argparse.get_specified_environments()
-        self.use_live_infrastructure = "live" in envs  # deprecated
-
-        for env in envs:
-            if env in self._zc.environments:
-                self._zc.activate_environment(env)
+        envs = self._zc.activate()
+        self.use_live_infrastructure = ("live" in envs) or (
+            "default" in envs
+        )  # deprecated
         self.setup_logging()
 
         if not hasattr(self._zc, "graylog") or not self._zc.graylog:

@@ -6,13 +6,13 @@ import logging
 import operator
 import os
 import pathlib
-import sys
 import typing
 
 import marshmallow as mm
 import pkg_resources
 import yaml
 
+import zocalo.configuration.argparse
 from zocalo import ConfigurationError
 
 logger = logging.getLogger("zocalo.configuration")
@@ -122,6 +122,7 @@ class Configuration:
         self._plugin_configurations[plugin_configuration] = yaml_dict
 
     def activate_environment(self, name: str):
+        """Load all plugins for a given environment."""
         if name not in self._environments:
             raise ValueError(f"Environment '{name}' is not defined")
         for config_name in self._environments[name]:
@@ -144,6 +145,31 @@ class Configuration:
                 return_value = plugin.activate(**arguments)
                 setattr(self, "_" + configuration["plugin"], return_value)
         self._activated.append(name)
+
+    def activate(
+        self,
+        envs: typing.Optional[typing.Iterable[str]] = None,
+        *,
+        default: bool = True,
+        **kwargs,
+    ) -> typing.Tuple[str]:
+        """
+        Activate a list of environments in order.
+
+        :param envs: List of environments to activate. If no list is passed,
+                     attempt to infer the environments from command line arguments.
+        :param default: Attempt to activate environment named 'default' if no
+                        environments are specified or can be inferred.
+        :return: Tuple of environments activated by this function call.
+        """
+        if envs is None:
+            envs = zocalo.configuration.argparse.get_specified_environments(**kwargs)
+        if not envs and "default" in self._environments:
+            envs = ["default"]
+        for environment in envs:
+            self.activate(environment)
+
+        return tuple(envs)
 
     def __str__(self):
         environments = len(self._environments)

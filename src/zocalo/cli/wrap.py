@@ -34,8 +34,7 @@ def run():
     log = logging.getLogger("zocalo.wrap")
 
     zc = zocalo.configuration.from_file()
-    envs = zocalo.configuration.argparse.get_specified_environments()
-    zc.activate_environments(envs)
+    zc.activate()
 
     known_wrappers = {
         e.name: e.load for e in pkg_resources.iter_entry_points("zocalo.wrappers")
