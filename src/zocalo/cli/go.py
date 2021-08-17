@@ -41,7 +41,8 @@ def run():
         metavar="RCP",
         action="append",
         default=[],
-        help="Name of a recipe to run. Can be used multiple times. Recipe names correspond to filenames (excluding .json) in /dls_sw/apps/zocalo/live/recipes",
+        help="Name of a recipe to run. Can be used multiple times. "
+        "Recipe names correspond to filenames (excluding .json) in /dls_sw/apps/zocalo/live/recipes",
     )
     parser.add_option(
         "-a",
@@ -110,19 +111,7 @@ def run():
         default=False,
         help="Verify that everything is in place that the message could be sent, but don't actually send the message",
     )
-    parser.add_option(
-        "-e",
-        "--environment",
-        dest="environment",
-        metavar="ENV",
-        action="append",
-        default=[],
-        type="choice",
-        choices=sorted(zc.environments),
-        help="Enable site-specific settings. Choices are: "
-        + ", ".join(sorted(zc.environments)),
-    )
-
+    zc.add_command_line_options(parser)
     StompTransport.add_command_line_options(parser)
     (options, args) = parser.parse_args(sys.argv[1:])
 

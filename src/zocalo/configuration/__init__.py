@@ -71,6 +71,7 @@ class Configuration:
     __slots__ = tuple(
         ["_" + name for name in _configuration_plugins]
         + ["_" + name for name in _reserved_names]
+        + ["environment_cmd_args"]
     )
 
     def __init__(self, yaml_dict: dict):
@@ -87,6 +88,7 @@ class Configuration:
         }
         for name in _configuration_plugins:
             setattr(self, "_" + name, None)
+        self.environment_cmd_args: typing.Tuple[str] = ("-e", "--environment")
 
     @property
     def environments(self) -> typing.Set[str]:
@@ -151,7 +153,6 @@ class Configuration:
         envs: typing.Optional[typing.Iterable[str]] = None,
         *,
         default: bool = True,
-        **kwargs,
     ) -> typing.Tuple[str]:
         """
         Activate a list of environments in order.
@@ -163,13 +164,40 @@ class Configuration:
         :return: Tuple of environments activated by this function call.
         """
         if envs is None:
-            envs = zocalo.configuration.argparse.get_specified_environments(**kwargs)
+            envs = zocalo.configuration.argparse.get_specified_environments(
+                arguments=self.environment_cmd_args
+            )
         if default and not envs and "default" in self._environments:
             envs = ["default"]
         for environment in envs:
             self.activate_environment(environment)
-
         return tuple(envs)
+
+    def add_command_line_options(self, parser):
+        """function to inject command line parameters"""
+        if "add_argument" in dir(parser):
+            parser.add_argument(
+                *self.environment_cmd_args,
+                dest="environment",
+                metavar="ENV",
+                action="append",
+                default=[],
+                choices=sorted(self._environments),
+                help="Enable site-specific settings. Choices are: "
+                + ", ".join(sorted(self._environments)),
+            )
+        else:
+            parser.add_option(
+                *self.environment_cmd_args,
+                dest="environment",
+                metavar="ENV",
+                action="append",
+                default=[],
+                type="choice",
+                choices=sorted(self._environments),
+                help="Enable site-specific settings. Choices are: "
+                + ", ".join(sorted(self._environments)),
+            )
 
     def __str__(self):
         environments = len(self._environments)
@@ -189,7 +217,10 @@ class Configuration:
             activated = f", environment '{self._activated[0]}' activated"
         else:
             activated = f", environments {self._activated} activated"
-        return f"<ZocaloConfiguration containing {environments} environments, {plugin_configurations} plugin configurations{unresolved}{activated}>"
+        return (
+            f"<ZocaloConfiguration containing {environments} environments,"
+            f" {plugin_configurations} plugin configurations{unresolved}{activated}>"
+        )
 
     __repr__ = __str__
 

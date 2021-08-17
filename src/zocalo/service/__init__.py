@@ -89,18 +89,7 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
             default=False,
             help="Restart service on failure",
         )
-        parser.add_option(
-            "-e",
-            "--environment",
-            dest="environment",
-            metavar="ENV",
-            action="append",
-            default=[],
-            type="choice",
-            choices=sorted(self._zc.environments),
-            help="Enable site-specific settings. Choices are: "
-            + ", ".join(sorted(self._zc.environments)),
-        )
+        self._zc.add_command_line_options(parser)
         self.log.debug("Launching %r", sys.argv)
 
     def on_parsing(self, options, args):

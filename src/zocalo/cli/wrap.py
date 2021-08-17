@@ -81,19 +81,8 @@ def run():
         default=False,
         help="Show debug level messages",
     )
-    parser.add_option(
-        "-e",
-        "--environment",
-        dest="environment",
-        metavar="ENV",
-        action="append",
-        default=[],
-        type="choice",
-        choices=sorted(zc.environments),
-        help="Enable site-specific settings. Choices are: "
-        + ", ".join(sorted(zc.environments)),
-    )
 
+    zc.add_command_line_options(parser)
     workflows.transport.add_command_line_options(parser)
 
     # Parse command line arguments
