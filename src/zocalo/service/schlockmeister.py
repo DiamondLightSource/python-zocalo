@@ -33,9 +33,9 @@ class Schlockmeister(CommonService):
     # Logger name
     _logger_name = "zocalo.service.schlockmeister"
 
-    known_queues = {}
-    known_consumers = {}
-    known_instances = set()
+    known_queues = {}  # type: ignore
+    known_consumers = {}  # type: ignore
+    known_instances = set()  # type: ignore
 
     def initializing(self):
         """
