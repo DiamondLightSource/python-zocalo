@@ -12,6 +12,7 @@ import marshmallow as mm
 import pkg_resources
 import yaml
 
+import zocalo.configuration.argparse
 from zocalo import ConfigurationError
 
 logger = logging.getLogger("zocalo.configuration")
@@ -70,6 +71,7 @@ class Configuration:
     __slots__ = tuple(
         ["_" + name for name in _configuration_plugins]
         + ["_" + name for name in _reserved_names]
+        + ["environment_cmd_args"]
     )
 
     def __init__(self, yaml_dict: dict):
@@ -86,6 +88,7 @@ class Configuration:
         }
         for name in _configuration_plugins:
             setattr(self, "_" + name, None)
+        self.environment_cmd_args: typing.Tuple[str] = ("-e", "--environment")
 
     @property
     def environments(self) -> typing.Set[str]:
@@ -95,7 +98,7 @@ class Configuration:
     def active_environments(self) -> typing.Tuple[str]:
         return tuple(self._activated)
 
-    def _resolve(self, plugin_configuration: str) -> bool:
+    def _resolve(self, plugin_configuration: str):
         try:
             configuration = self._plugin_configurations[
                 plugin_configuration
@@ -121,6 +124,7 @@ class Configuration:
         self._plugin_configurations[plugin_configuration] = yaml_dict
 
     def activate_environment(self, name: str):
+        """Load all plugins for a given environment."""
         if name not in self._environments:
             raise ValueError(f"Environment '{name}' is not defined")
         for config_name in self._environments[name]:
@@ -144,6 +148,57 @@ class Configuration:
                 setattr(self, "_" + configuration["plugin"], return_value)
         self._activated.append(name)
 
+    def activate(
+        self,
+        envs: typing.Optional[typing.Iterable[str]] = None,
+        *,
+        default: bool = True,
+    ) -> typing.Tuple[str]:
+        """
+        Activate a list of environments in order.
+
+        :param envs: List of environments to activate. If no list is passed,
+                     attempt to infer the environments from command line arguments.
+        :param default: Attempt to activate environment named 'default' if no
+                        environments are specified or can be inferred.
+        :return: Tuple of environments activated by this function call.
+        """
+        if envs is None:
+            envs = zocalo.configuration.argparse.get_specified_environments(
+                arguments=self.environment_cmd_args
+            )
+        if default and not envs and "default" in self._environments:
+            envs = ["default"]
+        for environment in envs:
+            self.activate_environment(environment)
+        return tuple(envs)
+
+    def add_command_line_options(self, parser):
+        """function to inject command line parameters"""
+        if "add_argument" in dir(parser):
+            parser.add_argument(
+                *self.environment_cmd_args,
+                dest="environment",
+                metavar="ENV",
+                action="append",
+                default=[],
+                choices=sorted(self._environments),
+                help="Enable site-specific settings. Choices are: "
+                + ", ".join(sorted(self._environments)),
+            )
+        else:
+            parser.add_option(
+                *self.environment_cmd_args,
+                dest="environment",
+                metavar="ENV",
+                action="append",
+                default=[],
+                type="choice",
+                choices=sorted(self._environments),
+                help="Enable site-specific settings. Choices are: "
+                + ", ".join(sorted(self._environments)),
+            )
+
     def __str__(self):
         environments = len(self._environments)
         plugin_configurations = len(self._plugin_configurations)
@@ -162,7 +217,10 @@ class Configuration:
             activated = f", environment '{self._activated[0]}' activated"
         else:
             activated = f", environments {self._activated} activated"
-        return f"<ZocaloConfiguration containing {environments} environments, {plugin_configurations} plugin configurations{unresolved}{activated}>"
+        return (
+            f"<ZocaloConfiguration containing {environments} environments,"
+            f" {plugin_configurations} plugin configurations{unresolved}{activated}>"
+        )
 
     __repr__ = __str__
 
@@ -187,11 +245,18 @@ def _read_configuration_yaml(configuration: str) -> dict:
             f"This version of Zocalo does not understand v{yaml_dict['version']} configurations"
         )
 
-    # Convert environment shorthands: environment lists to dictionaries
-    # and individual plugin configurations to single element lists
+    # Convert environment lists to dictionaries
+    # Convert individual plugin configurations within environments to single element lists
     for environment in yaml_dict.setdefault("environments", {}):
-        # Convert shorthand stringsenvironment shorthand lists to dictionaries
-        if isinstance(yaml_dict["environments"][environment], dict):
+        if isinstance(yaml_dict["environments"][environment], str):
+            # Environment is an alias to another environment. Ensure the target exists.
+            aliased_env = yaml_dict["environments"][environment]
+            if aliased_env not in yaml_dict["environments"]:
+                raise ConfigurationError(
+                    f"Invalid YAML configuration: Environment {environment} aliases undefined environment {aliased_env}"
+                )
+            continue  # alias will be resolved after this loop
+        elif isinstance(yaml_dict["environments"][environment], dict):
             pass
         elif isinstance(yaml_dict["environments"][environment], list):
             yaml_dict["environments"][environment] = {
@@ -212,6 +277,27 @@ def _read_configuration_yaml(configuration: str) -> dict:
                 raise ConfigurationError(
                     f"Invalid YAML configuration: Environment {environment} contains group {group} which is not a string or a list"
                 )
+    # Resolve environment aliases
+    environment_aliases = {
+        environment
+        for environment in yaml_dict["environments"]
+        if isinstance(yaml_dict["environments"][environment], str)
+    }
+    while environment_aliases:
+        for environment in environment_aliases:
+            aliased_env = yaml_dict["environments"][environment]
+            if isinstance(yaml_dict["environments"][aliased_env], str):
+                # This environment links to an alias. Skip for now.
+                continue
+            yaml_dict["environments"][environment] = yaml_dict["environments"][
+                aliased_env
+            ]
+            environment_aliases.remove(environment)
+            break
+        else:
+            raise ConfigurationError(
+                f"Invalid YAML configuration: circular environment definitions for {environment_aliases}"
+            )
 
     plugin_fields = {}
     for key in yaml_dict:

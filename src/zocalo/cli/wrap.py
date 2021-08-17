@@ -11,13 +11,12 @@ import sys
 from optparse import SUPPRESS_HELP, OptionParser
 
 import pkg_resources
-import workflows
 import workflows.recipe.wrapper
 import workflows.services.common_service
 import workflows.transport
 import workflows.util
 
-import zocalo.configuration
+import zocalo.configuration.argparse
 import zocalo.wrapper
 
 
@@ -33,12 +32,7 @@ def run():
     log = logging.getLogger("zocalo.wrap")
 
     zc = zocalo.configuration.from_file()
-    if "--test" in cmdline_args:
-        if "test" in zc.environments:
-            zc.activate_environment("test")
-    else:
-        if "live" in zc.environments:
-            zc.activate_environment("live")
+    zc.activate()
 
     known_wrappers = {
         e.name: e.load for e in pkg_resources.iter_entry_points("zocalo.wrappers")
@@ -64,16 +58,7 @@ def run():
         dest="recipewrapper",
         metavar="RW",
         default=None,
-        help="A serialized recipe wrapper file " "for downstream communication",
-    )
-
-    parser.add_option(
-        "--test", action="store_true", help="Run in ActiveMQ testing namespace (zocdev)"
-    )
-    parser.add_option(
-        "--live",
-        action="store_true",
-        help="Run in ActiveMQ live namespace (zocalo, default)",
+        help="A serialized recipe wrapper file for downstream communication",
     )
 
     parser.add_option(
@@ -94,6 +79,8 @@ def run():
         default=False,
         help="Show debug level messages",
     )
+
+    zc.add_command_line_options(parser)
     workflows.transport.add_command_line_options(parser)
 
     # Parse command line arguments

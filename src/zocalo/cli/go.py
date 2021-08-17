@@ -12,16 +12,18 @@ import uuid
 from optparse import SUPPRESS_HELP, OptionParser
 from pprint import pprint
 
-import workflows
 import workflows.recipe
 from workflows.transport.stomp_transport import StompTransport
 
-import zocalo.configuration
+import zocalo.configuration.argparse
 
 # Example: zocalo.go -r example-xia2 527189
 
 
 def run():
+    zc = zocalo.configuration.from_file()
+    zc.activate()
+
     parser = OptionParser(
         usage="zocalo.go [options] dcid",
         description="Triggers processing of a standard "
@@ -37,7 +39,8 @@ def run():
         metavar="RCP",
         action="append",
         default=[],
-        help="Name of a recipe to run. Can be used multiple times. Recipe names correspond to filenames (excluding .json) in /dls_sw/apps/zocalo/live/recipes",
+        help="Name of a recipe to run. Can be used multiple times. "
+        "Recipe names correspond to filenames (excluding .json) in /dls_sw/apps/zocalo/live/recipes",
     )
     parser.add_option(
         "-a",
@@ -106,22 +109,7 @@ def run():
         default=False,
         help="Verify that everything is in place that the message could be sent, but don't actually send the message",
     )
-
-    parser.add_option(
-        "--test",
-        action="store_true",
-        dest="test",
-        default=False,
-        help="Run in ActiveMQ testing (zocdev) namespace",
-    )
-    zc = zocalo.configuration.from_file()
-    if "--test" in sys.argv:
-        if "test" in zc.environments:
-            zc.activate_environment("test")
-    else:
-        if "live" in zc.environments:
-            zc.activate_environment("live")
-
+    zc.add_command_line_options(parser)
     StompTransport.add_command_line_options(parser)
     (options, args) = parser.parse_args(sys.argv[1:])
 

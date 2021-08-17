@@ -1,15 +1,7 @@
-# zocalo.service defaults to running in the testing ActiveMQ namespace (zocdev),
-# rather than the live namespace (zocalo).
-# This is to stop servers started by developers on their machines accidentally
-# interfering with live data processing.
-# To run a live server you must specify '--live'
-
 import logging
-import optparse
 import os
 import sys
 
-import workflows
 import workflows.contrib.start_service
 
 import zocalo.configuration.argparse
@@ -54,18 +46,10 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
     def __init__(self):
         # load configuration and initialize logging
         self._zc = zocalo.configuration.from_file()
-        envs = zocalo.configuration.argparse.get_specified_environments()
-
-        if not envs:  # deprecated
-            if "--live" in sys.argv:
-                envs = ["live"]
-            else:
-                envs = ["test"]
-        self.use_live_infrastructure = "live" in envs  # deprecated
-
-        for env in envs:
-            if env in self._zc.environments:
-                self._zc.activate_environment(env)
+        envs = self._zc.activate()
+        self.use_live_infrastructure = ("live" in envs) or (
+            "default" in envs
+        )  # deprecated
         self.setup_logging()
 
         if not hasattr(self._zc, "graylog") or not self._zc.graylog:
@@ -104,33 +88,8 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
             default=False,
             help="Restart service on failure",
         )
-        parser.add_option(  # deprecated
-            "--test",
-            action="store_true",
-            dest="test",
-            default=False,
-            help=optparse.SUPPRESS_HELP,
-        )
-        parser.add_option(  # deprecated
-            "--live",
-            action="store_true",
-            dest="live",
-            default=False,
-            help=optparse.SUPPRESS_HELP,
-        )
-        parser.add_option(
-            "-e",
-            "--environment",
-            dest="environment",
-            metavar="ENV",
-            action="append",
-            default=[],
-            type="choice",
-            choices=sorted(self._zc.environments),
-            help="Enable site-specific settings. Choices are: "
-            + ", ".join(sorted(self._zc.environments)),
-        )
-        self.log.debug("Launching " + str(sys.argv))
+        self._zc.add_command_line_options(parser)
+        self.log.debug("Launching %r", sys.argv)
 
     def on_parsing(self, options, args):
         if options.verbose:
@@ -140,10 +99,6 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
             logging.getLogger("stomp.py").setLevel(logging.DEBUG)
             logging.getLogger("workflows").setLevel(logging.DEBUG)
         self.options = options
-        if options.live:
-            print("--live is deprecated. Use -e=live")
-        if options.test:
-            print("--test is deprecated. Use -e=test")
 
     def before_frontend_construction(self, kwargs):
         kwargs["verbose_service"] = True

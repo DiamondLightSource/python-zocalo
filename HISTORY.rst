@@ -2,6 +2,10 @@
 History
 =======
 
+0.9.0 (2021-08-..)
+------------------
+* Removed --live/--test command line arguments, use -e/--environment instead
+
 0.8.1 (2021-07-08)
 ------------------
 * Keep wrapper status threads alive through transport disconnection events

@@ -1,7 +1,6 @@
 import logging
 import threading
 
-import workflows
 import workflows.util
 
 import zocalo

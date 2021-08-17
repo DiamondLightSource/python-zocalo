@@ -28,6 +28,7 @@ sane-constants:
   units: metric
 
 environments:
+  default: live
   live:
     plugins:
       - constants
@@ -35,6 +36,7 @@ environments:
   partial:
     plugins:
       - constants
+  alias: partial
   part-2:
     - sane-constants
   empty: {}
@@ -95,8 +97,10 @@ def test_cannot_load_invalid_file(tmp_path):
 def test_loading_sample_configuration():
     zc = zocalo.configuration.from_string(sample_configuration)
 
-    assert zc.environments == frozenset({"live", "partial", "part-2", "empty"})
-    assert "4 environments" in str(zc)
+    assert zc.environments == frozenset(
+        {"live", "partial", "part-2", "empty", "alias", "default"}
+    )
+    assert "6 environments" in str(zc)
     assert "3 plugin configurations" in str(zc)
 
 
@@ -108,6 +112,29 @@ def test_cannot_load_inconsistent_configuration():
             environments:
               failure:
                 - unreferenced-plugin
+            """
+        )
+
+
+def test_detect_circular_aliasing_in_environment_configuration():
+    with pytest.raises(zocalo.ConfigurationError, match="circular"):
+        zocalo.configuration.from_string(
+            """
+            version: 1
+            environments:
+              broken: circular
+              circular: broken
+            """
+        )
+
+
+def test_detect_undefined_alias_target_in_environment_configuration():
+    with pytest.raises(zocalo.ConfigurationError, match="undefined"):
+        zocalo.configuration.from_string(
+            """
+            version: 1
+            environments:
+              broken: unresolvable-alias
             """
         )
 
@@ -133,6 +160,13 @@ def test_cannot_activate_missing_environment():
     assert "live" not in str(zc)
 
 
+def test_activate_an_aliased_environment():
+    zc = zocalo.configuration.from_string(sample_configuration)
+    zc.activate_environment("default")
+    assert zc.active_environments == ("default",)
+    assert "default" in str(zc)
+
+
 def test_activate_an_empty_environment():
     zc = zocalo.configuration.from_string(sample_configuration)
     zc.activate_environment("empty")
@@ -149,13 +183,55 @@ def test_activate_one_environment():
     assert "live" in str(zc)
 
 
-def test_activate_multiple_environments():
+def test_activate_two_environments():
     zc = zocalo.configuration.from_string(sample_configuration)
     zc.activate_environment("partial")
     zc.activate_environment("part-2")
     assert zc.active_environments == ("partial", "part-2")
     assert "partial" in str(zc)
     assert "part-2" in str(zc)
+
+
+def test_activate_multiple_environments():
+    zc = zocalo.configuration.from_string(sample_configuration)
+    e = zc.activate(envs=["partial", "part-2"])
+    assert e == ("partial", "part-2")
+    assert zc.active_environments == ("partial", "part-2")
+    assert "partial" in str(zc)
+    assert "part-2" in str(zc)
+
+
+def test_activate_additional_environments():
+    zc = zocalo.configuration.from_string(sample_configuration)
+    zc.activate_environment("default")
+    e = zc.activate(envs=["partial", "part-2"])
+    assert e == ("partial", "part-2")
+    assert zc.active_environments == ("default", "partial", "part-2")
+    assert "partial" in str(zc)
+    assert "part-2" in str(zc)
+
+
+def test_activate_default_environment():
+    zc = zocalo.configuration.from_string(sample_configuration)
+    e = zc.activate([])
+    assert e == ("default",)
+    assert zc.active_environments == ("default",)
+    assert "default" in str(zc)
+
+
+def test_activate_call_honours_default_flag():
+    zc = zocalo.configuration.from_string(sample_configuration)
+    e = zc.activate([], default=False)
+    assert e == ()
+    assert zc.active_environments == ()
+    assert "default" not in str(zc)
+
+
+def test_activate_call_works_without_default_environment():
+    zc = zocalo.configuration.from_string("version: 1")
+    e = zc.activate([])
+    assert e == ()
+    assert zc.active_environments == ()
 
 
 @pytest.mark.parametrize("name", ("include", "environments", "version"))
