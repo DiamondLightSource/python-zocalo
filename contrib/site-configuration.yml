@@ -70,10 +70,9 @@ unknown:
 # Deviating from the 12factor model, the configuration file groups
 # configurations together into environments. You can declare as many
 # environments as you like, the names may translate into command line
-# parameters, eg. "zocalo.service --live" will start from the 'live'
-# configuration, and "zocalo.service --test" from the 'test' configuration.
-# Be mindful that names you declare here may therefore collide with command
-# line parameters declared elsewhere.
+# parameters, eg. "zocalo.service --env=live" will start from the 'live'
+# configuration, and "zocalo.service --env=test" from the 'test' configuration.
+# (The exact argument layout may depend on the command.)
 # The only special configuration name is 'default', which will be the
 # environment that is loaded if no other environment is specified.
 environments:
