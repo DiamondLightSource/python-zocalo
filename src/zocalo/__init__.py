@@ -4,7 +4,6 @@ import logging
 import socket
 import warnings
 
-import graypy
 import graypy.handler
 
 __author__ = "Markus Gerstel"

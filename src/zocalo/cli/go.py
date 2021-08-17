@@ -12,11 +12,9 @@ import uuid
 from optparse import SUPPRESS_HELP, OptionParser
 from pprint import pprint
 
-import workflows
 import workflows.recipe
 from workflows.transport.stomp_transport import StompTransport
 
-import zocalo.configuration
 import zocalo.configuration.argparse
 
 # Example: zocalo.go -r example-xia2 527189

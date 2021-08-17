@@ -11,13 +11,11 @@ import sys
 from optparse import SUPPRESS_HELP, OptionParser
 
 import pkg_resources
-import workflows
 import workflows.recipe.wrapper
 import workflows.services.common_service
 import workflows.transport
 import workflows.util
 
-import zocalo.configuration
 import zocalo.configuration.argparse
 import zocalo.wrapper
 

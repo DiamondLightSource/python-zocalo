@@ -2,7 +2,6 @@ import logging
 import os
 import sys
 
-import workflows
 import workflows.contrib.start_service
 
 import zocalo.configuration.argparse
