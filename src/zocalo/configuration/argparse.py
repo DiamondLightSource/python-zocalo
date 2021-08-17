@@ -19,8 +19,8 @@ def get_specified_environments(
     """Extract a list of all environments putatively specified on the command line.
     Returns an empty list if there are any parsing issues or there are no specified
     environments. This function is designed to be used as the first of two passes
-    for parsing command line options, so that the environments can be taken account
-    when parsing all other commands."""
+    for parsing command line options, so that the environments can be taken into
+    account when parsing all other commands."""
 
     env_parser = _EnvParser()
     env_parser.add_argument(
@@ -34,33 +34,3 @@ def get_specified_environments(
         return []
 
     return selected_environments[0].envs
-
-
-def add_env_option(zc, parser):
-    if isinstance(parser, argparse.ArgumentParser):
-        parser.add_argument(
-            "-e",
-            "--environment",
-            dest="environment",
-            metavar="ENV",
-            action="append",
-            default=[zc.default],
-            choices=sorted(zc.environments),
-            help="Enable site-specific settings. Choices are: "
-            + ", ".join(sorted(zc.environments))
-            + " (default: %(default)s)",
-        )
-    else:
-        parser.add_option(
-            "-e",
-            "--environment",
-            dest="environment",
-            metavar="ENV",
-            action="append",
-            default=[zc.default],
-            type="choice",
-            choices=sorted(zc.environments),
-            help="Enable site-specific settings. Choices are: "
-            + ", ".join(sorted(zc.environments))
-            + " (default: %default)",
-        )

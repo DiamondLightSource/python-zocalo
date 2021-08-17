@@ -53,8 +53,13 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
 
     def __init__(self):
         # load configuration and initialize logging
-        self._zc, envs = zocalo.configuration.activate_from_file()
+        self._zc = zocalo.configuration.from_file()
+        envs = zocalo.configuration.argparse.get_specified_environments()
         self.use_live_infrastructure = "live" in envs  # deprecated
+
+        for env in envs:
+            if env in self._zc.environments:
+                self._zc.activate_environment(env)
         self.setup_logging()
 
         if not hasattr(self._zc, "graylog") or not self._zc.graylog:
@@ -93,22 +98,19 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
             default=False,
             help="Restart service on failure",
         )
-        parser.add_option(  # deprecated
-            "--test",
-            action="store_true",
-            dest="test",
-            default=False,
-            help=optparse.SUPPRESS_HELP,
+        parser.add_option(
+            "-e",
+            "--environment",
+            dest="environment",
+            metavar="ENV",
+            action="append",
+            default=[],
+            type="choice",
+            choices=sorted(self._zc.environments),
+            help="Enable site-specific settings. Choices are: "
+            + ", ".join(sorted(self._zc.environments)),
         )
-        parser.add_option(  # deprecated
-            "--live",
-            action="store_true",
-            dest="live",
-            default=False,
-            help=optparse.SUPPRESS_HELP,
-        )
-        zocalo.configuration.argparse.add_env_option(self._zc, parser)
-        self.log.debug("Launching " + str(sys.argv))
+        self.log.debug("Launching %r", sys.argv)
 
     def on_parsing(self, options, args):
         if options.verbose:
@@ -118,10 +120,6 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
             logging.getLogger("stomp.py").setLevel(logging.DEBUG)
             logging.getLogger("workflows").setLevel(logging.DEBUG)
         self.options = options
-        if options.live:
-            print("--live is deprecated. Use -e=live")
-        if options.test:
-            print("--test is deprecated. Use -e=test")
 
     def before_frontend_construction(self, kwargs):
         kwargs["verbose_service"] = True

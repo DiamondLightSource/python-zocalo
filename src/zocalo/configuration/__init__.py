@@ -13,7 +13,6 @@ import marshmallow as mm
 import pkg_resources
 import yaml
 
-import zocalo.configuration.argparse
 from zocalo import ConfigurationError
 
 logger = logging.getLogger("zocalo.configuration")
@@ -358,25 +357,3 @@ def from_file(config_file=None) -> Configuration:
 
 def from_string(configuration: str) -> Configuration:
     return Configuration(_merge_configuration(configuration, None, pathlib.Path.cwd()))
-
-
-def activate_from_file() -> Configuration:
-    zc = from_file()
-    envs = zocalo.configuration.argparse.get_specified_environments()
-
-    if "--live" in sys.argv:  # deprecated
-        envs = ["live"]
-    if "--test" in sys.argv:
-        envs = ["test"]
-
-    if not envs and zc.default:
-        envs = [zc.default]
-
-    for env in envs:
-        if env in zc.environments:
-            logger.debug(f"Activating environment '{env}'")
-            zc.activate_environment(env)
-        else:
-            logger.warning(f"Trying to activate {env} which is not a valid environment")
-
-    return zc, envs
