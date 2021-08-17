@@ -23,6 +23,10 @@ import zocalo.configuration.argparse
 
 
 def run():
+    zc = zocalo.configuration.from_file()
+    envs = zocalo.configuration.argparse.get_specified_environments()
+    zc.activate_environments(envs)
+
     parser = OptionParser(
         usage="zocalo.go [options] dcid",
         description="Triggers processing of a standard "
@@ -107,16 +111,18 @@ def run():
         default=False,
         help="Verify that everything is in place that the message could be sent, but don't actually send the message",
     )
-
     parser.add_option(
-        "--test",
-        action="store_true",
-        dest="test",
-        default=False,
-        help=SUPPRESS_HELP,
+        "-e",
+        "--environment",
+        dest="environment",
+        metavar="ENV",
+        action="append",
+        default=[],
+        type="choice",
+        choices=sorted(zc.environments),
+        help="Enable site-specific settings. Choices are: "
+        + ", ".join(sorted(zc.environments)),
     )
-    zc, _ = zocalo.configuration.activate_from_file()
-    zocalo.configuration.argparse.add_env_option(zc, parser)
 
     StompTransport.add_command_line_options(parser)
     (options, args) = parser.parse_args(sys.argv[1:])
@@ -192,9 +198,6 @@ def run():
         and not options.reprocess
     ):
         sys.exit("No recipes specified.")
-
-    if options.test:
-        print("--test is deprecated. Use -e=test")
 
     if options.recipefile:
         with open(options.recipefile) as fh:

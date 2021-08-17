@@ -33,7 +33,9 @@ def run():
     logging.getLogger().addHandler(console)
     log = logging.getLogger("zocalo.wrap")
 
-    zc, _ = zocalo.configuration.activate_from_file()
+    zc = zocalo.configuration.from_file()
+    envs = zocalo.configuration.argparse.get_specified_environments()
+    zc.activate_environments(envs)
 
     known_wrappers = {
         e.name: e.load for e in pkg_resources.iter_entry_points("zocalo.wrappers")
@@ -62,9 +64,6 @@ def run():
         help="A serialized recipe wrapper file " "for downstream communication",
     )
 
-    parser.add_option("--test", action="store_true", help=SUPPRESS_HELP)  # deprecated
-    parser.add_option("--live", action="store_true", help=SUPPRESS_HELP)  # deprecated
-
     parser.add_option(
         "-t",
         "--transport",
@@ -83,7 +82,19 @@ def run():
         default=False,
         help="Show debug level messages",
     )
-    zocalo.configuration.argparse.add_env_option(zc, parser)
+    parser.add_option(
+        "-e",
+        "--environment",
+        dest="environment",
+        metavar="ENV",
+        action="append",
+        default=[],
+        type="choice",
+        choices=sorted(zc.environments),
+        help="Enable site-specific settings. Choices are: "
+        + ", ".join(sorted(zc.environments)),
+    )
+
     workflows.transport.add_command_line_options(parser)
 
     # Parse command line arguments
@@ -117,11 +128,6 @@ def run():
     # Instantiate chosen wrapper
     instance = known_wrappers[options.wrapper]()()
     instance.status_thread = st
-
-    if options.live:
-        print("--live is deprecated. Use -e=live")
-    if options.test:
-        print("--test is deprecated. Use -e=test")
 
     # If specified, read in a serialized recipewrapper
     if options.recipewrapper:
