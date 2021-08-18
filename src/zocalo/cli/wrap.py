@@ -34,6 +34,13 @@ def run():
     zc = zocalo.configuration.from_file()
     zc.activate()
 
+    default_transport = workflows.transport.default_transport
+    if (
+        zc.storage
+        and zc.storage.get("zocalo.default_transport")
+        in workflows.transport.get_known_transports()
+    ):
+        default_transport = zc.storage["zocalo.default_transport"]
     known_wrappers = {
         e.name: e.load for e in pkg_resources.iter_entry_points("zocalo.wrappers")
     }
@@ -60,13 +67,12 @@ def run():
         default=None,
         help="A serialized recipe wrapper file for downstream communication",
     )
-
     parser.add_option(
         "-t",
         "--transport",
         dest="transport",
         metavar="TRN",
-        default="StompTransport",
+        default=default_transport,
         help="Transport mechanism. Known mechanisms: "
         + ", ".join(workflows.transport.get_known_transports())
         + " (default: %default)",

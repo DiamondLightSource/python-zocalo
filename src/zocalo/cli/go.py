@@ -13,7 +13,7 @@ from optparse import SUPPRESS_HELP, OptionParser
 from pprint import pprint
 
 import workflows.recipe
-from workflows.transport.stomp_transport import StompTransport
+import workflows.transport
 
 import zocalo.configuration.argparse
 
@@ -23,6 +23,13 @@ import zocalo.configuration.argparse
 def run():
     zc = zocalo.configuration.from_file()
     zc.activate()
+    default_transport = workflows.transport.default_transport
+    if (
+        zc.storage
+        and zc.storage.get("zocalo.default_transport")
+        in workflows.transport.get_known_transports()
+    ):
+        default_transport = zc.storage["zocalo.default_transport"]
 
     parser = OptionParser(
         usage="zocalo.go [options] dcid",
@@ -76,7 +83,7 @@ def run():
         action="store_true",
         default=False,
         help=SUPPRESS_HELP,
-    )  # Write directly to file, do not attempt to send via stomp
+    )  # Write directly to file, do not attempt to send as message
     parser.add_option(
         "-p",
         "--reprocessing",
@@ -95,6 +102,16 @@ def run():
         help="Set an additional variable for recipe evaluation",
     )
     parser.add_option(
+        "-t",
+        "--transport",
+        dest="transport",
+        metavar="TRN",
+        default=default_transport,
+        help="Transport mechanism. Known mechanisms: "
+        + ", ".join(workflows.transport.get_known_transports())
+        + " (default: %default)",
+    )
+    parser.add_option(
         "-v",
         "--verbose",
         dest="verbose",
@@ -110,19 +127,13 @@ def run():
         help="Verify that everything is in place that the message could be sent, but don't actually send the message",
     )
     zc.add_command_line_options(parser)
-    StompTransport.add_command_line_options(parser)
+    workflows.transport.add_command_line_options(parser)
     (options, args) = parser.parse_args(sys.argv[1:])
 
     if zc.storage and zc.storage.get("zocalo.go.fallback_location"):
         dropfile_fallback = pathlib.Path(zc.storage["zocalo.go.fallback_location"])
     else:
         dropfile_fallback = False
-
-    def generate_headers():
-        return {
-            "zocalo.go.user": getpass.getuser(),
-            "zocalo.go.host": socket.gethostname(),
-        }
 
     def write_message_to_dropfile(message, headers):
         message_serialized = (
@@ -136,20 +147,22 @@ def run():
         fallback.write_text(message_serialized)
         print("Message successfully stored in %s" % fallback)
 
-    def send_to_stomp_or_defer(message, headers=None):
-        if not headers:
-            headers = generate_headers()
+    def send_or_defer(message):
+        headers = {
+            "zocalo.go.user": getpass.getuser(),
+            "zocalo.go.host": socket.gethostname(),
+        }
         if options.verbose:
             pprint(message)
         if dropfile_fallback and options.dropfile:
             return write_message_to_dropfile(message, headers)
         try:
-            stomp = StompTransport()
+            transport = workflows.transport.lookup(options.transport)()
             if options.dryrun:
                 print("Not sending message (running with --dry-run)")
                 return
-            stomp.connect()
-            stomp.send("processing_recipe", message, headers=headers)
+            transport.connect()
+            transport.send("processing_recipe", message, headers=headers)
         except (
             KeyboardInterrupt,
             SyntaxError,
@@ -197,7 +210,7 @@ def run():
         if options.recipefile:
             print("Running recipe from file", options.recipefile)
         print("without specified data collection.")
-        send_to_stomp_or_defer(message)
+        send_or_defer(message)
         print("\nSubmitted.")
         sys.exit(0)
 
@@ -215,7 +228,7 @@ def run():
         if options.recipe:
             print("Running recipes", options.recipe)
         message["parameters"]["ispyb_process"] = dcid
-        send_to_stomp_or_defer(message)
+        send_or_defer(message)
         print("\nReprocessing task submitted for ID %d." % dcid)
         sys.exit(0)
 
@@ -235,5 +248,5 @@ def run():
         assert apsid > 0, "Invalid auto processing scaling ID given."
         message["parameters"]["ispyb_autoprocscalingid"] = apsid
 
-    send_to_stomp_or_defer(message)
+    send_or_defer(message)
     print("\nSubmitted.")
