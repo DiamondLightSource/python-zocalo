@@ -2,9 +2,11 @@
 History
 =======
 
-0.9.0 (2021-08-..)
+0.9.0 (2021-08-18)
 ------------------
 * Removed --live/--test command line arguments, use -e/--environment instead
+* zocalo.go, zocalo.service, zocalo.wrap accept -t/--transport command line
+  options, and the default can be set via the site configuration.
 
 0.8.1 (2021-07-08)
 ------------------
