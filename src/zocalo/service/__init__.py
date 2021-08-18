@@ -56,6 +56,15 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
             # Enable logging to graylog, deprecated
             zocalo.enable_graylog()
 
+        if (
+            self._zc.storage
+            and self._zc.storage.get("zocalo.default_transport")
+            in workflows.transport.get_known_transports()
+        ):
+            workflows.transport.default_transport = self._zc.storage[
+                "zocalo.default_transport"
+            ]
+
     def on_parser_preparation(self, parser):
         parser.add_option(
             "-v",
