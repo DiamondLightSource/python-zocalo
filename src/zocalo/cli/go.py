@@ -23,7 +23,7 @@ import zocalo.configuration.argparse
 def run():
     zc = zocalo.configuration.from_file()
     zc.activate()
-    default_transport = "StompTransport"
+    default_transport = workflows.transport.default_transport
     if (
         zc.storage
         and zc.storage.get("zocalo.default_transport")
