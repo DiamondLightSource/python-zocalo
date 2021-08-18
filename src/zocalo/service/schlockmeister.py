@@ -1,5 +1,6 @@
 import collections
 import uuid
+from typing import Any, Dict, Set, Tuple
 
 from workflows.services.common_service import CommonService
 
@@ -33,9 +34,9 @@ class Schlockmeister(CommonService):
     # Logger name
     _logger_name = "zocalo.service.schlockmeister"
 
-    known_queues = {}
-    known_consumers = {}
-    known_instances = set()
+    known_queues: Dict[str, dict] = {}
+    known_consumers: Dict[Tuple[Any, Any, Any], str] = {}
+    known_instances: Set[str] = set()
 
     def initializing(self):
         """

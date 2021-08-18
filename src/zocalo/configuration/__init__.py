@@ -88,21 +88,21 @@ class Configuration:
         }
         for name in _configuration_plugins:
             setattr(self, "_" + name, None)
-        self.environment_cmd_args: typing.Tuple[str] = ("-e", "--environment")
+        self.environment_cmd_args: typing.Tuple[str, ...] = ("-e", "--environment")
 
     @property
-    def environments(self) -> typing.Set[str]:
+    def environments(self) -> typing.FrozenSet[str]:
         return frozenset(self._environments)
 
     @property
-    def active_environments(self) -> typing.Tuple[str]:
+    def active_environments(self) -> typing.Tuple[str, ...]:
         return tuple(self._activated)
 
     def _resolve(self, plugin_configuration: str):
         try:
             configuration = self._plugin_configurations[
                 plugin_configuration
-            ].read_text()
+            ].read_text()  # type: ignore
         except PermissionError as e:
             raise PermissionError(
                 f"Plugin configuration {plugin_configuration} could not be resolved, "
@@ -132,7 +132,7 @@ class Configuration:
             if isinstance(self._plugin_configurations[config_name], pathlib.Path):
                 self._resolve(config_name)
             configuration = self._plugin_configurations[config_name]
-            plugin = _load_plugin(configuration["plugin"])
+            plugin = _load_plugin(configuration["plugin"])  # type: ignore
             if plugin:
                 plugin_parameters = inspect.signature(plugin.activate).parameters
                 arguments = {"configuration": configuration, "config_object": self}
@@ -145,7 +145,7 @@ class Configuration:
                         for p in set(arguments).intersection(plugin_parameters)
                     }
                 return_value = plugin.activate(**arguments)
-                setattr(self, "_" + configuration["plugin"], return_value)
+                setattr(self, "_" + configuration["plugin"], return_value)  # type: ignore
         self._activated.append(name)
 
     def activate(
@@ -153,7 +153,7 @@ class Configuration:
         envs: typing.Optional[typing.Iterable[str]] = None,
         *,
         default: bool = True,
-    ) -> typing.Tuple[str]:
+    ) -> typing.Tuple[str, ...]:
         """
         Activate a list of environments in order.
 
@@ -198,6 +198,16 @@ class Configuration:
                 help="Enable site-specific settings. Choices are: "
                 + ", ".join(sorted(self._environments)),
             )
+
+    if typing.TYPE_CHECKING:
+        # The configuration object will offer access to plugin objects as attributes.
+        # Type checking tools will not be able to determine the type of attributes,
+        # however we need to tell type checkers that accessing statically undefined
+        # attributes is allowed. We do this by setting a return type on __getattr__,
+        # but only when in a type checking run, as to not affect the runtime class
+        # behaviour.
+        def __getattr__(self, name: str) -> typing.Any:
+            ...
 
     def __str__(self):
         environments = len(self._environments)
