@@ -105,6 +105,7 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
             self.console.setLevel(logging.DEBUG)
         if options.debug:
             self.console.setLevel(logging.DEBUG)
+            logging.getLogger("pika").setLevel(logging.INFO)
             logging.getLogger("stomp.py").setLevel(logging.DEBUG)
             logging.getLogger("workflows").setLevel(logging.DEBUG)
         self.options = options
