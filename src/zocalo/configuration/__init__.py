@@ -196,7 +196,7 @@ class Configuration:
                 type="choice",
                 choices=sorted(self._environments),
                 help="Enable site-specific settings. Choices are: "
-                + ", ".join(sorted(self._environments)),
+                + ", ".join(sorted(set(self._environments) - {"default"})),
             )
 
     if typing.TYPE_CHECKING:
