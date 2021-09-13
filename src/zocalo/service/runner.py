@@ -195,7 +195,7 @@ class Runner(CommonService):
             rw.send_to("timeout", "")
 
         except Exception:
-            self.log.exception(f"Could not execute commands")
+            self.log.exception("Could not execute commands")
 
         # Send results onwards
         rw.set_default_channel("job_processed")

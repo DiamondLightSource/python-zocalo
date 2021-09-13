@@ -62,8 +62,8 @@ class Dispatcher(CommonService):
 
     def hook_before_filtering(self, header, message, parameters, recipe_id):
         """Actions to be taken before message filtering
-        
-        If this function returns false then processing of this message 
+
+        If this function returns false then processing of this message
         will stop
         """
         return_code = True
@@ -81,7 +81,7 @@ class Dispatcher(CommonService):
         self, header, message, parameters, recipe_id, filtered_message, rw,
     ):
         """Actions to be taken just before dispatching message
-        
+
         If this function returns false then processing of this message
         will stop
         """
