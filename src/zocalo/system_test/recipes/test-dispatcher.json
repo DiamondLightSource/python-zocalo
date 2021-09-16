@@ -1,0 +1,12 @@
+{
+    "1": {
+      "service": "System test",
+      "queue": "transient.system_test",
+      "parameters": {
+        "guid": "{guid}",
+        "beamline": "{ispyb_beamline}"
+      }
+    },
+    "start": [[1, []]]
+  }
+  
