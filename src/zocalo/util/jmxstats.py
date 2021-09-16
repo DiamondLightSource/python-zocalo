@@ -46,7 +46,7 @@ class JMXAPI:
             raise zocalo.ConfigurationError(
                 "There are no JMX credentials configured in your environment"
             )
-        self.url = f"http://{zc.jmx['host']}:{zc.jmx['port']}/{zc.jmx['baseurl']}/read/"
+        self.url = f"http://{zc.jmx['host']}:{zc.jmx['port']}/{zc.jmx['base_url']}/read/"
         self._authstring = b"Basic " + base64.b64encode(
             zc.jmx["username"].encode("utf-8")
             + b":"
