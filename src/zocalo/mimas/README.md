@@ -95,3 +95,25 @@ class test(Trigger):
 
         return TriggerResponse(success=True, return_value=self._jobid)
 ```
+
+## System Test
+
+Required configuration for associated system test
+
+```yaml
+storage:
+  plugin: storage
+
+  system_tests:
+    mimas:
+      event: start
+      beamline: bl
+      experimenttype: Energy scan
+      proposalcode: bl
+      dc_class: 
+        grid: None
+        screen: None
+        rotation: None
+      run_status: Successful
+      expected_recipe: exafs-qa
+```
