@@ -1,0 +1,51 @@
+{
+  "1": [
+    "Recipe for the business logic handling of a data collection start and end event"
+  ],
+  "1": {
+    "service": "Mimas Business Logic",
+    "queue": "mimas",
+    "parameters": {
+      "dcid": "{ispyb_dcid}",
+      "event": "{event}",
+      "beamline": "{ispyb_beamline}",
+      "detectorclass": "{ispyb_detectorclass}",
+      "experimenttype": "{ispyb_experimenttype}",
+      "preferred_processing": "{$REPLACE:ispyb_preferred_processing}",
+      "run_status": "{ispyb_dc_info[runStatus]}",
+      "space_group": "{$REPLACE:ispyb_space_group}",
+      "sweep_list": "{$REPLACE:ispyb_related_sweeps}",
+      "unit_cell": "{$REPLACE:ispyb_unit_cell}"
+    },
+    "passthrough": {
+      "param": 1
+    },
+    "output": {
+      "dispatcher": 2,
+      "ispyb": 3
+    }
+  },
+  "2": {
+    "service": "Immediate recipe invocation",
+    "queue": "processing_recipe"
+  },
+  "3": {
+    "service": "db connector",
+    "queue": "ispyb",
+    "parameters": { "ispyb_command": "create_ispyb_job" },
+    "output": {
+      "trigger": 4,
+      "held": 5
+    }
+  },
+  "4": {
+    "service": "Trigger for created ispyb processing jobs",
+    "queue": "processing_recipe"
+  },
+  "5": {
+    "service": "Collector for held ispyb processing jobs",
+    "queue": "mimas.held",
+    "output": 4
+  },
+  "start": [[1, []]]
+}
