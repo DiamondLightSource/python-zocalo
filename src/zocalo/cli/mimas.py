@@ -8,7 +8,7 @@ import workflows.recipe
 import zocalo.configuration
 
 try:
-    from zocalo_ispyb.filter import ispyb_filter, ispybtbx
+    from zocalo.ispyb.filter import ispyb_filter, ispybtbx
 except ImportError:
     print("Error: zocalo.mimas requires ispyb to be installed")
     exit(1)
