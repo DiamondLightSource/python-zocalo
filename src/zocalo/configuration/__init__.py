@@ -369,7 +369,10 @@ def _merge_configuration(
     # Resolve all lazy file references relative to the specified context parameter
     for plugin in parsed:
         if isinstance(parsed[plugin], str):
-            parsed[plugin] = context.joinpath(parsed[plugin]).resolve()
+            parsed_plugin = (
+                context / pathlib.Path(parsed[plugin]).expanduser()
+            ).resolve()
+            parsed[plugin] = parsed_plugin
 
     # Recursively identify and merge external files (DFS)
     if parsed.get("include"):
