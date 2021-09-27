@@ -371,7 +371,7 @@ def test_cannot_load_modular_configuration_with_broken_reference(tmp_path):
         )
 
 
-def test_merge_configuration_expanduser():
+def test_resolve_external_references_into_home_directory():
     merged = zocalo.configuration._merge_configuration(
         """
         version: 1
