@@ -6,6 +6,9 @@ Unreleased
 ----------
 * New ``zocalo.shutdown`` command to shutdown Zocalo services
 * New ``zocalo.queue_drain`` command to drain one queue into another in a controlled manner
+* New ``zocalo.util.rabbitmq.http_api_request()`` utility function to return a
+    ``urllib.request.Request`` object to query the RabbitMQ API using the credentials
+    specified via ``zocalo.configuration``.
 
 0.9.1 (2021-08-18)
 ------------------
