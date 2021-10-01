@@ -107,6 +107,17 @@ class Dispatcher(CommonService):
         # self._environment.get('live') can be used to distinguish live/test modes
         self.recipe_basepath = self.config.storage["zocalo.recipe_directory"]
 
+        self.message_filters = {
+            f.name: f.load()
+            for f in pkg_resources.iter_entry_points("zocalo.dispatcher.filters")
+        }
+        self.message_filters.update(
+            {
+                "load_recipes_from_files": self.filter_load_recipes_from_files,
+                "apply_parameters": self.filter_apply_parameters,
+            }
+        )
+
         self.log.info("Dispatcher starting")
 
         workflows.recipe.wrap_subscribe(
@@ -163,19 +174,15 @@ class Dispatcher(CommonService):
             filtered_message["recipe"] = workflows.recipe.Recipe()
 
             # Apply all specified filters in order to message and parameters
-            message_filters = [
-                f.load()
-                for f in pkg_resources.iter_entry_points("zocalo.dispatcher.filters")
-            ] + [self.filter_load_recipes_from_files, self.filter_apply_parameters]
-
-            for f in message_filters:
+            for name, f in self.message_filters.items():
                 try:
                     filtered_message, filtered_parameters = f(
                         filtered_message, filtered_parameters
                     )
                 except Exception as e:
                     self.log.error(
-                        "Rejected message due to filter error: %s",
+                        "Rejected message due to filter (%s) error: %s",
+                        name,
                         str(e),
                         exc_info=True,
                     )
