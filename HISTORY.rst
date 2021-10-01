@@ -2,6 +2,14 @@
 History
 =======
 
+Unreleased
+----------
+* New ``zocalo.shutdown`` command to shutdown Zocalo services
+
+0.9.1 (2021-08-18)
+------------------
+* Expand ~ in paths in configuration files
+
 0.9.0 (2021-08-18)
 ------------------
 * Removed --live/--test command line arguments, use -e/--environment instead
