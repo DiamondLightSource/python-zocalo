@@ -97,10 +97,10 @@ Working with Zocalo
 `Graylog <https://www.graylog.org/>`_ is used to manage the logs produced by Zocalo. Once Graylog and the message broker server are running then services and wrappers can be launched with Zocalo.
 
 Zocalo provides the following command line tools::
-  * ``zocalo.go``: triggers the processing of a recipe
-  * ``zocalo.wrap``: runs a command while exposing its status to Zocalo so that it can be tracked
-  * ``zocalo.service``: starts a new instance of a service
-  * ``zocalo.shutdown``: shuts either specific instances of Zocalo services, or all instances for a given type of service
+  * ``zocalo.go``: trigger the processing of a recipe
+  * ``zocalo.wrap``: run a command while exposing its status to Zocalo so that it can be tracked
+  * ``zocalo.service``: start a new instance of a service
+  * ``zocalo.shutdown``: shutdown either specific instances of Zocalo services or all instances for a given type of service
 
 Services are available through ``zocalo.service`` if they are linked through the ``workflows.services`` entry point in ``setup.py``. For example, to start a Schlockmeister service:
 
