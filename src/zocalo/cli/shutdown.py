@@ -14,7 +14,7 @@ import workflows.transport
 import zocalo.configuration
 
 
-def run():
+def run(args=None):
     parser = argparse.ArgumentParser()
 
     # Load configuration
@@ -60,7 +60,7 @@ def run():
     )
     zc.add_command_line_options(parser)
     workflows.transport.add_command_line_options(parser)
-    args = parser.parse_args(sys.argv[1:])
+    args = parser.parse_args(args)
 
     if not args.services and not len(args.HOSTS):
         print("Need to specify one or more services to shut down.")
@@ -77,7 +77,6 @@ def run():
             host = ".".join(reversed(socket.gethostname().split(".")[1:])) + "." + host
 
         message = {"command": "shutdown", "host": host}
-
         transport.broadcast("command", message)
         print("Shutting down", host)
 
@@ -86,6 +85,5 @@ def run():
             # Special case for placeholder instances
             service = None
         message = {"command": "shutdown", "service": service}
-
         transport.broadcast("command", message)
         print("Stopping all instances of", service)
