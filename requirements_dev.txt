@@ -5,3 +5,4 @@ pytest-cov==2.12.1
 pytest==6.2.4
 setuptools==58.0.4
 workflows==2.12
+junit-xml==1.9
