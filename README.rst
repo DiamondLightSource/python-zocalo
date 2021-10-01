@@ -61,7 +61,7 @@ Zocalo as a wider whole is made up of two repositories (plus some private intern
 
 As mentioned, Zocalo is currently built on top of ActiveMQ. ActiveMQ is an apache project that provides a `message broker <https://en.wikipedia.org/wiki/Message_broker>`_ server, acting as a central dispatch that allows various services to communicate. Messages are plaintext, but from the Zocalo point of view it's passing aroung python objects (json dictionaries). Every message sent has a destination to help the message broker route. Messages may either be sent to a specific queue or broadcast to multiple queues. These queues are subscribed to by the services that run in Zocalo. In developing with Zocalo, you may have to interact with ActiveMQ or RabbitMQ, but it is unlikely that you will have to configure it.
 
-Zocalo allows for the monitoring of jobs executing ``python-workflows`` services or recipe wrappers. The ``python-workflows`` package contains most of the infrastructure required for the jobs themselves and more detailed documentation of its components can be found in the ``python-workflows`` `GitHub repository <https://github.com/DiamondLightSource/python-workflows/>`_ and `the Zocalo documentation <https://zocalo.readthedocs.io>`_. 
+Zocalo allows for the monitoring of jobs executing ``python-workflows`` services or recipe wrappers. The ``python-workflows`` package contains most of the infrastructure required for the jobs themselves and more detailed documentation of its components can be found in the ``python-workflows`` `GitHub repository <https://github.com/DiamondLightSource/python-workflows/>`_ and `the Zocalo documentation <https://zocalo.readthedocs.io>`_.
 
 .. _ActiveMQ: http://activemq.apache.org/
 .. _STOMP: https://stomp.github.io/
@@ -94,29 +94,35 @@ The only public Zocalo service at present is ``Schlockmeister``, a garbage colle
 Working with Zocalo
 -------------------
 
-`Graylog <https://www.graylog.org/>`_ is used to manage the logs produced by Zocalo. Once Graylog and the message broker server are running then services and wrappers can be launched with Zocalo. 
+`Graylog <https://www.graylog.org/>`_ is used to manage the logs produced by Zocalo. Once Graylog and the message broker server are running then services and wrappers can be launched with Zocalo.
 
-Zocalo provides some command line tools. These tools are ``zocalo.go``, ``zocalo.wrap`` and ``zocalo.service``: the first triggers the processing of a recipe and the second runs a command while exposing its status to Zocalo so that it can be tracked. Services are available through ``zocalo.service`` if they are linked through the ``workflows.services`` entry point in ``setup.py``. For example, to start a Schlockmeister service:
+Zocalo provides the following command line tools::
+  * ``zocalo.go``: triggers the processing of a recipe
+  * ``zocalo.wrap``: runs a command while exposing its status to Zocalo so that it can be tracked
+  * ``zocalo.service``: starts a new instance of a service
+  * ``zocalo.shutdown``: shuts either specific instances of Zocalo services, or all instances for a given type of service
+
+Services are available through ``zocalo.service`` if they are linked through the ``workflows.services`` entry point in ``setup.py``. For example, to start a Schlockmeister service:
 
 .. code:: bash
 
         $ zocalo.service -s Schlockmeister
 
-.. list-table:: 
+.. list-table::
         :widths: 100
         :header-rows: 1
 
         * - Q: How are services started?
         * - A: Zocalo itself is agnostic on this point. Some of the services are self-propagating and employ simple scaling behaviour - in particular the per-image-analysis services. The services in general all run on cluster nodes, although this means that they can not be long lived - beyond a couple of hours there is a high risk of the service cluster jobs being terminated or pre-empted. This also helps encourage programming more robust services if they could be killed.
 
-.. list-table:: 
+.. list-table::
         :widths: 100
         :header-rows: 1
 
         * - Q: So if a service is terminated in the middle of processing it will still get processed?
         * - A: Yes, messages are handled in transactions - while a service is processing a message, it's marked as "in-progress" but isn't completely dropped. If the service doesn't process the message, or it's connection to ActiveMQ gets dropped, then it get's requeued so that another instance of the service can pick it up.
 
-Repeat Message Failure 
+Repeat Message Failure
 ----------------------
 
 How are repeat errors handled? This is a problem with the system - if e.g. an image or malformed message kills a service then it will get requeued, and will eventually kill all instances of the service running (which will get re-spawned, and then die, and so forth).
