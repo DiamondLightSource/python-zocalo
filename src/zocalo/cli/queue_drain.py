@@ -30,7 +30,7 @@ def show_cluster_info(step):
 show_additional_info = {"cluster.submission": show_cluster_info}
 
 
-def run():
+def run(args=None):
 
     # Load configuration
     zc = zocalo.configuration.from_file()
@@ -79,7 +79,7 @@ def run():
     )
     zc.add_command_line_options(parser)
     workflows.transport.add_command_line_options(parser)
-    args = parser.parse_args(sys.argv[1:])
+    args = parser.parse_args(args)
 
     transport = workflows.transport.lookup(args.transport)()
     transport.connect()
