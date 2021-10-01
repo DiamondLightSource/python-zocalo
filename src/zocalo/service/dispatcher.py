@@ -25,9 +25,6 @@ class Dispatcher(CommonService):
     # Logger name
     _logger_name = "services.dispatcher"
 
-    # Define a base path where your recipes are located (accessed with zocalo.go -r $recipename)
-    recipe_basepath = None
-
     def filter_load_recipes_from_files(self, message, parameters):
         """Loads named recipes from central location and merges them into the recipe object"""
         for recipefile in message.get("recipes", []):
@@ -108,7 +105,7 @@ class Dispatcher(CommonService):
     def initializing(self):
         """Subscribe to the processing_recipe queue. Received messages must be acknowledged."""
         # self._environment.get('live') can be used to distinguish live/test modes
-        self.recipe_basepath = self.config.storage["recipe_path"]
+        self.recipe_basepath = self.config.storage["zocalo.recipe_directory"]
 
         self.log.info("Dispatcher starting")
 
