@@ -203,7 +203,7 @@ def run(args=None):
                         )
 
                     triggers = get_recipe_triggers(
-                        zc.storage.get("recipe_path"), full_recipe
+                        zc.storage.get("zocalo.recipe_directory"), full_recipe
                     )
                     if triggers:
                         print("   Then trigger: ")
