@@ -101,6 +101,7 @@ Zocalo provides the following command line tools::
   * ``zocalo.wrap``: run a command while exposing its status to Zocalo so that it can be tracked
   * ``zocalo.service``: start a new instance of a service
   * ``zocalo.shutdown``: shutdown either specific instances of Zocalo services or all instances for a given type of service
+  * ``zocalo.queue_drain``: drain one queue into another in a controlled manner
 
 Services are available through ``zocalo.service`` if they are linked through the ``workflows.services`` entry point in ``setup.py``. For example, to start a Schlockmeister service:
 
