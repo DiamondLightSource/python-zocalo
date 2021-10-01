@@ -61,7 +61,7 @@ class CommonSystemTest:
         Kwargs:
             load(bool): Whether to load the json into a Recipe
         """
-        recipe_path = self._zc.storage["recipe_path"]
+        recipe_path = self._zc.storage["zocalo.recipe_directory"]
         with open(os.path.join(recipe_path, f"{recipe}.json")) as fh:
             recipe = json.load(fh)
             if load:
