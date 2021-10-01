@@ -194,16 +194,15 @@ class Dispatcher(CommonService):
                 transport=self._transport,
             )
 
-            # Conditionally acknowledge receipt of the message
-            txn = self._transport.transaction_begin()
-            self._transport.ack(header, transaction=txn)
-
             # Call another hook just before dispatching the message
             if not self.hook_before_dispatch(
                 header, message, parameters, recipe_id, filtered_message, rw,
             ):
                 return
 
+            # Conditionally acknowledge receipt of the message
+            txn = self._transport.transaction_begin()
+            self._transport.ack(header, transaction=txn)
             rw.start(transaction=txn)
 
             # Commit transaction
