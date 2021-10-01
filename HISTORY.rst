@@ -5,6 +5,7 @@ History
 Unreleased
 ----------
 * New ``zocalo.shutdown`` command to shutdown Zocalo services
+* New ``zocalo.queue_drain`` command
 
 0.9.1 (2021-08-18)
 ------------------
