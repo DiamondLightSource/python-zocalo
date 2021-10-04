@@ -2,14 +2,7 @@
 Credits
 =======
 
-Development Lead
-----------------
-
+* Daniel Hatton
 * Markus Gerstel
-
-Contributors
-------------
-
-Stu Fisher
-Richard Gildea
-Daniel Hatton
+* Richard Gildea
+* Stu Fisher
