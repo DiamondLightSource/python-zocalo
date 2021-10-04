@@ -1,0 +1,14 @@
+{
+  "1": ["Recipe to test Trigger service"],
+  "1": {
+    "service": "Trigger",
+    "queue": "trigger",
+    "parameters": {
+      "target": "test",
+      "dcid": "{ispyb_dcid}",
+      "comment": "Test process trigger",
+      "automatic": true
+    }
+  },
+  "start": [[1, []]]
+}

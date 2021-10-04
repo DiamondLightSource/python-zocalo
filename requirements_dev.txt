@@ -6,3 +6,5 @@ pytest-mock
 pytest==6.2.5
 setuptools==58.1.0
 workflows==2.12
+gemmi==0.4.9
+dataclasses==0.8; python_version < '3.7'

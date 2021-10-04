@@ -1,0 +1,8 @@
+{
+  "name": "site",
+  "root_name": "mimas_{{ cookiecutter.name.lower() }}",
+  "project_name": "{{ cookiecutter.name }} zocalo-mimas project",
+  "project_slug": "mimas_{{ cookiecutter.name.lower() }}",
+  "project_short_description": "{{ cookiecutter.name }} zocalo mimas local implementors",
+  "version": "0.1.0"
+}
