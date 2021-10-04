@@ -2,7 +2,13 @@ import importlib
 import os
 import pkgutil
 
-import ispyb
+try:
+    import ispyb
+except ImportError:
+    print("Error: Trigger service requires ispyb to be installed")
+    ispyb = None
+
+
 import workflows.recipe
 from workflows.services.common_service import CommonService
 
@@ -26,7 +32,10 @@ class Trigger(CommonService):
             log_extender=self.extend_log,
         )
 
-        self.ispyb = ispyb.open(os.environ["ISPYB_CREDENTIALS"])
+        if ispyb:
+            self.ispyb = ispyb.open(os.environ["ISPYB_CREDENTIALS"])
+        else:
+            self.ispyb = None
 
     def trigger(self, rw, header, message):
         """Forward the trigger message to a specific trigger function."""
