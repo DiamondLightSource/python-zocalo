@@ -4,5 +4,5 @@ marshmallow==3.13.0
 pytest-cov==2.12.1
 pytest-mock
 pytest==6.2.5
-setuptools==58.1.0
-workflows==2.12
+setuptools==58.2.0
+workflows==2.13
