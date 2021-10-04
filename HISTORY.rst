@@ -4,11 +4,15 @@ History
 
 Unreleased
 ----------
+
+0.10.0 (2021-10-04)
+-------------------
 * New ``zocalo.shutdown`` command to shutdown Zocalo services
 * New ``zocalo.queue_drain`` command to drain one queue into another in a controlled manner
 * New ``zocalo.util.rabbitmq.http_api_request()`` utility function to return a
-    ``urllib.request.Request`` object to query the RabbitMQ API using the credentials
-    specified via ``zocalo.configuration``.
+  ``urllib.request.Request`` object to query the RabbitMQ API using the credentials
+  specified via ``zocalo.configuration``.
+* ``zocalo.wrap`` now emits tracebacks on hard crashes and ``SIGUSR2`` signals
 
 0.9.1 (2021-08-18)
 ------------------
