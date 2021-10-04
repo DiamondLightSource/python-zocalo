@@ -4,11 +4,11 @@
 #
 
 
+import argparse
 import json
 import logging
 import os
 import sys
-from optparse import SUPPRESS_HELP, OptionParser
 
 import pkg_resources
 import workflows.recipe.wrapper
@@ -21,7 +21,6 @@ import zocalo.wrapper
 
 
 def run():
-    cmdline_args = sys.argv[1:]
     # Enable logging to console
     console = logging.StreamHandler()
     console.setLevel(logging.INFO)
@@ -34,22 +33,15 @@ def run():
     zc = zocalo.configuration.from_file()
     zc.activate()
 
-    default_transport = workflows.transport.default_transport
-    if (
-        zc.storage
-        and zc.storage.get("zocalo.default_transport")
-        in workflows.transport.get_known_transports()
-    ):
-        default_transport = zc.storage["zocalo.default_transport"]
     known_wrappers = {
         e.name: e.load for e in pkg_resources.iter_entry_points("zocalo.wrappers")
     }
 
     # Set up parser
-    parser = OptionParser(usage="zocalo.wrap [options]")
-    parser.add_option("-?", action="help", help=SUPPRESS_HELP)
+    parser = argparse.ArgumentParser(usage="zocalo.wrap [options]")
+    parser.add_argument("-?", action="help", help=argparse.SUPPRESS)
 
-    parser.add_option(
+    parser.add_argument(
         "--wrap",
         action="store",
         dest="wrapper",
@@ -59,7 +51,7 @@ def run():
         choices=list(known_wrappers),
         help="Object to be wrapped (valid choices: %s)" % ", ".join(known_wrappers),
     )
-    parser.add_option(
+    parser.add_argument(
         "--recipewrapper",
         action="store",
         dest="recipewrapper",
@@ -67,17 +59,7 @@ def run():
         default=None,
         help="A serialized recipe wrapper file for downstream communication",
     )
-    parser.add_option(
-        "-t",
-        "--transport",
-        dest="transport",
-        metavar="TRN",
-        default=default_transport,
-        help="Transport mechanism. Known mechanisms: "
-        + ", ".join(workflows.transport.get_known_transports())
-        + " (default: %default)",
-    )
-    parser.add_option(
+    parser.add_argument(
         "-v",
         "--verbose",
         dest="verbose",
@@ -87,43 +69,39 @@ def run():
     )
 
     zc.add_command_line_options(parser)
-    workflows.transport.add_command_line_options(parser)
+    workflows.transport.add_command_line_options(parser, transport_argument=True)
 
     # Parse command line arguments
-    (options, args) = parser.parse_args()
-
-    if not cmdline_args:
-        parser.print_help()
-        sys.exit()
+    args = parser.parse_args()
 
     # Instantiate specific wrapper
-    if not options.wrapper:
+    if not args.wrapper:
         sys.exit("A wrapper object must be specified.")
 
-    if options.verbose:
+    if args.verbose:
         console.setLevel(logging.DEBUG)
 
     log.info(
         "Starting wrapper for %s with recipewrapper file %s",
-        options.wrapper,
-        options.recipewrapper,
+        args.wrapper,
+        args.recipewrapper,
     )
 
     # Connect to transport and start sending notifications
-    transport = workflows.transport.lookup(options.transport)()
+    transport = workflows.transport.lookup(args.transport)()
     transport.connect()
-    st = zocalo.wrapper.StatusNotifications(transport.broadcast_status, options.wrapper)
+    st = zocalo.wrapper.StatusNotifications(transport.broadcast_status, args.wrapper)
     for env in ("SGE_CELL", "JOB_ID"):
         if env in os.environ:
             st.set_static_status_field("cluster_" + env, os.getenv(env))
 
     # Instantiate chosen wrapper
-    instance = known_wrappers[options.wrapper]()()
+    instance = known_wrappers[args.wrapper]()()
     instance.status_thread = st
 
     # If specified, read in a serialized recipewrapper
-    if options.recipewrapper:
-        with open(options.recipewrapper) as fh:
+    if args.recipewrapper:
+        with open(args.recipewrapper) as fh:
             recwrap = workflows.recipe.wrapper.RecipeWrapper(
                 message=json.load(fh), transport=transport
             )

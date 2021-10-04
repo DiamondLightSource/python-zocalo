@@ -3,13 +3,13 @@
 #   Process a datacollection
 #
 
+import argparse
 import getpass
 import json
 import pathlib
 import socket
 import sys
 import uuid
-from optparse import SUPPRESS_HELP, OptionParser
 from pprint import pprint
 
 import workflows.recipe
@@ -23,23 +23,16 @@ import zocalo.configuration.argparse
 def run():
     zc = zocalo.configuration.from_file()
     zc.activate()
-    default_transport = workflows.transport.default_transport
-    if (
-        zc.storage
-        and zc.storage.get("zocalo.default_transport")
-        in workflows.transport.get_known_transports()
-    ):
-        default_transport = zc.storage["zocalo.default_transport"]
 
-    parser = OptionParser(
+    parser = argparse.ArgumentParser(
         usage="zocalo.go [options] dcid",
         description="Triggers processing of a standard "
         "recipe, of an arbitrary recipe from a local file, or of an entry in "
         "the ISPyB processing table.",
     )
 
-    parser.add_option("-?", action="help", help=SUPPRESS_HELP)
-    parser.add_option(
+    parser.add_argument("-?", action="help", help=argparse.SUPPRESS)
+    parser.add_argument(
         "-r",
         "--recipe",
         dest="recipe",
@@ -49,27 +42,27 @@ def run():
         help="Name of a recipe to run. Can be used multiple times. "
         "Recipe names correspond to filenames (excluding .json) in /dls_sw/apps/zocalo/live/recipes",
     )
-    parser.add_option(
+    parser.add_argument(
         "-a",
         "--autoprocscalingid",
         dest="autoprocscalingid",
         metavar="APSID",
         action="store",
-        type="string",
+        type=str,
         default=None,
         help="An auto processing scaling ID for downstream processing recipes.",
     )
-    parser.add_option(
+    parser.add_argument(
         "-f",
         "--file",
         dest="recipefile",
         metavar="FILE",
         action="store",
-        type="string",
+        type=str,
         default="",
         help="Run recipe contained in this file.",
     )
-    parser.add_option(
+    parser.add_argument(
         "-n",
         "--no-dcid",
         dest="nodcid",
@@ -77,14 +70,14 @@ def run():
         default=False,
         help="Trigger recipe without specifying a data collection ID",
     )
-    parser.add_option(
+    parser.add_argument(
         "--drop",
         dest="dropfile",
         action="store_true",
         default=False,
-        help=SUPPRESS_HELP,
+        help=argparse.SUPPRESS,
     )  # Write directly to file, do not attempt to send as message
-    parser.add_option(
+    parser.add_argument(
         "-p",
         "--reprocessing",
         dest="reprocess",
@@ -92,7 +85,7 @@ def run():
         default=False,
         help="Means a reprocessing ID is given rather than a data collection ID",
     )
-    parser.add_option(
+    parser.add_argument(
         "-s",
         "--set",
         dest="parameters",
@@ -101,17 +94,7 @@ def run():
         metavar="KEY=VALUE",
         help="Set an additional variable for recipe evaluation",
     )
-    parser.add_option(
-        "-t",
-        "--transport",
-        dest="transport",
-        metavar="TRN",
-        default=default_transport,
-        help="Transport mechanism. Known mechanisms: "
-        + ", ".join(workflows.transport.get_known_transports())
-        + " (default: %default)",
-    )
-    parser.add_option(
+    parser.add_argument(
         "-v",
         "--verbose",
         dest="verbose",
@@ -119,16 +102,20 @@ def run():
         default=False,
         help="Show raw message before sending",
     )
-    parser.add_option(
+    parser.add_argument(
         "--dry-run",
         dest="dryrun",
         action="store_true",
         default=False,
         help="Verify that everything is in place that the message could be sent, but don't actually send the message",
     )
+    parser.add_argument(
+        "dcid", nargs="+", help="Data collection ID of required processing"
+    )
+
     zc.add_command_line_options(parser)
-    workflows.transport.add_command_line_options(parser)
-    (options, args) = parser.parse_args(sys.argv[1:])
+    workflows.transport.add_command_line_options(parser, transport_argument=True)
+    args = parser.parse_args()
 
     if zc.storage and zc.storage.get("zocalo.go.fallback_location"):
         dropfile_fallback = pathlib.Path(zc.storage["zocalo.go.fallback_location"])
@@ -141,7 +128,7 @@ def run():
         )
 
         fallback = dropfile_fallback / str(uuid.uuid4())
-        if options.dryrun:
+        if args.dryrun:
             print("Not storing message in %s (running with --dry-run)" % fallback)
             return
         fallback.write_text(message_serialized)
@@ -152,13 +139,13 @@ def run():
             "zocalo.go.user": getpass.getuser(),
             "zocalo.go.host": socket.gethostname(),
         }
-        if options.verbose:
+        if args.verbose:
             pprint(message)
-        if dropfile_fallback and options.dropfile:
+        if dropfile_fallback and args.dropfile:
             return write_message_to_dropfile(message, headers)
         try:
-            transport = workflows.transport.lookup(options.transport)()
-            if options.dryrun:
+            transport = workflows.transport.lookup(args.transport)()
+            if args.dryrun:
                 print("Not sending message (running with --dry-run)")
                 return
             transport.connect()
@@ -183,50 +170,47 @@ def run():
             print("\n\nAttempting to store message in fallback location")
             write_message_to_dropfile(message, headers)
 
-    message = {"recipes": options.recipe, "parameters": {}}
-    for kv in options.parameters:
+    message = {"recipes": args.recipe, "parameters": {}}
+    for kv in args.parameters:
         if "=" not in kv:
             sys.exit(f"Invalid variable specification '{kv}'")
         key, value = kv.split("=", 1)
         message["parameters"][key] = value
 
     if (
-        not options.recipe
-        and not options.recipefile
-        and not options.nodcid
-        and not options.reprocess
+        not args.recipe
+        and not args.recipefile
+        and not args.nodcid
+        and not args.reprocess
     ):
         sys.exit("No recipes specified.")
 
-    if options.recipefile:
-        with open(options.recipefile) as fh:
+    if args.recipefile:
+        with open(args.recipefile) as fh:
             custom_recipe = workflows.recipe.Recipe(json.load(fh))
         custom_recipe.validate()
         message["custom_recipe"] = custom_recipe.recipe
 
-    if options.nodcid:
-        if options.recipe:
-            print("Running recipes", options.recipe)
-        if options.recipefile:
-            print("Running recipe from file", options.recipefile)
+    if args.nodcid:
+        if args.recipe:
+            print("Running recipes", args.recipe)
+        if args.recipefile:
+            print("Running recipe from file", args.recipefile)
         print("without specified data collection.")
         send_or_defer(message)
         print("\nSubmitted.")
         sys.exit(0)
 
-    if not args:
-        sys.exit("No data collection IDs specified.")
-
-    if len(args) > 1:
+    if len(args.dcid) > 1:
         sys.exit("Only a single data collection ID can be specified.")
 
-    dcid = int(args[0])
+    dcid = int(args.dcid[0])
     assert dcid > 0, "Invalid data collection ID given."
 
-    if options.reprocess:
+    if args.reprocess:
         # Given ID is a reprocessing ID. Nothing else needs to be specified.
-        if options.recipe:
-            print("Running recipes", options.recipe)
+        if args.recipe:
+            print("Running recipes", args.recipe)
         message["parameters"]["ispyb_process"] = dcid
         send_or_defer(message)
         print("\nReprocessing task submitted for ID %d." % dcid)
@@ -235,16 +219,16 @@ def run():
     if message["recipes"]:
         print("Running recipes", message["recipes"])
 
-    if options.recipefile:
-        print("Running recipe from file", options.recipefile)
+    if args.recipefile:
+        print("Running recipe from file", args.recipefile)
 
     if not message["recipes"] and not message.get("custom_recipe"):
         sys.exit("No recipes specified.")
     print("for data collection", dcid)
     message["parameters"]["ispyb_dcid"] = dcid
 
-    if options.autoprocscalingid:
-        apsid = int(options.autoprocscalingid)
+    if args.autoprocscalingid:
+        apsid = int(args.autoprocscalingid)
         assert apsid > 0, "Invalid auto processing scaling ID given."
         message["parameters"]["ispyb_autoprocscalingid"] = apsid
 
