@@ -5,9 +5,11 @@
 
 
 import argparse
+import faulthandler
 import json
 import logging
 import os
+import signal
 import sys
 
 import pkg_resources
@@ -18,6 +20,19 @@ import workflows.util
 
 import zocalo.configuration.argparse
 import zocalo.wrapper
+
+
+def _enable_faulthandler():
+    """Display a traceback on crashing with non-Python errors, such as
+    segmentation faults, and when the process is signalled with SIGUSR2
+    (not available on Windows)"""
+    # Ignore errors during setup; SIGUSR2 not available on Windows, and
+    # the attached STDERR might not support what faulthandler wants
+    try:
+        faulthandler.enable()
+        faulthandler.register(signal.SIGUSR2)
+    except Exception:
+        pass
 
 
 def run():
@@ -86,6 +101,7 @@ def run():
         args.wrapper,
         args.recipewrapper,
     )
+    _enable_faulthandler()
 
     # Connect to transport and start sending notifications
     transport = workflows.transport.lookup(args.transport)()
