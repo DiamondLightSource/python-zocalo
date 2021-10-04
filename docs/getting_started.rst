@@ -4,7 +4,10 @@ Getting Started
 
 Zocalo requires both ActiveMQ and Graylog to be setup and running. The easiest way of setting these up is via docker.
 
-## Active MQ
+***************
+Active MQ
+***************
+
 Pull and run the following image https://hub.docker.com/r/rmohr/activemq
 Follow the steps on docker hub for extracting the config and data into local mounts
 
@@ -173,34 +176,7 @@ Sample recipes can be used:
 
     storage:
       plugin: storage
-      recipe_path: .../python-zocalo/examples/recipes
-
-===============
-ISPyB
-===============
-
-If ISPyB is available an [ispyb-api](https://github.com/DiamondLightSource/ispyb-api) config file can be provided, and pointed at from `site-configuration.yml`. Both the `ispyb_mariadb_sp ` and `ispyb` keys need to be completed (with subtly different parameters).
-
-.. code-block:: ini
-
-    [ispyb_mariadb_sp]
-    user = test
-    pw = test
-    host = localhost
-    port = 3306
-    db = test
-    reconn_attempts = 6
-    reconn_delay = 1
-
-    [ispyb]
-    username = test
-    password = test
-    host = localhost
-    port = 3306
-    database = test
-
-
-This will enable passing ISPyB information into the zocalo message parameters, and allow the `ISPyB` service to ingest ISPyB updates.
+      zocalo.recipe_directory: .../python-zocalo/examples/recipes
 
 ===============
 JMX
@@ -228,34 +204,28 @@ Username and password are the same as the web console and defined in `users.prop
 Starting Up
 ***************
 
-`--test` will make use of the test environment
+`-e test` will make use of the test environment
 
 Start the dispatcher
 
 .. code-block:: bash
 
     conda activate zocalo
-    zocalo.service -s Dispatcher (--test)
+    zocalo.service -s Dispatcher (-e test)
 
 
 Start the process runner
 
 .. code-block:: bash
 
-    zocalo.service -s Runner (--test)
+    zocalo.service -s Runner (-e test)
 
-
-Optionally start the IPSyB processor
-
-.. code-block:: bash
-
-    zocalo.service -s ISPyB (--test)
 
 Run the test recipe:
 
 .. code-block:: bash
 
-    zocalo.go -r example -s workingdir="$(pwd)" 1234 (--test)
+    zocalo.go -r example -s workingdir="$(pwd)" 1234 (-e test)
 
 ***********************
 Dead Letter Queue (DLQ)
@@ -267,10 +237,10 @@ Messages can be purged using:
 
 .. code-block:: bash
 
-    zocalo.dlq_purge --output-directory=/path/to/dlq (--test)
+    zocalo.dlq_purge --output-directory=/path/to/dlq (-e test)
 
 And re-injected with:
 
 .. code-block:: bash
 
-    zocalo.dlq_reinject dlq_file (--test)
+    zocalo.dlq_reinject dlq_file (-e test)
