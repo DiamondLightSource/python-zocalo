@@ -68,6 +68,8 @@ The container exposes the following ports:
    * - 8161
      - Web Console / Jolokia REST API
 
+A preconfigured docker image with these options applied is available here https://hub.docker.com/r/esrfbcu/zocalo-activemq
+
 ***************
 Graylog
 ***************
@@ -148,7 +150,7 @@ For developing create a new conda / virtual environment, clone zocalo, and insta
 
 .. code-block:: bash
 
-    conda create -n zocalo python=3.7
+    conda create -n zocalo
     conda activate zocalo
     git clone https://github.com/DiamondLightSource/python-zocalo
     cd python-zocalo
@@ -168,7 +170,7 @@ Configure
 
 Copy `contrib/site-configuration.yml`. At minimum `graylog` and `activemq` must be configured. Environments should be defined for `live` and `test`. Paths to recipes and drop files must also be specified. Messages are written to drop files if ActiveMQ is unavailable.
 
-The config file to use is specified from the environment variable `ZOCALO_CONFIG`, if this is empty it will look for `zocalo.yml` in the current directory
+The config file to use is specified from the environment variable `ZOCALO_CONFIG`.
 
 Sample recipes can be used:
 
