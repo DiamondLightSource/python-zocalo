@@ -21,16 +21,7 @@ def run(args=None):
     zc = zocalo.configuration.from_file()
     zc.activate()
 
-    default_transport = workflows.transport.default_transport
-    if (
-        zc.storage
-        and zc.storage.get("zocalo.default_transport")
-        in workflows.transport.get_known_transports()
-    ):
-        default_transport = zc.storage["zocalo.default_transport"]
-
     known_services = workflows.services.get_known_services()
-
     parser.add_argument("-?", action="help", help=argparse.SUPPRESS)
     parser.add_argument(
         "HOSTS",
@@ -48,18 +39,8 @@ def run(args=None):
         help="Stop all instances of a service. Use 'none' for instances without "
         "loaded service. Known services: " + ", ".join(known_services),
     )
-    parser.add_argument(
-        "-t",
-        "--transport",
-        dest="transport",
-        metavar="TRN",
-        default=default_transport,
-        help="Transport mechanism. Known mechanisms: "
-        + ", ".join(workflows.transport.get_known_transports())
-        + f" (default: {default_transport})",
-    )
     zc.add_command_line_options(parser)
-    workflows.transport.add_command_line_options(parser)
+    workflows.transport.add_command_line_options(parser, transport_argument=True)
     args = parser.parse_args(args)
 
     if not args.services and not len(args.HOSTS):
