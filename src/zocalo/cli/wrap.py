@@ -3,7 +3,7 @@
 #   Wraps a command so that its status can be tracked in zocalo
 #
 
-
+import faulthandler
 import json
 import logging
 import os
@@ -21,6 +21,7 @@ import zocalo.wrapper
 
 
 def run():
+    faulthandler.enable()
     cmdline_args = sys.argv[1:]
     # Enable logging to console
     console = logging.StreamHandler()
