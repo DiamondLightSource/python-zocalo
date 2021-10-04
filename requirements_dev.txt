@@ -1,7 +1,7 @@
 PyYAML==5.4.1
 graypy==2.1.0
 marshmallow==3.13.0
-pytest-cov==2.12.1
+pytest-cov==3.0.0
 pytest-mock
 pytest==6.2.5
 setuptools==58.1.0
