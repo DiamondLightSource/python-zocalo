@@ -60,7 +60,6 @@ def run():
         "--wrap",
         action="store",
         dest="wrapper",
-        type="choice",
         metavar="WRAP",
         default=None,
         choices=list(known_wrappers),
