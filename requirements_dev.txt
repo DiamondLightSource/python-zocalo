@@ -6,3 +6,4 @@ pytest==6.2.4
 setuptools==58.0.4
 workflows==2.12
 gemmi==0.4.9
+dataclasses==0.8; python_version < '3.7'
