@@ -4,6 +4,8 @@ History
 
 Unreleased
 ----------
+* Use ``argparse`` for all command line tools and make use of ``workflows`` transport 
+  argument injection. Minimum ``workflows`` version is now 2.13
 
 0.10.0 (2021-10-04)
 -------------------
