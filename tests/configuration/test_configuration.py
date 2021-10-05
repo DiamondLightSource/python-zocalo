@@ -1,5 +1,6 @@
 import logging
 import os
+import pathlib
 from unittest import mock
 
 import pytest
@@ -368,3 +369,19 @@ def test_cannot_load_modular_configuration_with_broken_reference(tmp_path):
               - {secondary_file}
             """
         )
+
+
+def test_resolve_external_references_into_home_directory():
+    merged = zocalo.configuration._merge_configuration(
+        """
+        version: 1
+        foo: ~/bar.yml
+        """,
+        None,
+        pathlib.Path.cwd(),
+    )
+    assert merged == {
+        "version": 1,
+        "foo": pathlib.Path("~/bar.yml").expanduser(),
+        "environments": {},
+    }
