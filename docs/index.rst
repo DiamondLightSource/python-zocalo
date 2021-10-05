@@ -9,6 +9,7 @@ Welcome to Zocalo's documentation!
    workflows
    siteconfig
    installation
+   systemtest
    contributing
    authors
    history

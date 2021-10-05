@@ -6,3 +6,4 @@ pytest-mock
 pytest==6.2.5
 setuptools==58.2.0
 workflows==2.13
+junit-xml==1.9
