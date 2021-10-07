@@ -2,6 +2,12 @@
 History
 =======
 
+Unlreleased / main
+------------------
+* Add a zocalo plugin for ``ispyb.simulate`` 
+  (`#163 <https://github.com/DiamondLightSource/ispyb-api/pull/163>`_) to 
+  call a recipe before and after creation of data
+
 0.9.0 (2021-08-18)
 ------------------
 * Removed --live/--test command line arguments, use -e/--environment instead

@@ -2,23 +2,13 @@ import logging
 
 import workflows.transport
 import zocalo.configuration
-from zocalo.configuration import Configuration
 
 
 logger = logging.getLogger(__name__)
 
 
-def send_message(zc: Configuration, message: dict, headers={}):
-    if (
-        zc.storage
-        and zc.storage.get("zocalo.default_transport")
-        in workflows.transport.get_known_transports()
-    ):
-        transport_type = zc.storage["zocalo.default_transport"]
-    else:
-        transport_type = workflows.transport.default_transport
-
-    transport = workflows.transport.lookup(transport_type)()
+def _send_message(message: dict, headers={}):
+    transport = workflows.transport.lookup(workflows.transport.default_transport)()
     try:
         transport.connect()
         transport.send("processing_recipe", message, headers=headers)
@@ -27,39 +17,30 @@ def send_message(zc: Configuration, message: dict, headers={}):
         logger.warning("Cant connect to workflow transport")
 
 
-def before(dcid: int):
+def _get_recipe(event: str):
     zc = zocalo.configuration.from_file()
     zc.activate()
 
-    default_recipe = "mimas"
+    recipe = "mimas"
     if zc.storage:
-        recipe = zc.storage.get("ispyb.simulator", {}).get("recipe_before", "mimas")
-    else:
-        recipe = default_recipe
+        recipe = zc.storage.get("ispyb.simulator", {}).get(event, "mimas")
 
-    send_message(
-        zc,
-        message={
-            "recipes": [recipe],
+    return recipe
+
+
+def before(dcid: int):
+    _send_message(
+        {
+            "recipes": [_get_recipe("recipe_before")],
             "parameters": {"ispyb_dcid": dcid, "event": "start"},
         },
     )
 
 
 def after(dcid: int):
-    zc = zocalo.configuration.from_file()
-    zc.activate()
-
-    default_recipe = "mimas"
-    if zc.storage:
-        recipe = zc.storage.get("ispyb.simulator", {}).get("recipe_after", "mimas")
-    else:
-        recipe = default_recipe
-
-    send_message(
-        zc,
+    _send_message(
         {
-            "recipes": [recipe],
+            "recipes": [_get_recipe("recipe_after")],
             "parameters": {"ispyb_dcid": dcid, "event": "end"},
         },
     )
