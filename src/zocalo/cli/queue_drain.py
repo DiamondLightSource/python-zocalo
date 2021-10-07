@@ -39,15 +39,6 @@ def run(args=None):
     parser = argparse.ArgumentParser(
         usage="zocalo.queue_drain [options] source destination"
     )
-
-    default_transport = workflows.transport.default_transport
-    if (
-        zc.storage
-        and zc.storage.get("zocalo.default_transport")
-        in workflows.transport.get_known_transports()
-    ):
-        default_transport = zc.storage["zocalo.default_transport"]
-
     parser.add_argument("-?", action="help", help=argparse.SUPPRESS)
     parser.add_argument("SOURCE", type=str, help="Source queue name")
     parser.add_argument("DEST", type=str, help="Destination queue name")
@@ -67,18 +58,8 @@ def run(args=None):
         default=60,
         help="Stop if no message seen for this many seconds (0 = forever)",
     )
-    parser.add_argument(
-        "-t",
-        "--transport",
-        dest="transport",
-        metavar="TRN",
-        default=default_transport,
-        help="Transport mechanism. Known mechanisms: "
-        + ", ".join(workflows.transport.get_known_transports())
-        + f" (default: {default_transport})",
-    )
     zc.add_command_line_options(parser)
-    workflows.transport.add_command_line_options(parser)
+    workflows.transport.add_command_line_options(parser, transport_argument=True)
     args = parser.parse_args(args)
 
     transport = workflows.transport.lookup(args.transport)()
