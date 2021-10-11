@@ -8,8 +8,6 @@
 import argparse
 import json
 import os
-import re
-import select
 import sys
 import time
 from pprint import pprint
@@ -67,17 +65,6 @@ def run() -> None:
     workflows.transport.add_command_line_options(parser, transport_argument=True)
     args = parser.parse_args()
     transport = workflows.transport.lookup(args.transport)()
-
-    stdin = []
-    if select.select([sys.stdin], [], [], 0.0)[0]:
-        dlq_purge_filename_format = re.compile(r"^  \/")
-        while True:
-            line = sys.stdin.readline()
-            if not line:
-                break
-            if dlq_purge_filename_format.match(line):
-                stdin.append(line.strip())
-        print(f"{len(stdin)} filenames read from stdin")
 
     if not args.files:
         print("No DLQ message files given.")
@@ -139,6 +126,7 @@ def run() -> None:
                 destination[2], dlqmsg["message"], headers=header, ignore_namespace=True
             )
         elif args.transport == "PikaTransport":
+            print("pika transport detected")
             header = dlqmsg["header"]
             exchange = header.get("headers", {}).get("x-death", {})[0].get("exchange")
             if exchange:
