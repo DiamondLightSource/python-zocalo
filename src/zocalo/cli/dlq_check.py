@@ -22,12 +22,11 @@ def check_dlq(zc: Configuration, namespace: str = None) -> dict:
         namespace = namespace + "."
     else:
         namespace = ""
-
     result = jmx.org.apache.activemq(
         type="Broker",
         brokerName="localhost",
         destinationType="Queue",
-        destinationName="DLQ.%s*" % namespace,
+        destinationName=f"DLQ.{namespace}*",
         attribute="QueueSize",
     )
     if result["status"] == 404:
