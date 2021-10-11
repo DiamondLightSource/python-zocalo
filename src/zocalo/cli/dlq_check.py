@@ -5,7 +5,6 @@ import urllib
 import workflows.transport
 
 import zocalo.configuration
-from zocalo.configuration import Configuration
 from zocalo.util.jmxstats import JMXAPI
 from zocalo.util.rabbitmq import http_api_request
 
@@ -15,7 +14,7 @@ from zocalo.util.rabbitmq import http_api_request
 #
 
 
-def check_dlq(zc: Configuration, namespace: str = None) -> dict:
+def check_dlq(zc: zocalo.configuration.Configuration, namespace: str = None) -> dict:
     """Monitor ActiveMQ queue activity."""
     jmx = JMXAPI(zc)
     if namespace:
@@ -48,7 +47,9 @@ def check_dlq(zc: Configuration, namespace: str = None) -> dict:
     return queuedata
 
 
-def check_dlq_rabbitmq(zc: Configuration, namespace: str = None) -> dict:
+def check_dlq_rabbitmq(
+    zc: zocalo.configuration.Configuration, namespace: str = None
+) -> dict:
     _api_request = http_api_request(zc, "/queues")
     with urllib.request.urlopen(_api_request) as response:
         reply = response.read()
