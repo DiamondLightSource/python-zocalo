@@ -45,6 +45,7 @@ def run() -> None:
     )
     zc.add_command_line_options(parser)
     workflows.transport.add_command_line_options(parser, transport_argument=True)
+    print(sys.argv)
     args = parser.parse_args(["--stomp-prfx=DLQ"] + sys.argv[1:])
     if args.transport == "PikaTransport":
         queues = ["dlq." + a for a in args.queues]
