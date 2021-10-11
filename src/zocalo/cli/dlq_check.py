@@ -82,11 +82,11 @@ def run() -> None:
     if args.transport == "StompTransport":
         dlqs = check_dlq(zc, namespace=args.namespace)
         for queue, count in dlqs.items():
-            print("DLQ for %s contains %d entries" % (queue.replace("DLQ.", ""), count))
+            print(f"DLQ for {queue.replace('DLQ.', '')} contains {count} entries")
     elif args.transport == "PikaTransport":
         dlqs = check_dlq_rabbitmq(zc, namespace=args.namespace or "zocalo")
         for queue, count in dlqs.items():
-            print("DLQ for %s contains %d entries" % (queue.replace("dlq.", ""), count))
+            print(f"DLQ for {queue.replace('dlq.', '')} contains {count} entries")
     else:
         exit(f"Transport {args.transport} not recognised")
     total = sum(dlqs.values())

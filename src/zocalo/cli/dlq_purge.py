@@ -106,11 +106,7 @@ def run() -> None:
         with open(os.path.join(filepath, filename), "w") as fh:
             fh.write(json.dumps(dlqmsg, indent=2, sort_keys=True))
         print(
-            "Message {id} ({timestamp}) exported:\n  {filename}".format(
-                id=header["message-id"],
-                timestamp=time.strftime("%Y-%m-%d %H:%M:%S", timestamp),
-                filename=os.path.join(filepath, filename),
-            )
+            f"Message {header['message-id']} ({time.strftime('%Y-%m-%d %H:%M:%S', timestamp)}) exported:\n {os.path.join(filepath, filename)}"
         )
         if rabbitmq:
             # subscription_id does nothing for RabbitMQ but it is currently required by workflows
