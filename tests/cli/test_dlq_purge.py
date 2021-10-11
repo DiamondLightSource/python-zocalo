@@ -45,8 +45,9 @@ def test_dlq_purge_activemq(mocker, tmp_path):
     mocker.patch.object(workflows.transport, "lookup", return_value=mocked_transport)
     mocked_transport().subscribe = mock_subscribe
 
-    sys.argv.append("garbage.per_image_analysis")
-    run()
+    testargs = ["prog", "garbage.per_image_analysis"]
+    with mock.patch.object(sys, "argv", testargs):
+        run()
 
     mocked_transport().ack.assert_has_calls(
         [mock.call(gen_header_activemq(i)) for i in range(10)]
@@ -72,8 +73,9 @@ def test_dlq_purge_rabbitmq(mocker, tmp_path):
     mocker.patch.object(workflows.transport, "lookup", return_value=mocked_transport)
     mocked_transport().subscribe = mock_subscribe
 
-    sys.argv.extend(["--transport", "PikaTransport"])
-    run()
+    testargs = ["prog", "--transport", "PikaTransport", "garbage.per_image_analysis"]
+    with mock.patch.object(sys, "argv", testargs):
+        run()
 
     mocked_transport().ack.assert_has_calls(
         [
