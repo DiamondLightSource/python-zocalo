@@ -44,6 +44,7 @@ class RabbitMQAPI:
     def __init__(self, zc: zocalo.configuration.Configuration):
         self._zc = zc
 
+    @property
     def health_checks(self) -> Tuple[Dict[str, Any], Dict[str, str]]:
         # https://rawcdn.githack.com/rabbitmq/rabbitmq-server/v3.9.7/deps/rabbitmq_management/priv/www/api/index.html
         HEALTH_CHECKS = {
