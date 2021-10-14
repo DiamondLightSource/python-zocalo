@@ -21,8 +21,8 @@ def test_activemq_dlq_check(mock_jmx):
     assert checked == {"images": 2, "transient": 5}
 
 
-@mock.patch("zocalo.cli.dlq_check.urllib.request.urlopen")
-@mock.patch("zocalo.cli.dlq_check.http_api_request")
+@mock.patch("zocalo.util.rabbitmq.urllib.request.urlopen")
+@mock.patch("zocalo.util.rabbitmq.http_api_request")
 def test_activemq_dlq_rabbitmq_check(mock_api, mock_url):
     cfg = Configuration({})
     _mock = mock.MagicMock()
