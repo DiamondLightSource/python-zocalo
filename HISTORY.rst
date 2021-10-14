@@ -4,6 +4,12 @@ History
 
 Unreleased
 ----------
+* Add command line tools for handling dead-letter messages
+* ``zocalo.dlq_check`` checks dead-letter queues for messages 
+* ``zocalo.dlq_purge`` removes messages from specified DLQs and dumps them to a directory 
+  specified in the Zocalo configuration 
+* ``zocalo.dlq_reinject`` takes a serialised message produced by ``zocalo.dlq_purge`` and 
+  places it back on a queue
 * Use ``argparse`` for all command line tools and make use of ``workflows`` transport 
   argument injection. Minimum ``workflows`` version is now 2.14
 
