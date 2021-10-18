@@ -82,52 +82,10 @@ class RabbitMQAPI:
     def nodes(self) -> List[Dict[str, Any]]:
         # https://www.rabbitmq.com/monitoring.html#node-metrics
         with urllib.request.urlopen(http_api_request(self._zc, "/nodes")) as response:
-            nodes = json.loads(response.read())
-        useful_keys = {
-            "name",
-            "mem_used",
-            "mem_limit",
-            "mem_alarm",
-            "disk_free",
-            "disk_free_limit",
-            "disk_free_alarm",
-            "fd_total",
-            "fd_used",
-            "io_file_handle_open_attempt_count",
-            "sockets_total",
-            "sockets_used",
-            "message_stats.disk_reads",
-            "message_stats.disk_writes",
-            "gc_num",
-            "gc_bytes_reclaimed",
-            "proc_total",
-            "proc_used",
-            "run_queue",
-        }
-        filtered = [
-            {k: v for k, v in node.items() if k in useful_keys} for node in nodes
-        ]
-        return filtered
+            return json.loads(response.read())
 
     @property
     def queues(self) -> List[Dict[str, Any]]:
         # https://www.rabbitmq.com/monitoring.html#queue-metrics
         with urllib.request.urlopen(http_api_request(self._zc, "/queues")) as response:
-            nodes = json.loads(response.read())
-        useful_keys = {
-            "consumers",
-            "name",
-            "vhost",
-            "memory",
-            "messages",
-            "messages_ready",
-            "messages_unacknowledged",
-            "message_stats.publish",
-            "message_stats.publish_details.rate",
-            "message_stats.deliver_get",
-            "message_stats.deliver_get_details.rate",
-        }
-        filtered = [
-            {k: v for k, v in node.items() if k in useful_keys} for node in nodes
-        ]
-        return filtered
+            return json.loads(response.read())
