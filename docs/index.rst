@@ -9,6 +9,7 @@ Welcome to Zocalo's documentation!
    workflows
    siteconfig
    installation
+   getting_started
    contributing
    authors
    history
