@@ -1,6 +1,7 @@
 import logging
 import os
 import pathlib
+import subprocess
 from unittest import mock
 
 import pytest
@@ -286,11 +287,23 @@ def test_configuration_can_specify_an_unreadable_resolution_file(tmp_path):
         """
     )
     try:
-        forbidden_file.chmod(0o000)
+        if os.name == "nt":
+            subprocess.run(
+                ("icacls", os.fspath(forbidden_file), "/deny", "Everyone:(R)"),
+                check=True,
+            )
+        else:
+            forbidden_file.chmod(0o000)
         with pytest.raises(PermissionError):
             zc.activate_environment("forbidden")
     finally:
-        forbidden_file.chmod(0o664)
+        if os.name == "nt":
+            subprocess.run(
+                ("icacls", os.fspath(forbidden_file), "/remove:d", "Everyone"),
+                check=True,
+            )
+        else:
+            forbidden_file.chmod(0o664)
 
 
 def test_plugins_can_be_configured_in_an_external_file(tmp_path):
