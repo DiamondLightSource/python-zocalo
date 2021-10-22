@@ -1,6 +1,7 @@
 import datetime
 import enum
 import logging
+import pathlib
 import urllib
 import urllib.request
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -55,6 +56,235 @@ class MessageStats(BaseModel):
     return_unroutable: Optional[int] = Field(
         None, description="Count of messages returned to the publisher as unroutable."
     )
+
+
+class ConnectionState(enum.Enum):
+    starting = "starting"
+    tuning = "tuning"
+    opening = "opening"
+    running = "running"
+    flow = "flow"
+    blocking = "blocking"
+    blocked = "blocked"
+    closing = "closing"
+    closed = "closed"
+
+
+class ConnectionInfo(BaseModel):
+    """TCP/IP connection statistics."""
+
+    pid: Optional[int] = Field(
+        int, description="Id of the Erlang process associated with the connection."
+    )
+    name: str = Field(..., description="Readable name for the connection.")
+    port: int = Field(..., description="Server port.")
+    host: str = Field(
+        ...,
+        description="Server hostname obtained via reverse DNS, or its IP address if reverse DNS failed or was disabled.",
+    )
+    peer_port: int = Field(..., description="Peer port.")
+    peer_host: str = Field(
+        ...,
+        description="Peer hostname obtained via reverse DNS, or its IP address if reverse DNS failed or was not enabled.",
+    )
+    ssl: bool = Field(
+        ...,
+        description="Boolean indicating whether the connection is secured with SSL.",
+    )
+    ssl_protocol: Optional[str] = Field(
+        None, description='SSL protocol (e.g. "tlsv1").'
+    )
+    ssl_key_exchange: Optional[str] = Field(
+        None, description='SSL key exchange algorithm (e.g. "rsa").'
+    )
+    ssl_cipher: Optional[str] = Field(
+        None, description='SSL cipher algorithm (e.g. "aes_256_cbc").'
+    )
+    ssl_hash: Optional[str] = Field(None, description='SSL hash function (e.g. "sha").')
+    peer_cert_subject: Optional[str] = Field(
+        None, description="The subject of the peer's SSL certificate, in RFC4514 form."
+    )
+    peer_cert_issuer: Optional[str] = Field(
+        None, description="The issuer of the peer's SSL certificate, in RFC4514 form."
+    )
+    peer_cert_validity: Optional[str] = Field(
+        None, description="The period for which the peer's SSL certificate is valid."
+    )
+    state: ConnectionState
+    channels: int = Field(..., description="Number of channels using the connection.")
+    protocol: str = Field(
+        ...,
+        description="Version of the AMQP protocol in use; currently one of: {0,9,1} {0,8,0}",
+    )
+    auth_mechanism: str = Field(
+        ..., description='SASL authentication mechanism used, such as "PLAIN".'
+    )
+    user: str = Field(..., description="Username associated with the connection.")
+    vhost: str = Field(
+        ..., description="Virtual host name with non-ASCII characters escaped as in C."
+    )
+    timeout: int = Field(
+        ...,
+        description="Connection timeout / negotiated heartbeat interval, in seconds.",
+    )
+    frame_max: int = Field(..., description="Maximum frame size (bytes).")
+    channel_max: int = Field(
+        ..., description="Maximum number of channels on this connection."
+    )
+    # client_properties
+    # Informational properties transmitted by the client during connection establishment.
+    # recv_oct:
+    # Octets received.
+    # recv_cnt
+    # Packets received.
+    # send_oct
+    # Octets send.
+    # send_cnt
+    # Packets sent.
+    # send_pend
+    # Send queue size.
+    connected_at: datetime.datetime = Field(
+        ..., description="Date and time this connection was established, as timestamp."
+    )
+
+
+class NodeType(enum.Enum):
+    disc = "disc"
+    ram = "ram"
+
+
+class NodeInfo(BaseModel):
+    # applications	List of all Erlang applications running on the node.
+    # auth_mechanisms	List of all SASL authentication mechanisms installed on the node.
+    # cluster_links	A list of the other nodes in the cluster. For each node, there are details of the TCP connection used to connect to it and statistics on data that has been transferred.
+    config_files: List[pathlib.Path] = Field(
+        ..., description="List of config files read by the node."
+    )
+    # contexts	List of all HTTP listeners on the node.
+    db_dir: pathlib.Path = Field(
+        ..., description="Location of the persistent storage used by the node."
+    )
+    disk_free: int = Field(..., description="Disk free space in bytes.")
+    disk_free_alarm: bool = Field(
+        ..., description="Whether the disk alarm has gone off."
+    )
+    disk_free_limit: int = Field(
+        ..., description="Point at which the disk alarm will go off."
+    )
+    enabled_plugins: List[str] = Field(
+        ...,
+        description="List of plugins which are both explicitly enabled and running.",
+    )
+    # exchange_types	Exchange types available on the node.
+    fd_total: int = Field(..., description="File descriptors available.")
+    fd_used: int = Field(..., description="Used file descriptors.")
+    io_read_avg_time: float = Field(
+        ...,
+        ge=0,
+        description="Average wall time (milliseconds) for each disk read operation in the last statistics interval.",
+    )
+    io_read_bytes: int = Field(
+        ..., description="Total number of bytes read from disk by the persister."
+    )
+    io_read_count: int = Field(
+        ..., description="Total number of read operations by the persister."
+    )
+    io_reopen_count: int = Field(
+        ...,
+        description="Total number of times the persister has needed to recycle file handles between queues. In an ideal world this number will be zero; if the number is large, performance might be improved by increasing the number of file handles available to RabbitMQ.",
+    )
+    io_seek_avg_time: int = Field(
+        ...,
+        description="Average wall time (milliseconds) for each seek operation in the last statistics interval.",
+    )
+    io_seek_count: int = Field(
+        ..., description="Total number of seek operations by the persister."
+    )
+    io_sync_avg_time: int = Field(
+        ...,
+        description="Average wall time (milliseconds) for each fsync() operation in the last statistics interval.",
+    )
+    io_sync_count: int = Field(
+        ..., description="Total number of fsync() operations by the persister."
+    )
+    io_write_avg_time: int = Field(
+        ...,
+        description="Average wall time (milliseconds) for each disk write operation in the last statistics interval.",
+    )
+    io_write_bytes: int = Field(
+        ..., description="Total number of bytes written to disk by the persister."
+    )
+    io_write_count: int = Field(
+        ..., description="Total number of write operations by the persister."
+    )
+    log_files: List[pathlib.Path] = Field(
+        ...,
+        description='List of log files used by the node. If the node also sends messages to stdout, "<stdout>" is also reported in the list.',
+    )
+    mem_used: int = Field(..., description="Memory used in bytes.")
+    mem_alarm: bool = Field(..., description="Whether the memory alarm has gone off.")
+    mem_limit: int = Field(
+        ..., description="Point at which the memory alarm will go off."
+    )
+    mnesia_disk_tx_count: int = Field(
+        ...,
+        description="Number of Mnesia transactions which have been performed that required writes to disk. (e.g. creating a durable queue). Only transactions which originated on this node are included.",
+    )
+    mnesia_ram_tx_count: int = Field(
+        ...,
+        description="Number of Mnesia transactions which have been performed that did not require writes to disk. (e.g. creating a transient queue). Only transactions which originated on this node are included.",
+    )
+    msg_store_read_count: int = Field(
+        ...,
+        description="Number of messages which have been read from the message store.",
+    )
+    msg_store_write_count: int = Field(
+        ...,
+        description="Number of messages which have been written to the message store.",
+    )
+    name: str = Field(..., description="Node name.")
+    net_ticktime: int = Field(
+        ..., description="Current kernel net_ticktime setting for the node."
+    )
+    os_pid: int = Field(
+        ...,
+        description="Process identifier for the Operating System under which this node is running.",
+    )
+    # partitions	List of network partitions this node is seeing.
+    proc_total: int = Field(..., description="Maximum number of Erlang processes.")
+    proc_used: int = Field(..., description="Number of Erlang processes in use.")
+    processors: int = Field(
+        ..., description="Number of cores detected and usable by Erlang."
+    )
+    queue_index_journal_write_count: int = Field(
+        ...,
+        description="Number of records written to the queue index journal. Each record represents a message being published to a queue, being delivered from a queue, and being acknowledged in a queue.",
+    )
+    queue_index_read_count: int = Field(
+        ..., description="Number of records read from the queue index."
+    )
+    queue_index_write_count: int = Field(
+        ..., description="Number of records written to the queue index."
+    )
+    # rates_mode: 'none', 'basic' or 'detailed'.
+    run_queue: float = Field(
+        ..., description="Average number of Erlang processes waiting to run."
+    )
+    running: bool = Field(
+        ...,
+        description="Boolean for whether this node is up. Obviously if this is false, most other stats will be missing.",
+    )
+    # sasl_log_file	Location of sasl log file.
+    sockets_total: int = Field(
+        ..., description="File descriptors available for use as sockets."
+    )
+    sockets_used: int = Field(..., description="File descriptors used as sockets.")
+    type: NodeType
+    uptime: int = Field(
+        ..., description="Time since the Erlang VM started, in milliseconds."
+    )
+    # memory	Detailed memory use statistics. Only appears if ?memory=true is appended to the URL.
+    # binary	Detailed breakdown of the owners of binary memory. Only appears if ?binary=true is appended to the URL. Note that this can be an expensive query if there are many small binaries in the system.
 
 
 class ExchangeType(enum.Enum):
@@ -299,15 +529,6 @@ class RabbitMQAPI:
                 failure[health_check] = response.text
         return success, failure
 
-    @property
-    def connections(self) -> List[Dict[str, Any]]:
-        return self._get("connections").json()
-
-    @property
-    def nodes(self) -> List[Dict[str, Any]]:
-        # https://www.rabbitmq.com/monitoring.html#node-metrics
-        return self._get("nodes").json()
-
     def _get(self, endpoint: str, params: Dict[str, Any] = None) -> requests.Response:
         return requests.get(f"{self._url}/{endpoint}", auth=self._auth, params=params)
 
@@ -325,6 +546,29 @@ class RabbitMQAPI:
             f"{self._url}/{endpoint}", auth=self._auth, params=params
         )
 
+    def connections(
+        self, name: Optional[str] = None
+    ) -> Union[List[ConnectionInfo], ConnectionInfo]:
+        endpoint = "connections"
+        if name is not None:
+            endpoint = f"{endpoint}/{name}/"
+            response = self._get(endpoint)
+            return ConnectionInfo(**response.json())
+        response = self._get(endpoint)
+        logger.debug(response)
+        return [ConnectionInfo(**qi) for qi in response.json()]
+
+    def nodes(self, name: Optional[str] = None) -> Union[List[NodeInfo], NodeInfo]:
+        # https://www.rabbitmq.com/monitoring.html#node-metrics
+        endpoint = "nodes"
+        if name is not None:
+            endpoint = f"{endpoint}/{name}/"
+            response = self._get(endpoint)
+            return NodeInfo(**response.json())
+        response = self._get(endpoint)
+        logger.debug(response)
+        return [NodeInfo(**qi) for qi in response.json()]
+
     def exchanges(
         self, vhost: Optional[str] = None, name: Optional[str] = None
     ) -> Union[List[ExchangeInfo], ExchangeInfo]:
@@ -332,8 +576,6 @@ class RabbitMQAPI:
         if vhost is not None and name is not None:
             endpoint = f"{endpoint}/{vhost}/{name}/"
             response = self._get(endpoint)
-            print(response.url)
-            print(response)
             return ExchangeInfo(**response.json())
         elif vhost is not None:
             endpoint = f"{endpoint}/{vhost}/"
@@ -412,3 +654,9 @@ if __name__ == "__main__":
     for ex in rmq.exchanges():
         print(ex)
     print(rmq.exchanges(vhost="zocalo", name=""))
+
+    nodes = rmq.nodes()
+    print(rmq.nodes(name=nodes[0].name))
+
+    connections = rmq.connections()
+    print(rmq.connections(name=connections[0].name))
