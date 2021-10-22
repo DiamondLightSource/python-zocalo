@@ -15,16 +15,22 @@ stages:
     pool:
       vmImage: ubuntu-20.04
     steps:
-      # Use Python >=3.7 for syntax validation
+      # Run syntax validation on a shallow clone using oldest and latest Python
       - task: UsePythonVersion@0
         displayName: Set up python
         inputs:
-          versionSpec: 3.7
+          versionSpec: 3.6
 
-      # Run syntax validation on a shallow clone
-      - bash: |
-          python .azure-pipelines/syntax-validation.py
-        displayName: Syntax validation
+      - bash: python .azure-pipelines/syntax-validation.py
+        displayName: Syntax validation (3.6)
+
+      - task: UsePythonVersion@0
+        displayName: Set up python
+        inputs:
+          versionSpec: 3.10
+
+      - bash: python .azure-pipelines/syntax-validation.py
+        displayName: Syntax validation (3.10)
 
       # Run flake8 validation on a shallow clone
       - bash: |
@@ -88,6 +94,8 @@ stages:
           PYTHON_VERSION: 3.8
         python39:
           PYTHON_VERSION: 3.9
+        python310:
+          PYTHON_VERSION: 3.10
     steps:
     - template: .azure-pipelines/ci.yml
   - job: macOS
@@ -103,6 +111,8 @@ stages:
           PYTHON_VERSION: 3.8
         python39:
           PYTHON_VERSION: 3.9
+        python310:
+          PYTHON_VERSION: 3.10
     steps:
     - template: .azure-pipelines/ci.yml
   - job: windows
@@ -118,6 +128,8 @@ stages:
           PYTHON_VERSION: 3.8
         python39:
           PYTHON_VERSION: 3.9
+        python310:
+          PYTHON_VERSION: 3.10
     steps:
     - template: .azure-pipelines/ci.yml
 
@@ -137,7 +149,7 @@ stages:
       - task: UsePythonVersion@0
         displayName: Set up python
         inputs:
-          versionSpec: 3.8
+          versionSpec: 3.9
 
       - task: DownloadBuildArtifacts@0
         displayName: Get pre-built package
