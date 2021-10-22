@@ -272,21 +272,25 @@ def test_configuration_can_specify_a_missing_resolution_file(tmp_path):
     )
 
 
-@mock.patch("pathlib.io.open")
-def test_configuration_can_specify_an_unreadable_resolution_file(mock_open, tmp_path):
-    mock_open.side_effect = PermissionError("Access denied to mock file")
+def test_configuration_can_specify_an_unreadable_resolution_file(tmp_path):
+    forbidden_file = tmp_path / "forbidden_file"
+    forbidden_file.write_text("This should not be accessible")
     zc = zocalo.configuration.from_string(
         f"""
         version: 1
         forbidden-plugin:
-          {tmp_path / 'forbidden_file'}
+          {forbidden_file}
         environments:
          forbidden:
            - forbidden-plugin
         """
     )
-    with pytest.raises(PermissionError):
-        zc.activate_environment("forbidden")
+    try:
+        forbidden_file.chmod(0o000)
+        with pytest.raises(PermissionError):
+            zc.activate_environment("forbidden")
+    finally:
+        forbidden_file.chmod(0o664)
 
 
 def test_plugins_can_be_configured_in_an_external_file(tmp_path):
