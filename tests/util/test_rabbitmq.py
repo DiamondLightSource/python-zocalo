@@ -214,3 +214,34 @@ def test_api_exchange_declare(name, requests_mock, rmqapi):
         "durable": True,
         "auto_delete": True,
     }
+
+
+def test_api_connections(requests_mock, rmqapi):
+    connection = {
+        "auth_mechanism": "PLAIN",
+        "connected_at": 1634716019864,
+        "frame_max": 131072,
+        "host": "123.24.5.67",
+        "name": "123.24.5.67:12345 -> 123.24.5.67:54321",
+        "node": "rabbit@cs05r-sc-serv-26",
+        "peer_host": "123.24.5.67",
+        "peer_port": 12345,
+        "port": 54321,
+        "protocol": "AMQP 0-9-1",
+        "ssl": False,
+        "state": "running",
+        "timeout": 60,
+        "user": "foo",
+        "vhost": "bar",
+        "channels": 1,
+    }
+
+    # First call rmq.connections() with defaults
+    requests_mock.get("/api/connections", json=[connection])
+    assert rmqapi.connections() == [rabbitmq.ConnectionInfo(**connection)]
+
+    # Now call with name=...
+    requests_mock.get(f"/api/connections/{connection['name']}/", json=connection)
+    assert rmqapi.connections(name=connection["name"]) == rabbitmq.ConnectionInfo(
+        **connection
+    )
