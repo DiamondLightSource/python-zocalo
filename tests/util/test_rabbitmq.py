@@ -157,7 +157,8 @@ def test_api_nodes(requests_mock, rmqapi):
     assert rmqapi.nodes(name=node["name"]) == rabbitmq.NodeInfo(**node)
 
 
-def test_api_exchanges(requests_mock, rmqapi):
+@pytest.mark.parametrize("name", ["", "foo"])
+def test_api_exchanges(name, requests_mock, rmqapi):
     exchange = {
         "arguments": {},
         "auto_delete": False,
@@ -169,7 +170,7 @@ def test_api_exchanges(requests_mock, rmqapi):
             "publish_out": 156445,
             "publish_out_details": {"rate": 0.4},
         },
-        "name": "",
+        "name": name,
         "type": "direct",
         "user_who_performed_action": "rmq-internal",
         "vhost": "foo",
