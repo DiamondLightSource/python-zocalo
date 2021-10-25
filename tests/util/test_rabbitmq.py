@@ -1,10 +1,10 @@
-import json
-import urllib.request
+import re
 
 import pytest
 
 import zocalo.configuration
-from zocalo.util.rabbitmq import RabbitMQAPI, http_api_request
+import zocalo.util.rabbitmq
+from zocalo.util.rabbitmq import NodeInfo, QueueInfo, RabbitMQAPI, http_api_request
 
 
 @pytest.fixture
@@ -23,72 +23,80 @@ def test_http_api_request(zocalo_configuration):
     assert request.get_full_url() == "http://rabbitmq.burrow.com:12345/api/queues"
 
 
-def test_api_health_checks(mocker, zocalo_configuration):
-    mock_api = mocker.patch("zocalo.util.rabbitmq.http_api_request")
-    mock_url = mocker.patch("zocalo.util.rabbitmq.urllib.request.urlopen")
-    mock_api.return_value = ""
-    mock_url.return_value = mocker.MagicMock()
-    mock_url.return_value.__enter__.return_value.read.return_value = json.dumps(
-        {"status": "ok"}
-    )
-    rmq = RabbitMQAPI(zocalo_configuration)
+def test_api_health_checks(requests_mock, zocalo_configuration):
+    requests_mock.get(re.compile("/health/checks/"), json={"status": "ok"})
+    rmq = RabbitMQAPI.from_zocalo_configuration(zocalo_configuration)
     success, failures = rmq.health_checks
     assert not failures
     assert success
     for k, v in success.items():
-        assert k.startswith("/health/checks/")
+        assert k.startswith("health/checks/")
         assert v == {"status": "ok"}
 
 
-def test_api_health_checks_failures(mocker, zocalo_configuration):
-    mock_api = mocker.patch("zocalo.util.rabbitmq.http_api_request")
-    mock_url = mocker.patch("zocalo.util.rabbitmq.urllib.request.urlopen")
-    mock_api.return_value = ""
-    mock_url.return_value = mocker.MagicMock()
-    mock_url.return_value.__enter__.return_value.read.side_effect = (
-        urllib.error.HTTPError(
-            "http://foo.com", 503, "Service Unavailable", mocker.Mock(), mocker.Mock()
-        )
+def test_api_health_checks_failures(requests_mock, zocalo_configuration):
+    expected_json = {
+        "status": "failed",
+        "reason": "No active listener",
+        "missing": 1234,
+        "ports": [25672, 15672, 1883, 15692, 61613, 5672],
+    }
+    requests_mock.get(re.compile("/health/checks/"), json={"status": "ok"})
+    requests_mock.get(
+        re.compile("/health/checks/port-listener"),
+        status_code=503,
+        reason="No active listener",
+        json=expected_json,
     )
-    rmq = RabbitMQAPI(zocalo_configuration)
+    rmq = RabbitMQAPI.from_zocalo_configuration(zocalo_configuration)
     success, failures = rmq.health_checks
     assert failures
-    assert not success
+    assert success
+    assert len(failures) == 1
     for k, v in success.items():
-        assert k.startswith("/health/checks/")
-        assert v == "HTTP Error 503: Service Unavailable"
+        assert k.startswith("health/checks/")
+        assert v == {"status": "ok"}
+    for k, v in failures.items():
+        assert k.startswith("health/checks/port-listener/")
+        assert v == expected_json
 
 
-def test_api_queues(mocker, zocalo_configuration):
-    queues = [
-        {
-            "consumers": 0,
-            "memory": 110112,
-            "message_stats": {
-                "deliver_get": 33,
-                "deliver_get_details": {"rate": 0},
-                "publish": 22,
-                "publish_details": {"rate": 0},
-            },
-            "messages": 0,
-            "messages_ready": 0,
-            "messages_unacknowledged": 0,
-            "name": "foo",
-            "vhost": "zocalo",
+def test_api_queues(requests_mock, zocalo_configuration):
+    queue = {
+        "consumers": 0,
+        "exclusive": False,
+        "memory": 110112,
+        "message_stats": {
+            "deliver_get": 33,
+            "deliver_get_details": {"rate": 0},
+            "publish": 22,
+            "publish_details": {"rate": 0},
         },
-    ]
+        "messages": 0,
+        "messages_ready": 0,
+        "messages_unacknowledged": 0,
+        "name": "foo",
+        "vhost": "zocalo",
+    }
 
-    mock_api = mocker.patch("zocalo.util.rabbitmq.http_api_request")
-    mock_url = mocker.patch("zocalo.util.rabbitmq.urllib.request.urlopen")
-    mock_api.return_value = ""
-    mock_url.return_value = mocker.MagicMock()
-    mock_url.return_value.__enter__.return_value.read.return_value = json.dumps(queues)
-    rmq = RabbitMQAPI(zocalo_configuration)
-    assert rmq.queues == queues
+    # First call rmq.queues() with defaults
+    requests_mock.get("/api/queues", json=[queue])
+    rmq = RabbitMQAPI.from_zocalo_configuration(zocalo_configuration)
+    assert rmq.queues() == [QueueInfo(**queue)]
+
+    # Now call with vhost=...
+    requests_mock.get("/api/queues/zocalo", json=[queue])
+    rmq = RabbitMQAPI.from_zocalo_configuration(zocalo_configuration)
+    assert rmq.queues(vhost="zocalo") == [QueueInfo(**queue)]
+
+    # Now call with vhost=..., name=...
+    requests_mock.get(f"/api/queues/zocalo/{queue['name']}", json=queue)
+    rmq = RabbitMQAPI.from_zocalo_configuration(zocalo_configuration)
+    assert rmq.queues(vhost="zocalo", name=queue["name"]) == QueueInfo(**queue)
 
 
-def test_api_nodes(mocker, zocalo_configuration):
-    nodes = {
+def test_api_nodes(requests_mock, zocalo_configuration):
+    node = {
         "name": "rabbit@pooter123",
         "mem_limit": 80861855744,
         "mem_alarm": False,
@@ -106,12 +114,16 @@ def test_api_nodes(mocker, zocalo_configuration):
         "proc_total": 1048576,
         "proc_used": 590,
         "run_queue": 1,
+        "running": True,
+        "type": "disc",
     }
 
-    mock_api = mocker.patch("zocalo.util.rabbitmq.http_api_request")
-    mock_url = mocker.patch("zocalo.util.rabbitmq.urllib.request.urlopen")
-    mock_api.return_value = ""
-    mock_url.return_value = mocker.MagicMock()
-    mock_url.return_value.__enter__.return_value.read.return_value = json.dumps(nodes)
-    rmq = RabbitMQAPI(zocalo_configuration)
-    assert rmq.queues == nodes
+    # First call rmq.nodes() with defaults
+    requests_mock.get("/api/nodes", json=[node])
+    rmq = RabbitMQAPI.from_zocalo_configuration(zocalo_configuration)
+    assert rmq.nodes() == [NodeInfo(**node)]
+
+    # Now call with name=...
+    requests_mock.get(f"/api/nodes/{node['name']}", json=node)
+    rmq = RabbitMQAPI.from_zocalo_configuration(zocalo_configuration)
+    assert rmq.nodes(name=node["name"]) == NodeInfo(**node)

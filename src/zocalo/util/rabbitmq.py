@@ -123,13 +123,13 @@ class ConnectionInfo(BaseModel):
     vhost: str = Field(
         ..., description="Virtual host name with non-ASCII characters escaped as in C."
     )
-    timeout: int = Field(
-        ...,
+    timeout: Optional[int] = Field(
+        None,
         description="Connection timeout / negotiated heartbeat interval, in seconds.",
     )
     frame_max: int = Field(..., description="Maximum frame size (bytes).")
-    channel_max: int = Field(
-        ..., description="Maximum number of channels on this connection."
+    channel_max: Optional[int] = Field(
+        None, description="Maximum number of channels on this connection."
     )
     # client_properties
     # Informational properties transmitted by the client during connection establishment.
@@ -157,114 +157,114 @@ class NodeInfo(BaseModel):
     # applications	List of all Erlang applications running on the node.
     # auth_mechanisms	List of all SASL authentication mechanisms installed on the node.
     # cluster_links	A list of the other nodes in the cluster. For each node, there are details of the TCP connection used to connect to it and statistics on data that has been transferred.
-    config_files: List[pathlib.Path] = Field(
-        ..., description="List of config files read by the node."
+    config_files: Optional[List[pathlib.Path]] = Field(
+        None, description="List of config files read by the node."
     )
     # contexts	List of all HTTP listeners on the node.
-    db_dir: pathlib.Path = Field(
-        ..., description="Location of the persistent storage used by the node."
+    db_dir: Optional[pathlib.Path] = Field(
+        None, description="Location of the persistent storage used by the node."
     )
     disk_free: int = Field(..., description="Disk free space in bytes.")
     disk_free_alarm: bool = Field(
         ..., description="Whether the disk alarm has gone off."
     )
-    disk_free_limit: int = Field(
-        ..., description="Point at which the disk alarm will go off."
+    disk_free_limit: Optional[int] = Field(
+        None, description="Point at which the disk alarm will go off."
     )
-    enabled_plugins: List[str] = Field(
-        ...,
+    enabled_plugins: Optional[List[str]] = Field(
+        None,
         description="List of plugins which are both explicitly enabled and running.",
     )
     # exchange_types	Exchange types available on the node.
     fd_total: int = Field(..., description="File descriptors available.")
     fd_used: int = Field(..., description="Used file descriptors.")
-    io_read_avg_time: float = Field(
-        ...,
+    io_read_avg_time: Optional[int] = Field(
+        None,
         ge=0,
         description="Average wall time (milliseconds) for each disk read operation in the last statistics interval.",
     )
-    io_read_bytes: int = Field(
-        ..., description="Total number of bytes read from disk by the persister."
+    io_read_bytes: Optional[int] = Field(
+        None, description="Total number of bytes read from disk by the persister."
     )
-    io_read_count: int = Field(
-        ..., description="Total number of read operations by the persister."
+    io_read_count: Optional[int] = Field(
+        None, description="Total number of read operations by the persister."
     )
-    io_reopen_count: int = Field(
-        ...,
+    io_reopen_count: Optional[int] = Field(
+        None,
         description="Total number of times the persister has needed to recycle file handles between queues. In an ideal world this number will be zero; if the number is large, performance might be improved by increasing the number of file handles available to RabbitMQ.",
     )
-    io_seek_avg_time: int = Field(
-        ...,
+    io_seek_avg_time: Optional[int] = Field(
+        None,
         description="Average wall time (milliseconds) for each seek operation in the last statistics interval.",
     )
-    io_seek_count: int = Field(
-        ..., description="Total number of seek operations by the persister."
+    io_seek_count: Optional[int] = Field(
+        None, description="Total number of seek operations by the persister."
     )
-    io_sync_avg_time: int = Field(
-        ...,
+    io_sync_avg_time: Optional[int] = Field(
+        None,
         description="Average wall time (milliseconds) for each fsync() operation in the last statistics interval.",
     )
-    io_sync_count: int = Field(
-        ..., description="Total number of fsync() operations by the persister."
+    io_sync_count: Optional[int] = Field(
+        None, description="Total number of fsync() operations by the persister."
     )
-    io_write_avg_time: int = Field(
-        ...,
+    io_write_avg_time: Optional[int] = Field(
+        None,
         description="Average wall time (milliseconds) for each disk write operation in the last statistics interval.",
     )
-    io_write_bytes: int = Field(
-        ..., description="Total number of bytes written to disk by the persister."
+    io_write_bytes: Optional[int] = Field(
+        None, description="Total number of bytes written to disk by the persister."
     )
-    io_write_count: int = Field(
-        ..., description="Total number of write operations by the persister."
+    io_write_count: Optional[int] = Field(
+        None, description="Total number of write operations by the persister."
     )
-    log_files: List[pathlib.Path] = Field(
-        ...,
+    log_files: Optional[List[pathlib.Path]] = Field(
+        None,
         description='List of log files used by the node. If the node also sends messages to stdout, "<stdout>" is also reported in the list.',
     )
     mem_used: int = Field(..., description="Memory used in bytes.")
     mem_alarm: bool = Field(..., description="Whether the memory alarm has gone off.")
-    mem_limit: int = Field(
-        ..., description="Point at which the memory alarm will go off."
+    mem_limit: Optional[int] = Field(
+        None, description="Point at which the memory alarm will go off."
     )
-    mnesia_disk_tx_count: int = Field(
-        ...,
+    mnesia_disk_tx_count: Optional[int] = Field(
+        None,
         description="Number of Mnesia transactions which have been performed that required writes to disk. (e.g. creating a durable queue). Only transactions which originated on this node are included.",
     )
-    mnesia_ram_tx_count: int = Field(
-        ...,
+    mnesia_ram_tx_count: Optional[int] = Field(
+        None,
         description="Number of Mnesia transactions which have been performed that did not require writes to disk. (e.g. creating a transient queue). Only transactions which originated on this node are included.",
     )
-    msg_store_read_count: int = Field(
-        ...,
+    msg_store_read_count: Optional[int] = Field(
+        None,
         description="Number of messages which have been read from the message store.",
     )
-    msg_store_write_count: int = Field(
-        ...,
+    msg_store_write_count: Optional[int] = Field(
+        None,
         description="Number of messages which have been written to the message store.",
     )
     name: str = Field(..., description="Node name.")
-    net_ticktime: int = Field(
-        ..., description="Current kernel net_ticktime setting for the node."
+    net_ticktime: Optional[int] = Field(
+        None, description="Current kernel net_ticktime setting for the node."
     )
-    os_pid: int = Field(
-        ...,
+    os_pid: Optional[int] = Field(
+        None,
         description="Process identifier for the Operating System under which this node is running.",
     )
     # partitions	List of network partitions this node is seeing.
     proc_total: int = Field(..., description="Maximum number of Erlang processes.")
     proc_used: int = Field(..., description="Number of Erlang processes in use.")
-    processors: int = Field(
-        ..., description="Number of cores detected and usable by Erlang."
+    processors: Optional[int] = Field(
+        None, description="Number of cores detected and usable by Erlang."
     )
-    queue_index_journal_write_count: int = Field(
-        ...,
+    queue_index_journal_write_count: Optional[int] = Field(
+        None,
         description="Number of records written to the queue index journal. Each record represents a message being published to a queue, being delivered from a queue, and being acknowledged in a queue.",
     )
-    queue_index_read_count: int = Field(
-        ..., description="Number of records read from the queue index."
+    queue_index_read_count: Optional[int] = Field(
+        None, description="Number of records read from the queue index."
     )
-    queue_index_write_count: int = Field(
-        ..., description="Number of records written to the queue index."
+    queue_index_write_count: Optional[int] = Field(
+        None, description="Number of records written to the queue index."
     )
     # rates_mode: 'none', 'basic' or 'detailed'.
     run_queue: float = Field(
@@ -275,13 +275,13 @@ class NodeInfo(BaseModel):
         description="Boolean for whether this node is up. Obviously if this is false, most other stats will be missing.",
     )
     # sasl_log_file	Location of sasl log file.
-    sockets_total: int = Field(
-        ..., description="File descriptors available for use as sockets."
+    sockets_total: Optional[int] = Field(
+        None, description="File descriptors available for use as sockets."
     )
     sockets_used: int = Field(..., description="File descriptors used as sockets.")
-    type: NodeType
-    uptime: int = Field(
-        ..., description="Time since the Erlang VM started, in milliseconds."
+    type: Optional[NodeType] = None
+    uptime: Optional[int] = Field(
+        None, description="Time since the Erlang VM started, in milliseconds."
     )
     # memory	Detailed memory use statistics. Only appears if ?memory=true is appended to the URL.
     # binary	Detailed breakdown of the owners of binary memory. Only appears if ?binary=true is appended to the URL. Note that this can be an expensive query if there are many small binaries in the system.
@@ -526,7 +526,7 @@ class RabbitMQAPI:
             if response.status_code == requests.codes.ok:
                 success[health_check] = response.json()
             else:
-                failure[health_check] = response.text
+                failure[health_check] = response.json()
         return success, failure
 
     def get(self, endpoint: str, params: Dict[str, Any] = None) -> requests.Response:
@@ -560,7 +560,7 @@ class RabbitMQAPI:
         # https://www.rabbitmq.com/monitoring.html#node-metrics
         endpoint = "nodes"
         if name is not None:
-            endpoint = f"{endpoint}/{name}/"
+            endpoint = f"{endpoint}/{name}"
             response = self.get(endpoint)
             return NodeInfo(**response.json())
         response = self.get(endpoint)
@@ -600,15 +600,14 @@ class RabbitMQAPI:
     ) -> Union[List[QueueInfo], QueueInfo]:
         endpoint = "queues"
         if vhost is not None and name is not None:
-            endpoint = f"{endpoint}/{vhost}/{name}/"
+            endpoint = f"{endpoint}/{vhost}/{name}"
             response = self.get(endpoint)
             return QueueInfo(**response.json())
         elif vhost is not None:
-            endpoint = f"{endpoint}/{vhost}/"
+            endpoint = f"{endpoint}/{vhost}"
         elif name is not None:
             raise ValueError("name can not be set without vhost")
         response = self.get(endpoint)
-        # print(response.url)
         logger.debug(response)
         return [QueueInfo(**qi) for qi in response.json()]
 
