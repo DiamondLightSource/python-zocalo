@@ -522,26 +522,24 @@ class RabbitMQAPI:
         success = {}
         failure = {}
         for health_check in HEALTH_CHECKS:
-            response = self._get(health_check)
+            response = self.get(health_check)
             if response.status_code == requests.codes.ok:
                 success[health_check] = response.json()
             else:
                 failure[health_check] = response.text
         return success, failure
 
-    def _get(self, endpoint: str, params: Dict[str, Any] = None) -> requests.Response:
+    def get(self, endpoint: str, params: Dict[str, Any] = None) -> requests.Response:
         return requests.get(f"{self._url}/{endpoint}", auth=self._auth, params=params)
 
-    def _put(
+    def put(
         self, endpoint: str, params: Dict[str, Any] = None, json: Dict[str, Any] = None
     ) -> requests.Response:
         return requests.put(
             f"{self._url}/{endpoint}", auth=self._auth, params=params, json=json
         )
 
-    def _delete(
-        self, endpoint: str, params: Dict[str, Any] = None
-    ) -> requests.Response:
+    def delete(self, endpoint: str, params: Dict[str, Any] = None) -> requests.Response:
         return requests.delete(
             f"{self._url}/{endpoint}", auth=self._auth, params=params
         )
@@ -552,9 +550,9 @@ class RabbitMQAPI:
         endpoint = "connections"
         if name is not None:
             endpoint = f"{endpoint}/{name}/"
-            response = self._get(endpoint)
+            response = self.get(endpoint)
             return ConnectionInfo(**response.json())
-        response = self._get(endpoint)
+        response = self.get(endpoint)
         logger.debug(response)
         return [ConnectionInfo(**qi) for qi in response.json()]
 
@@ -563,9 +561,9 @@ class RabbitMQAPI:
         endpoint = "nodes"
         if name is not None:
             endpoint = f"{endpoint}/{name}/"
-            response = self._get(endpoint)
+            response = self.get(endpoint)
             return NodeInfo(**response.json())
-        response = self._get(endpoint)
+        response = self.get(endpoint)
         logger.debug(response)
         return [NodeInfo(**qi) for qi in response.json()]
 
@@ -575,26 +573,26 @@ class RabbitMQAPI:
         endpoint = "exchanges"
         if vhost is not None and name is not None:
             endpoint = f"{endpoint}/{vhost}/{name}/"
-            response = self._get(endpoint)
+            response = self.get(endpoint)
             return ExchangeInfo(**response.json())
         elif vhost is not None:
             endpoint = f"{endpoint}/{vhost}/"
         elif name is not None:
             raise ValueError("name can not be set without vhost")
-        response = self._get(endpoint)
+        response = self.get(endpoint)
         logger.debug(response)
         return [ExchangeInfo(**qi) for qi in response.json()]
 
     def exchange_declare(self, vhost: str, exchange: ExchangeSpec):
         endpoint = f"exchanges/{vhost}/{exchange.name}"
-        response = self._put(
+        response = self.put(
             endpoint, json=exchange.dict(exclude_defaults=True, exclude={"name"})
         )
         logger.debug(response)
 
     def exchange_delete(self, vhost: str, name: str, if_unused: bool = False):
         endpoint = f"exchanges/{vhost}/{name}"
-        response = self._delete(endpoint)
+        response = self.delete(endpoint)
         logger.debug(response)
 
     def queues(
@@ -603,20 +601,20 @@ class RabbitMQAPI:
         endpoint = "queues"
         if vhost is not None and name is not None:
             endpoint = f"{endpoint}/{vhost}/{name}/"
-            response = self._get(endpoint)
+            response = self.get(endpoint)
             return QueueInfo(**response.json())
         elif vhost is not None:
             endpoint = f"{endpoint}/{vhost}/"
         elif name is not None:
             raise ValueError("name can not be set without vhost")
-        response = self._get(endpoint)
+        response = self.get(endpoint)
         # print(response.url)
         logger.debug(response)
         return [QueueInfo(**qi) for qi in response.json()]
 
     def queue_declare(self, vhost: str, queue: QueueSpec):
         endpoint = f"queues/{vhost}/{queue.name}"
-        response = self._put(
+        response = self.put(
             endpoint, json=queue.dict(exclude_defaults=True, exclude={"name"})
         )
         logger.debug(response)
@@ -625,7 +623,7 @@ class RabbitMQAPI:
         self, vhost: str, name: str, if_unused: bool = False, if_empty: bool = False
     ):
         endpoint = f"queues/{vhost}/{name}"
-        response = self._delete(endpoint)
+        response = self.delete(endpoint)
         logger.debug(response)
 
 
