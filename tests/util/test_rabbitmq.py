@@ -17,15 +17,19 @@ def zocalo_configuration(mocker):
     return zc
 
 
+@pytest.fixture
+def rmqapi(zocalo_configuration):
+    return rabbitmq.RabbitMQAPI.from_zocalo_configuration(zocalo_configuration)
+
+
 def test_http_api_request(zocalo_configuration):
     request = rabbitmq.http_api_request(zocalo_configuration, api_path="/queues")
     assert request.get_full_url() == "http://rabbitmq.burrow.com:12345/api/queues"
 
 
-def test_api_health_checks(requests_mock, zocalo_configuration):
-    rmq = rabbitmq.RabbitMQAPI.from_zocalo_configuration(zocalo_configuration)
+def test_api_health_checks(requests_mock, rmqapi):
     requests_mock.get(re.compile("/health/checks/"), json={"status": "ok"})
-    success, failures = rmq.health_checks
+    success, failures = rmqapi.health_checks
     assert not failures
     assert success
     for k, v in success.items():
@@ -33,8 +37,7 @@ def test_api_health_checks(requests_mock, zocalo_configuration):
         assert v == {"status": "ok"}
 
 
-def test_api_health_checks_failures(requests_mock, zocalo_configuration):
-    rmq = rabbitmq.RabbitMQAPI.from_zocalo_configuration(zocalo_configuration)
+def test_api_health_checks_failures(requests_mock, rmqapi):
     expected_json = {
         "status": "failed",
         "reason": "No active listener",
@@ -48,7 +51,7 @@ def test_api_health_checks_failures(requests_mock, zocalo_configuration):
         reason="No active listener",
         json=expected_json,
     )
-    success, failures = rmq.health_checks
+    success, failures = rmqapi.health_checks
     assert failures
     assert success
     assert len(failures) == 1
@@ -60,7 +63,7 @@ def test_api_health_checks_failures(requests_mock, zocalo_configuration):
         assert v == expected_json
 
 
-def test_api_queues(requests_mock, zocalo_configuration):
+def test_api_queues(requests_mock, rmqapi):
     queue = {
         "consumers": 0,
         "exclusive": False,
@@ -77,28 +80,28 @@ def test_api_queues(requests_mock, zocalo_configuration):
         "name": "foo",
         "vhost": "zocalo",
     }
-    rmq = rabbitmq.RabbitMQAPI.from_zocalo_configuration(zocalo_configuration)
 
     # First call rmq.queues() with defaults
     requests_mock.get("/api/queues", json=[queue])
-    assert rmq.queues() == [rabbitmq.QueueInfo(**queue)]
+    assert rmqapi.queues() == [rabbitmq.QueueInfo(**queue)]
 
     # Now call with vhost=...
     requests_mock.get("/api/queues/zocalo", json=[queue])
-    assert rmq.queues(vhost="zocalo") == [rabbitmq.QueueInfo(**queue)]
+    assert rmqapi.queues(vhost="zocalo") == [rabbitmq.QueueInfo(**queue)]
 
     # Now call with vhost=..., name=...
     requests_mock.get(f"/api/queues/zocalo/{queue['name']}", json=queue)
-    assert rmq.queues(vhost="zocalo", name=queue["name"]) == rabbitmq.QueueInfo(**queue)
+    assert rmqapi.queues(vhost="zocalo", name=queue["name"]) == rabbitmq.QueueInfo(
+        **queue
+    )
 
 
-def test_api_queue_declare(requests_mock, zocalo_configuration):
-    rmq = rabbitmq.RabbitMQAPI.from_zocalo_configuration(zocalo_configuration)
+def test_api_queue_declare(requests_mock, rmqapi):
     qspec = rabbitmq.QueueSpec(
         name="foo", auto_delete=True, arguments={"x-single-active-consumer": True}
     )
     requests_mock.put("/api/queues/zocalo/foo")
-    rmq.queue_declare(vhost="zocalo", queue=qspec)
+    rmqapi.queue_declare(vhost="zocalo", queue=qspec)
     assert requests_mock.call_count == 1
     history = requests_mock.request_history[0]
     assert history.method == "PUT"
@@ -106,12 +109,11 @@ def test_api_queue_declare(requests_mock, zocalo_configuration):
     assert history.json() == {"auto_delete": True, "arguments": qspec.arguments}
 
 
-def test_api_queue_delete(requests_mock, zocalo_configuration):
-    rmq = rabbitmq.RabbitMQAPI.from_zocalo_configuration(zocalo_configuration)
+def test_api_queue_delete(requests_mock, rmqapi):
     requests_mock.delete("/api/queues/zocalo/foo")
     requests_mock.delete("/api/queues/zocalo/bar")
-    rmq.queue_delete(vhost="zocalo", name="foo")
-    rmq.queue_delete(vhost="zocalo", name="bar", if_unused=True, if_empty=True)
+    rmqapi.queue_delete(vhost="zocalo", name="foo")
+    rmqapi.queue_delete(vhost="zocalo", name="bar", if_unused=True, if_empty=True)
     assert requests_mock.call_count == 2
     for history in requests_mock.request_history:
         assert history.method == "DELETE"
@@ -123,8 +125,7 @@ def test_api_queue_delete(requests_mock, zocalo_configuration):
     )
 
 
-def test_api_nodes(requests_mock, zocalo_configuration):
-    rmq = rabbitmq.RabbitMQAPI.from_zocalo_configuration(zocalo_configuration)
+def test_api_nodes(requests_mock, rmqapi):
     node = {
         "name": "rabbit@pooter123",
         "mem_limit": 80861855744,
@@ -149,8 +150,66 @@ def test_api_nodes(requests_mock, zocalo_configuration):
 
     # First call rmq.nodes() with defaults
     requests_mock.get("/api/nodes", json=[node])
-    assert rmq.nodes() == [rabbitmq.NodeInfo(**node)]
+    assert rmqapi.nodes() == [rabbitmq.NodeInfo(**node)]
 
     # Now call with name=...
     requests_mock.get(f"/api/nodes/{node['name']}", json=node)
-    assert rmq.nodes(name=node["name"]) == rabbitmq.NodeInfo(**node)
+    assert rmqapi.nodes(name=node["name"]) == rabbitmq.NodeInfo(**node)
+
+
+def test_api_exchanges(requests_mock, rmqapi):
+    exchange = {
+        "arguments": {},
+        "auto_delete": False,
+        "durable": True,
+        "internal": False,
+        "message_stats": {
+            "publish_in": 156447,
+            "publish_in_details": {"rate": 0.4},
+            "publish_out": 156445,
+            "publish_out_details": {"rate": 0.4},
+        },
+        "name": "",
+        "type": "direct",
+        "user_who_performed_action": "rmq-internal",
+        "vhost": "foo",
+    }
+
+    # First call rmq.exchanges() with defaults
+    requests_mock.get("/api/exchanges", json=[exchange])
+    assert rmqapi.exchanges() == [rabbitmq.ExchangeInfo(**exchange)]
+
+    # Now call with vhost=...
+    requests_mock.get("/api/exchanges/zocalo/", json=[exchange])
+    assert rmqapi.exchanges(vhost="zocalo") == [rabbitmq.ExchangeInfo(**exchange)]
+
+    # Now call with vhost=..., name=...
+    requests_mock.get(
+        f"/api/exchanges/{exchange['vhost']}/{exchange['name']}/", json=exchange
+    )
+    assert rmqapi.exchanges(
+        vhost=exchange["vhost"], name=exchange["name"]
+    ) == rabbitmq.ExchangeInfo(**exchange)
+
+
+@pytest.mark.parametrize("name", ["", "foo"])
+def test_api_exchange_declare(name, requests_mock, rmqapi):
+    exchange_spec = rabbitmq.ExchangeSpec(
+        name=name,
+        type="fanout",
+        durable=True,
+        auto_delete=True,
+        internal=False,
+    )
+    requests_mock.put(f"/api/exchanges/zocalo/{name}/")
+    rmqapi.exchange_declare(vhost="zocalo", exchange=exchange_spec)
+    assert requests_mock.call_count == 1
+    history = requests_mock.request_history[0]
+    assert history.method == "PUT"
+    assert history.url.endswith(f"/api/exchanges/zocalo/{name}/")
+    assert history.json() == {
+        "type": "fanout",
+        "auto_delete": True,
+        "durable": True,
+        "auto_delete": True,
+    }

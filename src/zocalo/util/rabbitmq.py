@@ -311,7 +311,10 @@ class ExchangeSpec(BaseModel):
         False,
         description="Whether the exchange is internal, i.e. cannot be directly published to by a client.",
     )
-    arguments: dict[str, Any] = Field(..., description="Exchange arguments.")
+    arguments: Optional[dict[str, Any]] = Field(None, description="Exchange arguments.")
+
+    class Config:
+        use_enum_values = True
 
 
 class ExchangeInfo(ExchangeSpec):
@@ -584,7 +587,7 @@ class RabbitMQAPI:
         return [ExchangeInfo(**qi) for qi in response.json()]
 
     def exchange_declare(self, vhost: str, exchange: ExchangeSpec):
-        endpoint = f"exchanges/{vhost}/{exchange.name}"
+        endpoint = f"exchanges/{vhost}/{exchange.name}/"
         response = self.put(
             endpoint, json=exchange.dict(exclude_defaults=True, exclude={"name"})
         )
