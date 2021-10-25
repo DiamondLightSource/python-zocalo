@@ -622,7 +622,9 @@ class RabbitMQAPI:
         self, vhost: str, name: str, if_unused: bool = False, if_empty: bool = False
     ):
         endpoint = f"queues/{vhost}/{name}"
-        response = self.delete(endpoint)
+        response = self.delete(
+            endpoint, params={"if_unused": if_unused, "if_empty": if_empty}
+        )
         logger.debug(response)
 
 
