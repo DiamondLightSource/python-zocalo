@@ -462,6 +462,39 @@ class QueueInfo(QueueSpec):
     )
 
 
+class HashingAlgorithm(enum.Enum):
+    rabbit_password_hashing_sha256 = "rabbit_password_hashing_sha256"
+    rabbit_password_hashing_sha512 = "rabbit_password_hashing_sha512"
+    rabbit_password_hashing_md5 = "rabbit_password_hashing_md5"
+
+
+class UserSpec(BaseModel):
+    """
+    The tags key is mandatory.
+    Either password or password_hash can be set.If neither are set the user will not be
+    able to log in with a password, but other mechanisms like client certificates may
+    be used. Setting password_hash to "" will ensure the user cannot use a password to
+    log in. tags is a comma-separated list of tags for the user. Currently recognised
+    tags are administrator, monitoring and management. password_hash must be generated
+    using the algorithm described here. You may also specify the hash function being used
+    by adding the hashing_algorithm key to the body. Currently recognised algorithms are
+    rabbit_password_hashing_sha256, rabbit_password_hashing_sha512, and
+    rabbit_password_hashing_md5.
+    """
+
+    name: str = Field(..., description="Username")
+    password_hash: str = Field(..., description="Hash of the user password.")
+    hashing_algorithm: HashingAlgorithm
+    tags: str
+
+    class Config:
+        use_enum_values = True
+
+
+class UserInfo(UserSpec):
+    pass
+
+
 def http_api_request(
     zc: zocalo.configuration.Configuration,
     api_path: str,
@@ -630,6 +663,27 @@ class RabbitMQAPI:
         )
         logger.debug(response)
 
+    def users(self, name: str = None):
+        endpoint = "users"
+        if name:
+            endpoint = f"{endpoint}/{name}/"
+            response = self.get(endpoint)
+            return UserInfo(**response.json())
+        response = self.get(endpoint)
+        return [UserInfo(**u) for u in response.json()]
+
+    def add_user(self, user: UserSpec):
+        endpoint = f"users/{user.name}/"
+        response = self.put(
+            endpoint, json=user.dict(exclude_defaults=True, exclude={"name"})
+        )
+        logger.debug(response)
+
+    def delete_user(self, name: str):
+        endpoint = f"users/{name}/"
+        response = self.delete(endpoint)
+        logger.debug(response)
+
 
 if __name__ == "__main__":
     import time
@@ -637,6 +691,8 @@ if __name__ == "__main__":
     zc = zocalo.configuration.from_file()
     zc.activate()
     rmq = RabbitMQAPI.from_zocalo_configuration(zc)
+    print(rmq.users())
+    print(rmq.users(name="guest"))
     print(rmq.queues())
     print(rmq.queues(vhost="zocalo", name="processing_recipe"))
     # time.sleep(5)

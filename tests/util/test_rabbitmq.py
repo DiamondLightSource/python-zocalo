@@ -245,3 +245,49 @@ def test_api_connections(requests_mock, rmqapi):
     assert rmqapi.connections(name=connection["name"]) == rabbitmq.ConnectionInfo(
         **connection
     )
+
+
+def test_api_users(requests_mock, rmqapi):
+    user = {
+        "name": "guest",
+        "password_hash": "guest",
+        "hashing_algorithm": "rabbit_password_hashing_sha256",
+        "tags": "administrator",
+    }
+
+    # First call rmq.users() with defaults
+    requests_mock.get("/api/users", json=[user])
+    assert rmqapi.users() == [rabbitmq.UserInfo(**user)]
+
+    # Now call with name=...
+    requests_mock.get(f"/api/users/{user['name']}/", json=user)
+    assert rmqapi.users(name=user["name"]) == rabbitmq.UserInfo(**user)
+
+
+def test_api_add_user(requests_mock, rmqapi):
+    user = rabbitmq.UserSpec(
+        name="guest",
+        password_hash="guest",
+        hashing_algorithm="rabbit_password_hashing_sha256",
+        tags="administrator",
+    )
+    requests_mock.put(f"/api/users/{user.name}/")
+    rmqapi.add_user(user=user)
+    assert requests_mock.call_count == 1
+    history = requests_mock.request_history[0]
+    assert history.method == "PUT"
+    assert history.url.endswith(f"/api/users/{user.name}/")
+    assert history.json() == {
+        "password_hash": "guest",
+        "hashing_algorithm": "rabbit_password_hashing_sha256",
+        "tags": "administrator",
+    }
+
+
+def test_api_delete_user(requests_mock, rmqapi):
+    requests_mock.delete("/api/users/guest/")
+    rmqapi.delete_user(name="guest")
+    assert requests_mock.call_count == 1
+    history = requests_mock.request_history[0]
+    assert history.method == "DELETE"
+    assert history.url.endswith("/api/users/guest/")
