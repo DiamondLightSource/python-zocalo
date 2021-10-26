@@ -332,6 +332,48 @@ class ExchangeInfo(ExchangeSpec):
     )
 
 
+class PolicyApplyTo(enum.Enum):
+    """Which types of object this policy should apply to."""
+
+    queues = "queues"
+    exchanges = "exchanges"
+    all = "all"
+
+
+class PolicySpec(BaseModel):
+    """Sets a policy."""
+
+    name: str = Field(..., description="The name of the policy.")
+    pattern: str = Field(
+        ...,
+        description="The regular expression, which when matches on a given resources causes the policy to apply.",
+    )
+    definition: Dict[str, Any] = Field(
+        ...,
+        description="A set of key/value pairs (think a JSON document) that will be injected into the map of optional arguments of the matching queues and exchanges.",
+    )
+    priority: int = Field(
+        0,
+        description="The priority of the policy as an integer. Higher numbers indicate greater precedence. The default is 0.",
+    )
+    apply_to: PolicyApplyTo = Field(
+        default=PolicyApplyTo.all,
+        alias="apply-to",
+        description="Which types of object this policy should apply to.",
+    )
+
+    class Config:
+        use_enum_values = True
+        validate_all = True
+        allow_population_by_field_name = True
+
+
+class PolicyInfo(PolicySpec):
+    vhost: str = Field(
+        ..., description="Virtual host name with non-ASCII characters escaped as in C."
+    )
+
+
 class QueueState(str, enum.Enum):
     'The state of the queue. Normally "running", but may be "{syncing, message_count}" if the queue is synchronising.'
 
@@ -631,6 +673,35 @@ class RabbitMQAPI:
         response = self.delete(endpoint)
         logger.debug(response)
 
+    def policies(
+        self, vhost: Optional[str] = None, name: Optional[str] = None
+    ) -> Union[List[PolicyInfo], PolicyInfo]:
+        endpoint = "policies"
+        if vhost is not None and name is not None:
+            endpoint = f"{endpoint}/{vhost}/{name}/"
+            response = self.get(endpoint)
+            return PolicyInfo(**response.json())
+        elif vhost is not None:
+            endpoint = f"{endpoint}/{vhost}/"
+        elif name is not None:
+            raise ValueError("name can not be set without vhost")
+        response = self.get(endpoint)
+        logger.debug(response)
+        return [PolicyInfo(**p) for p in response.json()]
+
+    def set_policy(self, vhost: str, policy: PolicySpec):
+        endpoint = f"policies/{vhost}/{policy.name}/"
+        response = self.put(
+            endpoint,
+            json=policy.dict(exclude_defaults=True, exclude={"name"}, by_alias=True),
+        )
+        logger.debug(response)
+
+    def clear_policy(self, vhost: str, name: str):
+        endpoint = f"policies/{vhost}/{name}/"
+        response = self.delete(endpoint)
+        logger.debug(response)
+
     def queues(
         self, vhost: Optional[str] = None, name: Optional[str] = None
     ) -> Union[List[QueueInfo], QueueInfo]:
@@ -663,7 +734,7 @@ class RabbitMQAPI:
         )
         logger.debug(response)
 
-    def users(self, name: str = None):
+    def users(self, name: str = None) -> Union[List[UserInfo], UserInfo]:
         endpoint = "users"
         if name:
             endpoint = f"{endpoint}/{name}/"

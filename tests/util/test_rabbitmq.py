@@ -291,3 +291,57 @@ def test_api_delete_user(requests_mock, rmqapi):
     history = requests_mock.request_history[0]
     assert history.method == "DELETE"
     assert history.url.endswith("/api/users/guest/")
+
+
+def test_api_policies(requests_mock, rmqapi):
+    policy = {
+        "vhost": "foo",
+        "name": "redelivery",
+        "pattern": "^amq.",
+        "apply-to": "queues",
+        "definition": {"delivery-limit": 5},
+        "priority": 0,
+    }
+
+    # First call rmq.policies() with defaults
+    requests_mock.get("/api/policies", json=[policy])
+    assert rmqapi.policies() == [rabbitmq.PolicyInfo(**policy)]
+
+    # Now call with vhost=...
+    requests_mock.get(f"/api/policies/{policy['vhost']}/", json=[policy])
+    assert rmqapi.policies(vhost=policy["vhost"]) == [rabbitmq.PolicyInfo(**policy)]
+
+    # Now call with vhost=..., name=...
+    requests_mock.get(f"/api/policies/{policy['vhost']}/{policy['name']}/", json=policy)
+    assert rmqapi.policies(
+        vhost=policy["vhost"], name=policy["name"]
+    ) == rabbitmq.PolicyInfo(**policy)
+
+
+def test_api_set_policy(requests_mock, rmqapi):
+    policy = rabbitmq.PolicySpec(
+        name="redelivery",
+        pattern="^amq.",
+        apply_to=rabbitmq.PolicyApplyTo.queues,
+        definition={"delivery-limit": 5},
+    )
+    requests_mock.put(f"/api/policies/foo/{policy.name}/")
+    rmqapi.set_policy(vhost="foo", policy=policy)
+    assert requests_mock.call_count == 1
+    history = requests_mock.request_history[0]
+    assert history.method == "PUT"
+    assert history.url.endswith(f"/api/policies/foo/{policy.name}/")
+    assert history.json() == {
+        "pattern": "^amq.",
+        "apply-to": "queues",
+        "definition": {"delivery-limit": 5},
+    }
+
+
+def test_api_clear_policy(requests_mock, rmqapi):
+    requests_mock.delete("/api/policies/foo/bar/")
+    rmqapi.clear_policy(vhost="foo", name="bar")
+    assert requests_mock.call_count == 1
+    history = requests_mock.request_history[0]
+    assert history.method == "DELETE"
+    assert history.url.endswith("/api/policies/foo/bar/")
