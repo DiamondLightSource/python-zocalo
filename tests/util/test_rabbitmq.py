@@ -96,36 +96,40 @@ def test_api_queues(requests_mock, rmqapi):
     )
 
 
-def test_api_queue_declare(requests_mock, rmqapi):
-    qspec = rabbitmq.QueueSpec(
+@pytest.fixture
+def queue_spec():
+    return rabbitmq.QueueSpec(
         name="foo",
         auto_delete=True,
         vhost="zocalo",
         arguments={"x-single-active-consumer": True},
     )
+
+
+def test_api_queue_declare(requests_mock, rmqapi, queue_spec):
     requests_mock.put("/api/queues/zocalo/foo")
-    rmqapi.queue_declare(queue=qspec)
-    assert requests_mock.call_count == 1
-    history = requests_mock.request_history[0]
-    assert history.method == "PUT"
-    assert history.url.endswith("/api/queues/zocalo/foo")
-    assert history.json() == {"auto_delete": True, "arguments": qspec.arguments}
+    rmqapi.queue_declare(queue=queue_spec)
+    rmqapi.create_component(queue_spec)
+    assert requests_mock.call_count == 2
+    for history in requests_mock.request_history:
+        assert history.method == "PUT"
+        assert history.url.endswith("/api/queues/zocalo/foo")
+        assert history.json() == {
+            "auto_delete": True,
+            "arguments": queue_spec.arguments,
+        }
 
 
-def test_api_queue_delete(requests_mock, rmqapi):
+def test_api_queue_delete(requests_mock, rmqapi, queue_spec):
     requests_mock.delete("/api/queues/zocalo/foo")
-    requests_mock.delete("/api/queues/zocalo/bar")
-    rmqapi.queue_delete(vhost="zocalo", name="foo")
-    rmqapi.queue_delete(vhost="zocalo", name="bar", if_unused=True, if_empty=True)
+    rmqapi.queue_delete(vhost="zocalo", name="foo", if_unused=True, if_empty=True)
+    rmqapi.delete_component(queue_spec, if_unused=True, if_empty=True)
     assert requests_mock.call_count == 2
     for history in requests_mock.request_history:
         assert history.method == "DELETE"
-    assert requests_mock.request_history[0].url.endswith(
-        "/api/queues/zocalo/foo?if_unused=False&if_empty=False"
-    )
-    assert requests_mock.request_history[1].url.endswith(
-        "/api/queues/zocalo/bar?if_unused=True&if_empty=True"
-    )
+        assert history.url.endswith(
+            "/api/queues/zocalo/foo?if_unused=True&if_empty=True"
+        )
 
 
 def test_api_nodes(requests_mock, rmqapi):
@@ -196,9 +200,8 @@ def test_api_exchanges(name, requests_mock, rmqapi):
     ) == rabbitmq.ExchangeInfo(**exchange)
 
 
-@pytest.mark.parametrize("name", ["", "foo"])
-def test_api_exchange_declare(name, requests_mock, rmqapi):
-    exchange_spec = rabbitmq.ExchangeSpec(
+def exchange_spec(name):
+    return rabbitmq.ExchangeSpec(
         name=name,
         type="fanout",
         durable=True,
@@ -206,28 +209,33 @@ def test_api_exchange_declare(name, requests_mock, rmqapi):
         internal=False,
         vhost="zocalo",
     )
+
+
+@pytest.mark.parametrize("name", ["", "foo"])
+def test_api_exchange_declare(name, requests_mock, rmqapi):
     requests_mock.put(f"/api/exchanges/zocalo/{name}/")
-    rmqapi.exchange_declare(exchange=exchange_spec)
-    assert requests_mock.call_count == 1
-    history = requests_mock.request_history[0]
-    assert history.method == "PUT"
-    assert history.url.endswith(f"/api/exchanges/zocalo/{name}/")
-    assert history.json() == {
-        "type": "fanout",
-        "auto_delete": True,
-        "durable": True,
-        "auto_delete": True,
-    }
+    rmqapi.exchange_declare(exchange=exchange_spec(name))
+    rmqapi.create_component(exchange_spec(name))
+    assert requests_mock.call_count == 2
+    for history in requests_mock.request_history:
+        assert history.method == "PUT"
+        assert history.url.endswith(f"/api/exchanges/zocalo/{name}/")
+        assert history.json() == {
+            "type": "fanout",
+            "auto_delete": True,
+            "durable": True,
+            "auto_delete": True,
+        }
 
 
 def test_api_exchange_delete(requests_mock, rmqapi):
     requests_mock.delete("/api/exchanges/zocalo/foo")
-    rmqapi.exchange_delete(vhost="zocalo", name="foo")
-    assert requests_mock.call_count == 1
-    assert requests_mock.request_history[0].method == "DELETE"
-    assert requests_mock.request_history[0].url.endswith(
-        "/api/exchanges/zocalo/foo?if_unused=False"
-    )
+    rmqapi.exchange_delete(vhost="zocalo", name="foo", if_unused=True)
+    rmqapi.delete_component(exchange_spec("foo"), if_unused=True)
+    assert requests_mock.call_count == 2
+    for history in requests_mock.request_history:
+        assert history.method == "DELETE"
+        assert history.url.endswith("/api/exchanges/zocalo/foo?if_unused=True")
 
 
 def test_api_connections(requests_mock, rmqapi):
@@ -278,33 +286,39 @@ def test_api_users(requests_mock, rmqapi):
     assert rmqapi.users(name=user["name"]) == rabbitmq.UserInfo(**user)
 
 
-def test_api_add_user(requests_mock, rmqapi):
-    user = rabbitmq.UserSpec(
+@pytest.fixture
+def user_spec():
+    return rabbitmq.UserSpec(
         name="guest",
         password_hash="guest",
         hashing_algorithm="rabbit_password_hashing_sha256",
         tags="administrator",
     )
-    requests_mock.put(f"/api/users/{user.name}/")
-    rmqapi.add_user(user=user)
-    assert requests_mock.call_count == 1
-    history = requests_mock.request_history[0]
-    assert history.method == "PUT"
-    assert history.url.endswith(f"/api/users/{user.name}/")
-    assert history.json() == {
-        "password_hash": "guest",
-        "hashing_algorithm": "rabbit_password_hashing_sha256",
-        "tags": "administrator",
-    }
 
 
-def test_api_delete_user(requests_mock, rmqapi):
+def test_api_add_user(requests_mock, rmqapi, user_spec):
+    requests_mock.put(f"/api/users/{user_spec.name}/")
+    rmqapi.add_user(user=user_spec)
+    rmqapi.create_component(user_spec)
+    assert requests_mock.call_count == 2
+    for history in requests_mock.request_history:
+        assert history.method == "PUT"
+        assert history.url.endswith(f"/api/users/{user_spec.name}/")
+        assert history.json() == {
+            "password_hash": "guest",
+            "hashing_algorithm": "rabbit_password_hashing_sha256",
+            "tags": "administrator",
+        }
+
+
+def test_api_delete_user(requests_mock, rmqapi, user_spec):
     requests_mock.delete("/api/users/guest/")
     rmqapi.delete_user(name="guest")
-    assert requests_mock.call_count == 1
-    history = requests_mock.request_history[0]
-    assert history.method == "DELETE"
-    assert history.url.endswith("/api/users/guest/")
+    rmqapi.delete_component(user_spec)
+    assert requests_mock.call_count == 2
+    for history in requests_mock.request_history:
+        assert history.method == "DELETE"
+        assert history.url.endswith("/api/users/guest/")
 
 
 def test_api_policies(requests_mock, rmqapi):
@@ -332,31 +346,37 @@ def test_api_policies(requests_mock, rmqapi):
     ) == rabbitmq.PolicyInfo(**policy)
 
 
-def test_api_set_policy(requests_mock, rmqapi):
-    policy = rabbitmq.PolicySpec(
-        name="redelivery",
+@pytest.fixture
+def policy_spec():
+    return rabbitmq.PolicySpec(
+        name="bar",
         pattern="^amq.",
         apply_to=rabbitmq.PolicyApplyTo.queues,
         definition={"delivery-limit": 5},
         vhost="foo",
     )
-    requests_mock.put(f"/api/policies/foo/{policy.name}/")
-    rmqapi.set_policy(policy=policy)
-    assert requests_mock.call_count == 1
-    history = requests_mock.request_history[0]
-    assert history.method == "PUT"
-    assert history.url.endswith(f"/api/policies/foo/{policy.name}/")
-    assert history.json() == {
-        "pattern": "^amq.",
-        "apply-to": "queues",
-        "definition": {"delivery-limit": 5},
-    }
 
 
-def test_api_clear_policy(requests_mock, rmqapi):
+def test_api_set_policy(requests_mock, rmqapi, policy_spec):
+    requests_mock.put(f"/api/policies/foo/{policy_spec.name}/")
+    rmqapi.set_policy(policy=policy_spec)
+    rmqapi.create_component(policy_spec)
+    assert requests_mock.call_count == 2
+    for history in requests_mock.request_history:
+        assert history.method == "PUT"
+        assert history.url.endswith(f"/api/policies/foo/{policy_spec.name}/")
+        assert history.json() == {
+            "pattern": "^amq.",
+            "apply-to": "queues",
+            "definition": {"delivery-limit": 5},
+        }
+
+
+def test_api_clear_policy(requests_mock, rmqapi, policy_spec):
     requests_mock.delete("/api/policies/foo/bar/")
     rmqapi.clear_policy(vhost="foo", name="bar")
-    assert requests_mock.call_count == 1
-    history = requests_mock.request_history[0]
-    assert history.method == "DELETE"
-    assert history.url.endswith("/api/policies/foo/bar/")
+    rmqapi.delete_component(policy_spec)
+    assert requests_mock.call_count == 2
+    for history in requests_mock.request_history:
+        assert history.method == "DELETE"
+        assert history.url.endswith("/api/policies/foo/bar/")

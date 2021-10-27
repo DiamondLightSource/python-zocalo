@@ -1,5 +1,6 @@
 import datetime
 import enum
+import functools
 import logging
 import pathlib
 import urllib
@@ -629,6 +630,14 @@ class RabbitMQAPI:
             f"{self._url}/{endpoint}", auth=self._auth, params=params
         )
 
+    @functools.singledispatchmethod
+    def create_component(self, component):
+        raise NotImplementedError(f"Component {component} not recognised")
+
+    @functools.singledispatchmethod
+    def delete_component(self, component):
+        raise NotImplementedError(f"Component {component} not recognised")
+
     def connections(
         self, name: Optional[str] = None
     ) -> Union[List[ConnectionInfo], ConnectionInfo]:
@@ -668,6 +677,7 @@ class RabbitMQAPI:
         logger.debug(response)
         return [ExchangeInfo(**qi) for qi in response.json()]
 
+    @create_component.register
     def exchange_declare(self, exchange: ExchangeSpec):
         endpoint = f"exchanges/{exchange.vhost}/{exchange.name}/"
         response = self.put(
@@ -680,6 +690,10 @@ class RabbitMQAPI:
         endpoint = f"exchanges/{vhost}/{name}"
         response = self.delete(endpoint, params={"if_unused": if_unused})
         logger.debug(response)
+
+    @delete_component.register
+    def _delete_exchange(self, exchange: ExchangeSpec, **kwargs):
+        self.exchange_delete(vhost=exchange.vhost, name=exchange.name, **kwargs)
 
     def policies(
         self, vhost: Optional[str] = None, name: Optional[str] = None
@@ -697,6 +711,7 @@ class RabbitMQAPI:
         logger.debug(response)
         return [PolicyInfo(**p) for p in response.json()]
 
+    @create_component.register
     def set_policy(self, policy: PolicySpec):
         endpoint = f"policies/{policy.vhost}/{policy.name}/"
         response = self.put(
@@ -711,6 +726,10 @@ class RabbitMQAPI:
         endpoint = f"policies/{vhost}/{name}/"
         response = self.delete(endpoint)
         logger.debug(response)
+
+    @delete_component.register
+    def _delete_policy(self, policy: PolicySpec):
+        self.clear_policy(vhost=policy.vhost, name=policy.name)
 
     def queues(
         self, vhost: Optional[str] = None, name: Optional[str] = None
@@ -728,6 +747,7 @@ class RabbitMQAPI:
         logger.debug(response)
         return [QueueInfo(**qi) for qi in response.json()]
 
+    @create_component.register
     def queue_declare(self, queue: QueueSpec):
         endpoint = f"queues/{queue.vhost}/{queue.name}"
         response = self.put(
@@ -744,6 +764,14 @@ class RabbitMQAPI:
         )
         logger.debug(response)
 
+    @delete_component.register
+    def _delete_queue(
+        self, queue: QueueSpec, if_unused: bool = False, if_empty: bool = False
+    ):
+        self.queue_delete(
+            vhost=queue.vhost, name=queue.name, if_unused=if_unused, if_empty=if_empty
+        )
+
     def users(self, name: str = None) -> Union[List[UserInfo], UserInfo]:
         endpoint = "users"
         if name:
@@ -753,6 +781,7 @@ class RabbitMQAPI:
         response = self.get(endpoint)
         return [UserInfo(**u) for u in response.json()]
 
+    @create_component.register
     def add_user(self, user: UserSpec):
         endpoint = f"users/{user.name}/"
         response = self.put(
@@ -764,6 +793,10 @@ class RabbitMQAPI:
         endpoint = f"users/{name}/"
         response = self.delete(endpoint)
         logger.debug(response)
+
+    @delete_component.register
+    def _delete_user(self, user: UserSpec):
+        self.delete_user(name=user.name)
 
 
 if __name__ == "__main__":
