@@ -312,6 +312,9 @@ class ExchangeSpec(BaseModel):
         description="Whether the exchange is internal, i.e. cannot be directly published to by a client.",
     )
     arguments: Optional[Dict[str, Any]] = Field(None, description="Exchange arguments.")
+    vhost: str = Field(
+        ..., description="Virtual host name with non-ASCII characters escaped as in C."
+    )
 
     class Config:
         use_enum_values = True
@@ -361,6 +364,9 @@ class PolicySpec(BaseModel):
         alias="apply-to",
         description="Which types of object this policy should apply to.",
     )
+    vhost: str = Field(
+        ..., description="Virtual host name with non-ASCII characters escaped as in C."
+    )
 
     class Config:
         use_enum_values = True
@@ -369,9 +375,7 @@ class PolicySpec(BaseModel):
 
 
 class PolicyInfo(PolicySpec):
-    vhost: str = Field(
-        ..., description="Virtual host name with non-ASCII characters escaped as in C."
-    )
+    pass
 
 
 class QueueState(str, enum.Enum):
@@ -395,6 +399,9 @@ class QueueSpec(BaseModel):
         description="Whether the queue will be deleted automatically when no longer used.",
     )
     arguments: Optional[Dict[str, Any]] = Field(None, description="Queue arguments.")
+    vhost: str = Field(
+        ..., description="Virtual host name with non-ASCII characters escaped as in C."
+    )
 
 
 class QueueInfo(QueueSpec):
@@ -661,10 +668,11 @@ class RabbitMQAPI:
         logger.debug(response)
         return [ExchangeInfo(**qi) for qi in response.json()]
 
-    def exchange_declare(self, vhost: str, exchange: ExchangeSpec):
-        endpoint = f"exchanges/{vhost}/{exchange.name}/"
+    def exchange_declare(self, exchange: ExchangeSpec):
+        endpoint = f"exchanges/{exchange.vhost}/{exchange.name}/"
         response = self.put(
-            endpoint, json=exchange.dict(exclude_defaults=True, exclude={"name"})
+            endpoint,
+            json=exchange.dict(exclude_defaults=True, exclude={"name", "vhost"}),
         )
         logger.debug(response)
 
@@ -689,11 +697,13 @@ class RabbitMQAPI:
         logger.debug(response)
         return [PolicyInfo(**p) for p in response.json()]
 
-    def set_policy(self, vhost: str, policy: PolicySpec):
-        endpoint = f"policies/{vhost}/{policy.name}/"
+    def set_policy(self, policy: PolicySpec):
+        endpoint = f"policies/{policy.vhost}/{policy.name}/"
         response = self.put(
             endpoint,
-            json=policy.dict(exclude_defaults=True, exclude={"name"}, by_alias=True),
+            json=policy.dict(
+                exclude_defaults=True, exclude={"name", "vhost"}, by_alias=True
+            ),
         )
         logger.debug(response)
 
@@ -718,10 +728,10 @@ class RabbitMQAPI:
         logger.debug(response)
         return [QueueInfo(**qi) for qi in response.json()]
 
-    def queue_declare(self, vhost: str, queue: QueueSpec):
-        endpoint = f"queues/{vhost}/{queue.name}"
+    def queue_declare(self, queue: QueueSpec):
+        endpoint = f"queues/{queue.vhost}/{queue.name}"
         response = self.put(
-            endpoint, json=queue.dict(exclude_defaults=True, exclude={"name"})
+            endpoint, json=queue.dict(exclude_defaults=True, exclude={"name", "vhost"})
         )
         logger.debug(response)
 

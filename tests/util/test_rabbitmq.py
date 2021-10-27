@@ -98,10 +98,13 @@ def test_api_queues(requests_mock, rmqapi):
 
 def test_api_queue_declare(requests_mock, rmqapi):
     qspec = rabbitmq.QueueSpec(
-        name="foo", auto_delete=True, arguments={"x-single-active-consumer": True}
+        name="foo",
+        auto_delete=True,
+        vhost="zocalo",
+        arguments={"x-single-active-consumer": True},
     )
     requests_mock.put("/api/queues/zocalo/foo")
-    rmqapi.queue_declare(vhost="zocalo", queue=qspec)
+    rmqapi.queue_declare(queue=qspec)
     assert requests_mock.call_count == 1
     history = requests_mock.request_history[0]
     assert history.method == "PUT"
@@ -201,9 +204,10 @@ def test_api_exchange_declare(name, requests_mock, rmqapi):
         durable=True,
         auto_delete=True,
         internal=False,
+        vhost="zocalo",
     )
     requests_mock.put(f"/api/exchanges/zocalo/{name}/")
-    rmqapi.exchange_declare(vhost="zocalo", exchange=exchange_spec)
+    rmqapi.exchange_declare(exchange=exchange_spec)
     assert requests_mock.call_count == 1
     history = requests_mock.request_history[0]
     assert history.method == "PUT"
@@ -324,9 +328,10 @@ def test_api_set_policy(requests_mock, rmqapi):
         pattern="^amq.",
         apply_to=rabbitmq.PolicyApplyTo.queues,
         definition={"delivery-limit": 5},
+        vhost="foo",
     )
     requests_mock.put(f"/api/policies/foo/{policy.name}/")
-    rmqapi.set_policy(vhost="foo", policy=policy)
+    rmqapi.set_policy(policy=policy)
     assert requests_mock.call_count == 1
     history = requests_mock.request_history[0]
     assert history.method == "PUT"
