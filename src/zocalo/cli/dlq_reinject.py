@@ -15,7 +15,7 @@ from pprint import pprint
 import workflows.transport
 
 import zocalo.configuration
-from zocalo.util.rabbitmq import http_api_request
+from zocalo.util.rabbitmq import RabbitMQAPI
 
 
 def run() -> None:
@@ -70,6 +70,7 @@ def run() -> None:
         print("No DLQ message files given.")
         sys.exit(0)
 
+    rmqapi = RabbitMQAPI.from_zocalo_configuration(zc)
     transport.connect()
 
     first = True
@@ -130,12 +131,7 @@ def run() -> None:
             header = dlqmsg["header"]
             exchange = header.get("headers", {}).get("x-death", {})[0].get("exchange")
             if exchange:
-                import urllib
-
-                _api_request = http_api_request(zc, "/queues")
-                with urllib.request.urlopen(_api_request) as response:
-                    reply = response.read()
-                exchange_info = json.loads(reply)
+                exchange_info = rmqapi.get("queues").json()
                 for exch in exchange_info:
                     if exch["name"] == exchange:
                         if exch["type"] == "fanout":

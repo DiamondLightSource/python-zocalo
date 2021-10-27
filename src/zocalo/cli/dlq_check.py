@@ -48,13 +48,13 @@ def check_dlq(zc: zocalo.configuration.Configuration, namespace: str = None) -> 
 def check_dlq_rabbitmq(
     zc: zocalo.configuration.Configuration, namespace: str = None
 ) -> dict:
-    rmq = RabbitMQAPI(zc)
+    rmq = RabbitMQAPI.from_zocalo_configuration(zc)
     return {
-        q["name"]: int(q["messages"])
-        for q in rmq.queues
-        if q["name"].startswith("dlq.")
-        and (namespace is None or q["vhost"] == namespace)
-        and int(q["messages"])
+        q.name: q.messages
+        for q in rmq.queues()
+        if q.name.startswith("dlq.")
+        and (namespace is None or q.vhost == namespace)
+        and q.messages
     }
 
 
