@@ -311,7 +311,7 @@ class ExchangeSpec(BaseModel):
         False,
         description="Whether the exchange is internal, i.e. cannot be directly published to by a client.",
     )
-    arguments: Optional[dict[str, Any]] = Field(None, description="Exchange arguments.")
+    arguments: Optional[Dict[str, Any]] = Field(None, description="Exchange arguments.")
 
     class Config:
         use_enum_values = True
@@ -394,7 +394,7 @@ class QueueSpec(BaseModel):
         False,
         description="Whether the queue will be deleted automatically when no longer used.",
     )
-    arguments: Optional[dict[str, Any]] = Field(None, description="Queue arguments.")
+    arguments: Optional[Dict[str, Any]] = Field(None, description="Queue arguments.")
 
 
 class QueueInfo(QueueSpec):
