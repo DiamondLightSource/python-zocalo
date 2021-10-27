@@ -12,6 +12,9 @@ Unreleased
   places it back on a queue
 * Use ``argparse`` for all command line tools and make use of ``workflows`` transport 
   argument injection. Minimum ``workflows`` version is now 2.14
+* Add a zocalo plugin for ``ispyb.simulate`` 
+  (`#163 <https://github.com/DiamondLightSource/ispyb-api/pull/163>`_) to call a recipe
+  before and after creation of data
 
 0.10.0 (2021-10-04)
 -------------------
