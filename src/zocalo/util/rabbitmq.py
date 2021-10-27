@@ -797,38 +797,3 @@ class RabbitMQAPI:
     @delete_component.register
     def _delete_user(self, user: UserSpec):
         self.delete_user(name=user.name)
-
-
-if __name__ == "__main__":
-    import time
-
-    zc = zocalo.configuration.from_file()
-    zc.activate()
-    rmq = RabbitMQAPI.from_zocalo_configuration(zc)
-    print(rmq.users())
-    print(rmq.users(name="guest"))
-    print(rmq.queues())
-    print(rmq.queues(vhost="zocalo", name="processing_recipe"))
-    # time.sleep(5)
-    rmq.queue_declare(
-        vhost="zocalo",
-        queue=QueueSpec(
-            name="foo", auto_delete=True, arguments={"x-single-active-consumer": True}
-        ),
-    )
-    time.sleep(5)
-    print(rmq.queues(vhost="zocalo", name="foo"))
-    rmq.queue_delete(vhost="zocalo", name="foo")
-    # print(rmq.queues(vhost="zocalo", name="foo"))
-    for q in rmq.queues():
-        print(q.message_stats)
-    print()
-    for ex in rmq.exchanges():
-        print(ex)
-    print(rmq.exchanges(vhost="zocalo", name=""))
-
-    nodes = rmq.nodes()
-    print(rmq.nodes(name=nodes[0].name))
-
-    connections = rmq.connections()
-    print(rmq.connections(name=connections[0].name))
