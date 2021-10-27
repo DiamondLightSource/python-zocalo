@@ -220,6 +220,16 @@ def test_api_exchange_declare(name, requests_mock, rmqapi):
     }
 
 
+def test_api_exchange_delete(requests_mock, rmqapi):
+    requests_mock.delete("/api/exchanges/zocalo/foo")
+    rmqapi.exchange_delete(vhost="zocalo", name="foo")
+    assert requests_mock.call_count == 1
+    assert requests_mock.request_history[0].method == "DELETE"
+    assert requests_mock.request_history[0].url.endswith(
+        "/api/exchanges/zocalo/foo?if_unused=False"
+    )
+
+
 def test_api_connections(requests_mock, rmqapi):
     connection = {
         "auth_mechanism": "PLAIN",

@@ -678,7 +678,7 @@ class RabbitMQAPI:
 
     def exchange_delete(self, vhost: str, name: str, if_unused: bool = False):
         endpoint = f"exchanges/{vhost}/{name}"
-        response = self.delete(endpoint)
+        response = self.delete(endpoint, params={"if_unused": if_unused})
         logger.debug(response)
 
     def policies(
