@@ -1,9 +1,11 @@
 PyYAML==6.0
 graypy==2.1.0
 marshmallow==3.14.0
+pydantic
 pytest-cov==3.0.0
 pytest-mock
 pytest==6.2.5
+requests
 requests_mock
 setuptools==58.3.0
 workflows==2.14
