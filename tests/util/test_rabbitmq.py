@@ -224,7 +224,6 @@ def test_api_exchange_declare(name, requests_mock, rmqapi):
             "type": "fanout",
             "auto_delete": True,
             "durable": True,
-            "auto_delete": True,
         }
 
 
