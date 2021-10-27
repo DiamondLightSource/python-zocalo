@@ -70,7 +70,6 @@ def run() -> None:
         print("No DLQ message files given.")
         sys.exit(0)
 
-    rmqapi = RabbitMQAPI.from_zocalo_configuration(zc)
     transport.connect()
 
     first = True
@@ -131,6 +130,7 @@ def run() -> None:
             header = dlqmsg["header"]
             exchange = header.get("headers", {}).get("x-death", {})[0].get("exchange")
             if exchange:
+                rmqapi = RabbitMQAPI.from_zocalo_configuration(zc)
                 exchange_info = rmqapi.get("queues").json()
                 for exch in exchange_info:
                     if exch["name"] == exchange:
