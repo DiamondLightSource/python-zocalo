@@ -110,7 +110,7 @@ def run():
         help="Verify that everything is in place that the message could be sent, but don't actually send the message",
     )
     parser.add_argument(
-        "dcid", nargs="+", help="Data collection ID of required processing"
+        "dcid", nargs="*", help="Data collection ID of required processing"
     )
 
     zc.add_command_line_options(parser)
@@ -203,6 +203,8 @@ def run():
 
     if len(args.dcid) > 1:
         sys.exit("Only a single data collection ID can be specified.")
+    if not args.dcid:
+        sys.exit("You must either specify a data collection ID or option --no-dcid.")
 
     dcid = int(args.dcid[0])
     assert dcid > 0, "Invalid data collection ID given."
