@@ -638,7 +638,6 @@ class RabbitMQAPI:
             response = self.get(endpoint)
             return ConnectionInfo(**response.json())
         response = self.get(endpoint)
-        logger.debug(response)
         return [ConnectionInfo(**qi) for qi in response.json()]
 
     def nodes(self, name: Optional[str] = None) -> Union[List[NodeInfo], NodeInfo]:
@@ -649,7 +648,6 @@ class RabbitMQAPI:
             response = self.get(endpoint)
             return NodeInfo(**response.json())
         response = self.get(endpoint)
-        logger.debug(response)
         return [NodeInfo(**qi) for qi in response.json()]
 
     def exchanges(
@@ -665,21 +663,18 @@ class RabbitMQAPI:
         elif name is not None:
             raise ValueError("name can not be set without vhost")
         response = self.get(endpoint)
-        logger.debug(response)
         return [ExchangeInfo(**qi) for qi in response.json()]
 
     def exchange_declare(self, exchange: ExchangeSpec):
         endpoint = f"exchanges/{exchange.vhost}/{exchange.name}/"
-        response = self.put(
+        self.put(
             endpoint,
             json=exchange.dict(exclude_defaults=True, exclude={"name", "vhost"}),
         )
-        logger.debug(response)
 
     def exchange_delete(self, vhost: str, name: str, if_unused: bool = False):
         endpoint = f"exchanges/{vhost}/{name}"
-        response = self.delete(endpoint, params={"if_unused": if_unused})
-        logger.debug(response)
+        self.delete(endpoint, params={"if_unused": if_unused})
 
     def policies(
         self, vhost: Optional[str] = None, name: Optional[str] = None
@@ -694,23 +689,20 @@ class RabbitMQAPI:
         elif name is not None:
             raise ValueError("name can not be set without vhost")
         response = self.get(endpoint)
-        logger.debug(response)
         return [PolicyInfo(**p) for p in response.json()]
 
     def set_policy(self, policy: PolicySpec):
         endpoint = f"policies/{policy.vhost}/{policy.name}/"
-        response = self.put(
+        self.put(
             endpoint,
             json=policy.dict(
                 exclude_defaults=True, exclude={"name", "vhost"}, by_alias=True
             ),
         )
-        logger.debug(response)
 
     def clear_policy(self, vhost: str, name: str):
         endpoint = f"policies/{vhost}/{name}/"
-        response = self.delete(endpoint)
-        logger.debug(response)
+        self.delete(endpoint)
 
     def queues(
         self, vhost: Optional[str] = None, name: Optional[str] = None
@@ -725,24 +717,19 @@ class RabbitMQAPI:
         elif name is not None:
             raise ValueError("name can not be set without vhost")
         response = self.get(endpoint)
-        logger.debug(response)
         return [QueueInfo(**qi) for qi in response.json()]
 
     def queue_declare(self, queue: QueueSpec):
         endpoint = f"queues/{queue.vhost}/{queue.name}"
-        response = self.put(
+        self.put(
             endpoint, json=queue.dict(exclude_defaults=True, exclude={"name", "vhost"})
         )
-        logger.debug(response)
 
     def queue_delete(
         self, vhost: str, name: str, if_unused: bool = False, if_empty: bool = False
     ):
         endpoint = f"queues/{vhost}/{name}"
-        response = self.delete(
-            endpoint, params={"if_unused": if_unused, "if_empty": if_empty}
-        )
-        logger.debug(response)
+        self.delete(endpoint, params={"if_unused": if_unused, "if_empty": if_empty})
 
     def users(self, name: str = None) -> Union[List[UserInfo], UserInfo]:
         endpoint = "users"
@@ -755,12 +742,8 @@ class RabbitMQAPI:
 
     def add_user(self, user: UserSpec):
         endpoint = f"users/{user.name}/"
-        response = self.put(
-            endpoint, json=user.dict(exclude_defaults=True, exclude={"name"})
-        )
-        logger.debug(response)
+        self.put(endpoint, json=user.dict(exclude_defaults=True, exclude={"name"}))
 
     def delete_user(self, name: str):
         endpoint = f"users/{name}/"
-        response = self.delete(endpoint)
-        logger.debug(response)
+        self.delete(endpoint)
