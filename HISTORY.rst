@@ -15,6 +15,8 @@ Unreleased
   places it back on a queue
 * Use ``argparse`` for all command line tools and make use of ``workflows`` transport
   argument injection. Minimum ``workflows`` version is now 2.14
+* New ``zocalo.util.rabbitmq.RabbitMQAPI()`` providing a thin wrapper around the
+  RabbitMQ HTTP API
 
 0.10.0 (2021-10-04)
 -------------------

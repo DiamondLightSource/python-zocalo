@@ -1,4 +1,3 @@
-import json
 from unittest import mock
 
 import zocalo.cli.dlq_check
@@ -21,20 +20,31 @@ def test_activemq_dlq_check(mock_jmx):
     assert checked == {"images": 2, "transient": 5}
 
 
-@mock.patch("zocalo.cli.dlq_check.urllib.request.urlopen")
-@mock.patch("zocalo.cli.dlq_check.http_api_request")
-def test_activemq_dlq_rabbitmq_check(mock_api, mock_url):
-    cfg = Configuration({})
-    _mock = mock.MagicMock()
-    mock_api.return_value = ""
-    mock_url.return_value = _mock
-    mock_url.return_value.__enter__.return_value.read.return_value = json.dumps(
-        [
-            {"name": "images", "vhost": "zocalo", "messages": 10},
-            {"name": "dlq.images", "vhost": "zocalo", "messages": 2},
-            {"name": "dlq.transient", "vhost": "zocalo", "messages": 5},
-        ]
+def test_activemq_dlq_rabbitmq_check(requests_mock):
+    zc = mock.Mock()
+    zc.rabbitmqapi = {
+        "base_url": "http://fake.com/api",
+        "username": "guest",
+        "password": "guest",
+    }
+    requests_mock.get(
+        "/api/queues",
+        json=[
+            {"name": "images", "vhost": "zocalo", "messages": 10, "exclusive": False},
+            {
+                "name": "dlq.images",
+                "vhost": "zocalo",
+                "messages": 2,
+                "exclusive": False,
+            },
+            {
+                "name": "dlq.transient",
+                "vhost": "zocalo",
+                "messages": 5,
+                "exclusive": False,
+            },
+        ],
     )
 
-    checked = zocalo.cli.dlq_check.check_dlq_rabbitmq(cfg, "zocalo")
+    checked = zocalo.cli.dlq_check.check_dlq_rabbitmq(zc, "zocalo")
     assert checked == {"dlq.images": 2, "dlq.transient": 5}

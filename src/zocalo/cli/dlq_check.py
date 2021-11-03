@@ -1,12 +1,10 @@
 import argparse
-import json
-import urllib
 
 import workflows.transport
 
 import zocalo.configuration
 from zocalo.util.jmxstats import JMXAPI
-from zocalo.util.rabbitmq import http_api_request
+from zocalo.util.rabbitmq import RabbitMQAPI
 
 #
 # zocalo.dlq_check
@@ -50,16 +48,14 @@ def check_dlq(zc: zocalo.configuration.Configuration, namespace: str = None) -> 
 def check_dlq_rabbitmq(
     zc: zocalo.configuration.Configuration, namespace: str = None
 ) -> dict:
-    _api_request = http_api_request(zc, "/queues")
-    with urllib.request.urlopen(_api_request) as response:
-        reply = response.read()
-    queue_info = json.loads(reply)
-    dlq_info = {}
-    for q in queue_info:
-        if q["name"].startswith("dlq."):
-            if (namespace is None or q["vhost"] == namespace) and int(q["messages"]):
-                dlq_info[q["name"]] = int(q["messages"])
-    return dlq_info
+    rmq = RabbitMQAPI.from_zocalo_configuration(zc)
+    return {
+        q.name: q.messages
+        for q in rmq.queues()
+        if q.name.startswith("dlq.")
+        and (namespace is None or q.vhost == namespace)
+        and q.messages
+    }
 
 
 def run() -> None:
