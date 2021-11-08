@@ -139,3 +139,4 @@ def run(args=None):
         "%d message(s) drained, no message seen for %.1f seconds"
         % (message_count, idle_time)
     )
+    transport.disconnect()

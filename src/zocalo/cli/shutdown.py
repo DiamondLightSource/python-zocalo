@@ -68,3 +68,5 @@ def run(args=None):
         message = {"command": "shutdown", "service": service}
         transport.broadcast("command", message)
         print("Stopping all instances of", service)
+
+    transport.disconnect()

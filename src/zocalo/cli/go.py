@@ -150,6 +150,7 @@ def run():
                 return
             transport.connect()
             transport.send("processing_recipe", message, headers=headers)
+            transport.disconnect()
         except (
             KeyboardInterrupt,
             SyntaxError,

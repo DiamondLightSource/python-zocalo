@@ -162,3 +162,4 @@ def run():
     st.shutdown()
     st.join()
     log.debug("Terminating")
+    transport.disconnect()
