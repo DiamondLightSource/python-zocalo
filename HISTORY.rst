@@ -5,6 +5,10 @@ History
 Unreleased
 ----------
 
+0.11.1 (2021-11-08)
+-------------------
+* Add a RabbitMQ HTTP API in ``zocalo.util.rabbitmq``
+
 0.11.0 (2021-11-03)
 -------------------
 * Add command line tools for handling dead-letter messages
