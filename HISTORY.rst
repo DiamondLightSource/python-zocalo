@@ -4,6 +4,7 @@ History
 
 Unreleased
 ----------
+* Drop support for Python 3.6 and 3.7
 
 0.11.1 (2021-11-08)
 -------------------
