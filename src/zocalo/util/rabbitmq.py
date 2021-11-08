@@ -287,6 +287,33 @@ class NodeInfo(BaseModel):
     # binary	Detailed breakdown of the owners of binary memory. Only appears if ?binary=true is appended to the URL. Note that this can be an expensive query if there are many small binaries in the system.
 
 
+class DestinationType(enum.Enum):
+    q = "queue"
+    e = "exchange"
+
+
+class BindingSpec(BaseModel):
+    source: str = Field(
+        ..., description="The name of the source exchange of the binding"
+    )
+    destination: str = Field(
+        ...,
+        description="The name of the end point of the binding (either an exchange or a queue)",
+    )
+    destination_type: DestinationType = Field(
+        ..., description="The type of the binding end point"
+    )
+    vhost: str = Field(
+        ..., description="Virtual host name with non-ASCII characters escaped as in C."
+    )
+    routing_key: str = Field("", description="Routing key attached to binding")
+
+
+class BindingInfo(BindingSpec):
+    arguments: Optional[dict] = Field(None)
+    properties_key: str = Field("~")
+
+
 class ExchangeType(enum.Enum):
     direct = "direct"
     topic = "topic"
@@ -624,9 +651,49 @@ class RabbitMQAPI:
             f"{self._url}/{endpoint}", auth=self._auth, params=params, json=json
         )
 
+    def post(
+        self,
+        endpoint: str,
+        data: Optional[Dict[str, Any]] = None,
+        json: Optional[Dict[str, Any]] = None,
+    ) -> requests.Response:
+        return requests.post(
+            f"{self._url}/{endpoint}", auth=self._auth, data=data, json=json
+        )
+
     def delete(self, endpoint: str, params: Dict[str, Any] = None) -> requests.Response:
         return requests.delete(
             f"{self._url}/{endpoint}", auth=self._auth, params=params
+        )
+
+    def bindings(
+        self,
+        vhost: Optional[str] = None,
+        source: Optional[str] = None,
+        destination: Optional[str] = None,
+        destination_type: Optional[str] = None,
+    ) -> List[BindingInfo]:
+        endpoint = "bindings"
+        if vhost is not None:
+            endpoint = f"{endpoint}/{vhost}"
+        _check = (source, destination, destination_type)
+        if not all(_ is None for _ in _check) and None in _check:
+            raise ValueError(
+                "Either all of source, destination and destination_type must be specified, or none of them"
+            )
+        if source is not None:
+            endpoint = f"{endpoint}/e/{source}/{destination_type}/{destination}"
+        response = self.get(endpoint)
+        return [BindingInfo(**bi) for bi in response.json()]
+
+    def binding_declare(self, binding: BindingSpec):
+        endpoint = f"bindings/{binding.vhost}/e/{binding.source}/{binding.destination_type.name}/{binding.destination}"
+        self.post(
+            endpoint,
+            json=binding.dict(
+                exclude_defaults=True,
+                exclude={"vhost", "source", "destination", "destination_type"},
+            ),
         )
 
     def connections(
