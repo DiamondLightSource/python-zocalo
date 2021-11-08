@@ -696,6 +696,16 @@ class RabbitMQAPI:
             ),
         )
 
+    def binding_delete(
+        self,
+        vhost: str,
+        source: str,
+        destination: str,
+        destination_type: DestinationType,
+    ):
+        endpoint = f"bindings/{vhost}/e/{source}/{destination_type.name}/{destination}"
+        self.delete(endpoint)
+
     def connections(
         self, name: Optional[str] = None
     ) -> Union[List[ConnectionInfo], ConnectionInfo]:
