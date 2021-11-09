@@ -12,7 +12,7 @@ from workflows.transport import pika_transport
 
 import zocalo.configuration
 
-logger = logging.getLogger("workflows.transport.pika_transport")
+logger = logging.getLogger("zocalo.util.rabbitmq")
 
 
 class MessageStats(BaseModel):
@@ -310,8 +310,11 @@ class BindingSpec(BaseModel):
 
 
 class BindingInfo(BindingSpec):
-    arguments: Optional[dict] = Field(None)
-    properties_key: str = Field("~")
+    arguments: Optional[dict] = Field(None, description="Binding arguments")
+    properties_key: str = Field(
+        "",
+        description="Unique identifier composed of the bindings routing key and a hash of its arguments",
+    )
 
 
 class ExchangeType(enum.Enum):
@@ -696,15 +699,27 @@ class RabbitMQAPI:
             ),
         )
 
-    def binding_delete(
+    def bindings_delete(
         self,
         vhost: str,
         source: str,
         destination: str,
         destination_type: DestinationType,
+        properties_key: Optional[str] = None,
     ):
+        # If properties_key is not specified then all bindings between the specified
+        # source and destination are deleted
         endpoint = f"bindings/{vhost}/e/{source}/{destination_type.name}/{destination}"
-        self.delete(endpoint)
+        if properties_key is None:
+            props = [BindingInfo(**r).properties_key for r in self.get(endpoint).json()]
+        else:
+            props = [properties_key]
+        for prop in props:
+            resp = self.delete(f"{endpoint}/{prop}")
+            if resp.status_code == 404:
+                logger.error(f"404 not found when deleting {endpoint}/{prop}")
+            if resp.status_code == 405:
+                logger.error(f"405 not allowed to delete {endpoint}/{prop}")
 
     def connections(
         self, name: Optional[str] = None
