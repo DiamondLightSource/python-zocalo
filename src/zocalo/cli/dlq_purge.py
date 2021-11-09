@@ -132,3 +132,4 @@ def run() -> None:
             idlequeue.get(True, args.wait or 0.1)
     except queue.Empty:
         print("Done.")
+    transport.disconnect()
