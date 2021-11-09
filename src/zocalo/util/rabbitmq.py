@@ -308,13 +308,14 @@ class BindingSpec(BaseModel):
     )
     routing_key: str = Field("", description="Routing key attached to binding")
     arguments: Optional[dict] = Field(None, description="Binding arguments")
-
-
-class BindingInfo(BindingSpec):
     properties_key: str = Field(
         "",
         description="Unique identifier composed of the bindings routing key and a hash of its arguments",
     )
+
+
+class BindingInfo(BindingSpec):
+    pass
 
 
 class ExchangeType(enum.Enum):
