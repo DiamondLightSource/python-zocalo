@@ -307,10 +307,10 @@ class BindingSpec(BaseModel):
         ..., description="Virtual host name with non-ASCII characters escaped as in C."
     )
     routing_key: str = Field("", description="Routing key attached to binding")
+    arguments: Optional[dict] = Field(None, description="Binding arguments")
 
 
 class BindingInfo(BindingSpec):
-    arguments: Optional[dict] = Field(None, description="Binding arguments")
     properties_key: str = Field(
         "",
         description="Unique identifier composed of the bindings routing key and a hash of its arguments",
@@ -674,7 +674,7 @@ class RabbitMQAPI:
         vhost: Optional[str] = None,
         source: Optional[str] = None,
         destination: Optional[str] = None,
-        destination_type: Optional[str] = None,
+        destination_type: Optional[DestinationType] = None,
     ) -> List[BindingInfo]:
         endpoint = "bindings"
         if vhost is not None:
@@ -684,8 +684,8 @@ class RabbitMQAPI:
             raise ValueError(
                 "Either all of source, destination and destination_type must be specified, or none of them"
             )
-        if source is not None:
-            endpoint = f"{endpoint}/e/{source}/{destination_type}/{destination}"
+        if destination_type is not None:
+            endpoint = f"{endpoint}/e/{source}/{destination_type.name}/{destination}"
         response = self.get(endpoint)
         return [BindingInfo(**bi) for bi in response.json()]
 
