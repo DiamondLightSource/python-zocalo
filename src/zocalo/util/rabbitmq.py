@@ -680,8 +680,8 @@ class RabbitMQAPI:
         endpoint = "bindings"
         if vhost is not None:
             endpoint = f"{endpoint}/{vhost}"
-        _check = (source, destination, destination_type)
-        if not all(_ is None for _ in _check) and None in _check:
+        _check = {source, destination, destination_type}
+        if None in _check and len(_check) > 1:
             raise ValueError(
                 "Either all of source, destination and destination_type must be specified, or none of them"
             )
