@@ -719,7 +719,7 @@ class RabbitMQAPI:
             resp = self.delete(f"{endpoint}/{prop}")
             if resp.status_code == 404:
                 logger.error(f"404 not found when deleting {endpoint}/{prop}")
-            if resp.status_code == 405:
+            elif resp.status_code == 405:
                 logger.error(f"405 not allowed to delete {endpoint}/{prop}")
 
     def connections(
