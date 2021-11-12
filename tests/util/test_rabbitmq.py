@@ -128,6 +128,90 @@ def test_api_queue_delete(requests_mock, rmqapi, queue_spec):
     assert history.url.endswith("/api/queues/zocalo/foo?if_unused=True&if_empty=True")
 
 
+def test_api_bindings(requests_mock, rmqapi):
+    binding = {
+        "source": "foo",
+        "destination": "bar",
+        "destination_type": "q",
+        "arguments": {},
+        "routing_key": "bar",
+        "properties_key": "bar",
+        "vhost": "zocalo",
+    }
+
+    requests_mock.get("/api/bindings", json=[binding])
+    assert rmqapi.bindings() == [rabbitmq.BindingInfo(**binding)]
+
+    requests_mock.get("/api/bindings/zocalo", json=[binding])
+    assert rmqapi.bindings(vhost="zocalo") == [rabbitmq.BindingInfo(**binding)]
+
+    requests_mock.get(
+        f"/api/bindings/zocalo/e/{binding['source']}/q/{binding['destination']}",
+        json=[binding],
+    )
+    assert (
+        rmqapi.bindings(
+            vhost="zocalo",
+            source=binding["source"],
+            destination=binding["destination"],
+            destination_type="q",
+        )
+        == [rabbitmq.BindingInfo(**binding)]
+    )
+
+
+@pytest.fixture
+def binding_spec():
+    return rabbitmq.BindingSpec(
+        source="foo",
+        destination="bar",
+        destination_type="q",
+        arguments={},
+        routing_key="bar",
+        vhost="zocalo",
+    )
+
+
+def test_api_binding_declare(requests_mock, rmqapi, binding_spec):
+    requests_mock.post("/api/bindings/zocalo/e/foo/q/bar")
+    rmqapi.binding_declare(binding=binding_spec)
+    assert requests_mock.call_count == 1
+    history = requests_mock.request_history[0]
+    assert history.method == "POST"
+    assert history.url.endswith("/api/bindings/zocalo/e/foo/q/bar")
+    assert history.json() == {
+        "arguments": binding_spec.arguments,
+        "routing_key": "bar",
+    }
+
+
+def test_api_bindings_delete(requests_mock, rmqapi, binding_spec):
+    binding = {
+        "source": "foo",
+        "destination": "bar",
+        "destination_type": "q",
+        "arguments": {},
+        "routing_key": "bar",
+        "properties_key": "bar",
+        "vhost": "zocalo",
+    }
+    requests_mock.get("/api/bindings/zocalo/e/foo/q/bar", json=[binding])
+    requests_mock.delete("/api/bindings/zocalo/e/foo/q/bar/bar")
+    rmqapi.bindings_delete(
+        vhost="zocalo",
+        source="foo",
+        destination="bar",
+        destination_type="q",
+    )
+    assert requests_mock.call_count == 2
+    history = requests_mock.request_history[0]
+    assert history.method == "GET"
+    assert history.url.endswith("/api/bindings/zocalo/e/foo/q/bar")
+    history = requests_mock.request_history[1]
+    assert history.method == "DELETE"
+    assert history.url.endswith("/api/bindings/zocalo/e/foo/q/bar/bar")
+
+
 def test_api_nodes(requests_mock, rmqapi):
     node = {
         "name": "rabbit@pooter123",
