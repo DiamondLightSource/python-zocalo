@@ -132,7 +132,7 @@ def test_api_bindings(requests_mock, rmqapi):
     binding = {
         "source": "foo",
         "destination": "bar",
-        "destination_type": "queue",
+        "destination_type": "q",
         "arguments": {},
         "routing_key": "bar",
         "properties_key": "bar",
@@ -154,7 +154,7 @@ def test_api_bindings(requests_mock, rmqapi):
             vhost="zocalo",
             source=binding["source"],
             destination=binding["destination"],
-            destination_type=rabbitmq.DestinationType("queue"),
+            destination_type="q",
         )
         == [rabbitmq.BindingInfo(**binding)]
     )
@@ -165,7 +165,7 @@ def binding_spec():
     return rabbitmq.BindingSpec(
         source="foo",
         destination="bar",
-        destination_type=rabbitmq.DestinationType("queue"),
+        destination_type="q",
         arguments={},
         routing_key="bar",
         vhost="zocalo",
@@ -189,7 +189,7 @@ def test_api_bindings_delete(requests_mock, rmqapi, binding_spec):
     binding = {
         "source": "foo",
         "destination": "bar",
-        "destination_type": "queue",
+        "destination_type": "q",
         "arguments": {},
         "routing_key": "bar",
         "properties_key": "bar",
@@ -201,7 +201,7 @@ def test_api_bindings_delete(requests_mock, rmqapi, binding_spec):
         vhost="zocalo",
         source="foo",
         destination="bar",
-        destination_type=rabbitmq.DestinationType("queue"),
+        destination_type="q",
     )
     assert requests_mock.call_count == 2
     history = requests_mock.request_history[0]

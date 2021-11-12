@@ -288,8 +288,8 @@ class NodeInfo(BaseModel):
 
 
 class DestinationType(enum.Enum):
-    q = "queue"
-    e = "exchange"
+    QUEUE = "q"
+    EXCHANGE = "e"
 
 
 class BindingSpec(BaseModel):
@@ -675,7 +675,7 @@ class RabbitMQAPI:
         vhost: Optional[str] = None,
         source: Optional[str] = None,
         destination: Optional[str] = None,
-        destination_type: Optional[DestinationType] = None,
+        destination_type: Optional[str] = None,
     ) -> List[BindingInfo]:
         endpoint = "bindings"
         if vhost is not None:
@@ -686,12 +686,12 @@ class RabbitMQAPI:
                 "Either all of source, destination and destination_type must be specified, or none of them"
             )
         if destination_type is not None:
-            endpoint = f"{endpoint}/e/{source}/{destination_type.name}/{destination}"
+            endpoint = f"{endpoint}/e/{source}/{destination_type}/{destination}"
         response = self.get(endpoint)
         return [BindingInfo(**bi) for bi in response.json()]
 
     def binding_declare(self, binding: BindingSpec):
-        endpoint = f"bindings/{binding.vhost}/e/{binding.source}/{binding.destination_type.name}/{binding.destination}"
+        endpoint = f"bindings/{binding.vhost}/e/{binding.source}/{binding.destination_type.value}/{binding.destination}"
         self.post(
             endpoint,
             json=binding.dict(
@@ -705,12 +705,12 @@ class RabbitMQAPI:
         vhost: str,
         source: str,
         destination: str,
-        destination_type: DestinationType,
+        destination_type: str,
         properties_key: Optional[str] = None,
     ):
         # If properties_key is not specified then all bindings between the specified
         # source and destination are deleted
-        endpoint = f"bindings/{vhost}/e/{source}/{destination_type.name}/{destination}"
+        endpoint = f"bindings/{vhost}/e/{source}/{destination_type}/{destination}"
         if properties_key is None:
             props = [BindingInfo(**r).properties_key for r in self.get(endpoint).json()]
         else:
