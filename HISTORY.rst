@@ -4,6 +4,10 @@ History
 
 Unreleased
 ----------
+
+0.12.0 (2021-11-15)
+-------------------
+* Add support for queue/exchange bindings to ``RabbitMQAPI``
 * Drop support for Python 3.6 and 3.7
 
 0.11.1 (2021-11-08)
