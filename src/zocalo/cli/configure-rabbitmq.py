@@ -8,6 +8,7 @@ import yaml
 from pathlib import Path
 import logging
 from typing import Dict, List
+import argparse
 
 import zocalo.configuration
 import zocalo.util.rabbitmq
@@ -235,13 +236,13 @@ def main():
     zc = zocalo.configuration.from_file()
     zc.activate_environment("live")
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config-file", help="RabbitMQ configuration yaml file")
+    parser.add_argument("--config_file", help="RabbitMQ configuration yaml file")
     api = RabbitMQAPI.from_zocalo_configuration(zc)
     try:
         rmq_config = zc.storage["zocalo.rabbitmq_user_config"]
     except Exception as e:
         print(e.message, e.args)
-    rmq_config_file = parser.parse_args().config-file
+    rmq_config_file = parser.parse_args().config_file
 
     with open(rmq_config_file) as in_file:
         yaml_data = yaml.safe_load(in_file)
