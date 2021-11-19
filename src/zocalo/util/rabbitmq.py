@@ -688,7 +688,11 @@ class RabbitMQAPI:
         if destination_type is not None:
             endpoint = f"{endpoint}/e/{source}/{destination_type}/{destination}"
         response = self.get(endpoint)
-        return [BindingInfo(**bi) for bi in response.json()]
+        naming_map = {"queue": "q", "exchange": "e"}
+        response_json = response.json()
+        for bi in response_json:
+            bi["destination_type"] = naming_map[bi["destination_type"]]
+        return [BindingInfo(**bi) for bi in response_json]
 
     def binding_declare(self, binding: BindingSpec):
         endpoint = f"bindings/{binding.vhost}/e/{binding.source}/{binding.destination_type.value}/{binding.destination}"
