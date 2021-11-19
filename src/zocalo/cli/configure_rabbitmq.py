@@ -11,13 +11,13 @@ from typing import Dict, List
 import yaml
 
 import zocalo.configuration
-import zocalo.util.rabbitmq
 from zocalo.util.rabbitmq import (
     BindingSpec,
     DestinationType,
     ExchangeSpec,
     PolicySpec,
     QueueSpec,
+    RabbitMQAPI,
     UserSpec,
 )
 
