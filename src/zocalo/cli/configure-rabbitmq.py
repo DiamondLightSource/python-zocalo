@@ -1,14 +1,14 @@
+import argparse
 import base64
 import configparser
 import functools
 import hashlib
-import os
-import pathlib
-import yaml
-from pathlib import Path
 import logging
+import os
+from pathlib import Path
 from typing import Dict, List
-import argparse
+
+import yaml
 
 import zocalo.configuration
 import zocalo.util.rabbitmq
@@ -20,7 +20,6 @@ from zocalo.util.rabbitmq import (
     QueueSpec,
     UserSpec,
 )
-
 
 logger = logging.getLogger("rabbitmq/configure_rabbitmq")
 
@@ -117,13 +116,13 @@ def hash_password(passwd: str) -> str:
     salt = os.urandom(4)
     utf8 = passwd.encode("utf-8")
     temp1 = salt + utf8
-    temp2 = hashlib.sha256(temp1).digest()
+    temp2 = hashlib.sha256(temp1).digest()  # lgtm
     salted_hash = salt + temp2
     pass_hash = base64.b64encode(salted_hash)
     return pass_hash.decode()
 
 
-def get_user_specs(config_files: List[pathlib.Path]) -> List[UserSpec]:
+def get_user_specs(config_files: List[Path]) -> List[UserSpec]:
     users = []
     for config_file in config_files:
         config = configparser.ConfigParser()
@@ -261,10 +260,6 @@ def main():
 
     policies = get_policy_specs(yaml_data["policies"])
 
-    # import re
-    # import requests_mock
-    # with requests_mock.Mocker(real_http=True) as m:
-    #     m.put(re.compile("/api/"))
     update_config(api, user_specs, [])
     update_config(api, policies, api.policies())
     update_config(api, queue_specs, api.queues())
@@ -281,4 +276,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
