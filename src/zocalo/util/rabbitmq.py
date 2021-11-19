@@ -685,14 +685,13 @@ class RabbitMQAPI:
             raise ValueError(
                 "Either all of source, destination and destination_type must be specified, or none of them"
             )
+        naming_map = {"queue": "q", "exchange": "e"}
         if destination_type is not None:
             endpoint = f"{endpoint}/e/{source}/{destination_type}/{destination}"
-        response = self.get(endpoint)
-        naming_map = {"queue": "q", "exchange": "e"}
-        response_json = response.json()
-        for bi in response_json:
+        response = self.get(endpoint).json()
+        for bi in response:
             bi["destination_type"] = naming_map[bi["destination_type"]]
-        return [BindingInfo(**bi) for bi in response_json]
+        return [BindingInfo(**bi) for bi in response]
 
     def binding_declare(self, binding: BindingSpec):
         endpoint = f"bindings/{binding.vhost}/e/{binding.source}/{binding.destination_type.value}/{binding.destination}"
