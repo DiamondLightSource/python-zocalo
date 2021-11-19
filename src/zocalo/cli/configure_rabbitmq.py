@@ -21,10 +21,10 @@ from zocalo.util.rabbitmq import (
     UserSpec,
 )
 
-logger = logging.getLogger("rabbitmq/configure_rabbitmq")
+logger = logging.getLogger("zocalo.cli.configure_rabbitmq")
 
 
-class RabbitMQAPI(zocalo.util.rabbitmq.RabbitMQAPI):
+class RabbitMQAPI(RabbitMQAPI):
     @functools.singledispatchmethod
     def create_component(self, component):
         raise NotImplementedError(f"Component {component} not recognised")
