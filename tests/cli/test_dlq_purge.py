@@ -25,7 +25,8 @@ def gen_header_rabbitmq(i, use_datetime=True):
     if use_datetime:
         tstamp = datetime.fromtimestamp(tstamp)
     return {
-        "headers": {"x-death": [{"time": tstamp}]},
+        "x-death": [{"time": tstamp}],
+        "subscription": 1,
         "message-id": f"ID:foo.bar.com-{i}",
     }
 
@@ -81,7 +82,7 @@ def test_dlq_purge_rabbitmq(mocker, tmp_path):
         [
             mock.call(
                 gen_header_rabbitmq(i, use_datetime=False),
-                subscription_id=f"ID:foo.bar.com-{i}",
+                subscription_id=1,
             )
             for i in range(10)
         ]
