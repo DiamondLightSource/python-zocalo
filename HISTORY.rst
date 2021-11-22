@@ -4,6 +4,8 @@ History
 
 Unreleased
 ----------
+* ``zocalo.queue_drain`` now allows the automatic determination
+  of destination queues for recipe messages
 
 0.12.0 (2021-11-15)
 -------------------

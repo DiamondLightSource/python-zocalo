@@ -31,7 +31,6 @@ show_additional_info = {"cluster.submission": show_cluster_info}
 
 
 def run(args=None):
-
     # Load configuration
     zc = zocalo.configuration.from_file()
     zc.activate()
@@ -41,7 +40,12 @@ def run(args=None):
     )
     parser.add_argument("-?", action="help", help=argparse.SUPPRESS)
     parser.add_argument("SOURCE", type=str, help="Source queue name")
-    parser.add_argument("DEST", type=str, help="Destination queue name")
+    parser.add_argument(
+        "DEST",
+        type=str,
+        help="Destination queue name;"
+        " use '.' to automatically determine destination for recipe messages",
+    )
     parser.add_argument(
         "--wait",
         action="store",
@@ -70,8 +74,13 @@ def run(args=None):
     def receive_message(header, message):
         messages.put((header, message))
 
-    print("Reading messages from " + args.SOURCE)
+    print(f"Reading messages from {args.SOURCE}")
     transport.subscribe(args.SOURCE, receive_message, acknowledgement=True)
+
+    if args.DEST == ".":
+        print("Writing messages to automatically determined destinations")
+    else:
+        print(f"Writing messages to {args.DEST}")
 
     message_count = 0
     header_filter = frozenset(
@@ -108,20 +117,28 @@ def run(args=None):
                 )
             except Exception:
                 pass
+            target_queue = args.DEST
+
             try:
-                print("Recipe ID:    {}".format(message["environment"]["ID"]))
+                print(f"Recipe ID:    {message['environment']['ID']}")
                 r = workflows.recipe.wrapper.RecipeWrapper(message=message)
-                show_additional_info.get(
-                    args.DEST, show_additional_info.get(r.recipe_step["queue"])
-                )(r.recipe_step)
+                if target_queue == ".":
+                    target_queue = r.recipe_step["queue"]
+                    print(f"Target Queue: {target_queue}")
+                additional_info_function = show_additional_info.get(target_queue)
+                if additional_info_function:
+                    additional_info_function(r.recipe_step)
             except Exception:
                 pass
+
+            if target_queue == ".":
+                exit("Could not determine target queue for message")
 
             new_headers = {
                 key: header[key] for key in header if key not in header_filter
             }
             txn = transport.transaction_begin()
-            transport.send(args.DEST, message, headers=new_headers, transaction=txn)
+            transport.send(target_queue, message, headers=new_headers, transaction=txn)
             transport.ack(header, transaction=txn)
             transport.transaction_commit(txn)
             message_count = message_count + 1
