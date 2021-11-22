@@ -25,19 +25,19 @@ logger = logging.getLogger("zocalo.cli.configure_rabbitmq")
 
 
 class RabbitMQAPI(RabbitMQAPI):
-    @functools.singledispatchmethod
+    @functools.singledispatchmethod  # type: ignore
     def create_component(self, component):
         raise NotImplementedError(f"Component {component} not recognised")
 
-    @functools.singledispatchmethod
+    @functools.singledispatchmethod  # type: ignore
     def delete_component(self, component):
         raise NotImplementedError(f"Component {component} not recognised")
 
-    @create_component.register
+    @create_component.register  # type: ignore
     def _(self, binding: BindingSpec):
         self.binding_declare(binding)
 
-    @delete_component.register
+    @delete_component.register  # type: ignore
     def _(self, binding: BindingSpec):
         self.bindings_delete(
             vhost=binding.vhost,
@@ -47,37 +47,37 @@ class RabbitMQAPI(RabbitMQAPI):
             properties_key=binding.properties_key,
         )
 
-    @create_component.register
+    @create_component.register  # type: ignore
     def _(self, exchange: ExchangeSpec):
         self.exchange_declare(exchange)
 
-    @delete_component.register
+    @delete_component.register  # type: ignore
     def _(self, exchange: ExchangeSpec, **kwargs):
         self.exchange_delete(vhost=exchange.vhost, name=exchange.name, **kwargs)
 
-    @create_component.register
+    @create_component.register  # type: ignore
     def _(self, policy: PolicySpec):
         self.set_policy(policy)
 
-    @delete_component.register
+    @delete_component.register  # type: ignore
     def _(self, policy: PolicySpec):
         self.clear_policy(vhost=policy.vhost, name=policy.name)
 
-    @create_component.register
+    @create_component.register  # type: ignore
     def _(self, queue: QueueSpec):
         self.queue_declare(queue)
 
-    @delete_component.register
+    @delete_component.register  # type: ignore
     def _(self, queue: QueueSpec, if_unused: bool = False, if_empty: bool = False):
         self.queue_delete(
             vhost=queue.vhost, name=queue.name, if_unused=if_unused, if_empty=if_empty
         )
 
-    @create_component.register
+    @create_component.register  # type: ignore
     def _(self, user: UserSpec):
         self.add_user(user)
 
-    @delete_component.register
+    @delete_component.register  # type: ignore
     def _(self, user: UserSpec):
         self.delete_user(name=user.name)
 
