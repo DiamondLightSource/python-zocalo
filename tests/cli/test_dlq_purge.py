@@ -82,7 +82,6 @@ def test_dlq_purge_rabbitmq(mocker, tmp_path):
         [
             mock.call(
                 gen_header_rabbitmq(i, use_datetime=False),
-                subscription_id=1,
             )
             for i in range(10)
         ]
