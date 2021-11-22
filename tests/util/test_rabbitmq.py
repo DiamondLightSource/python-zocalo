@@ -198,7 +198,7 @@ def test_api_bindings_delete(requests_mock, rmqapi, binding_spec):
     binding = {
         "source": "foo",
         "destination": "bar",
-        "destination_type": "q",
+        "destination_type": "queue",
         "arguments": {},
         "routing_key": "bar",
         "properties_key": "bar",
