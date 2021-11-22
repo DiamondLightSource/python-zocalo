@@ -108,19 +108,16 @@ def run() -> None:
         print(
             f"Message {header['message-id']} ({time.strftime('%Y-%m-%d %H:%M:%S', timestamp)}) exported:\n {os.path.join(filepath, filename)}"
         )
-        if rabbitmq:
-            # subscription_id does nothing for RabbitMQ but it is currently required by workflows
-            transport.ack(header, subscription_id=header["subscription"])
-        else:
-            transport.ack(header)
+        transport.ack(header)
         idlequeue.put_nowait("done")
 
     transport.connect()
-    if not queues and args.transport == "StompTransport":
-        queues = [dlqprefix + ".>"]
-    elif not queues and args.transport == "PikaTransport":
-        rmq = RabbitMQAPI.from_zocalo_configuration(zc)
-        queues = [q.name for q in rmq.queues() if q.name.startswith("dlq.")]
+    if not queues:
+        if args.transport == "StompTransport":
+            queues = [dlqprefix + ".>"]
+        elif args.transport == "PikaTransport":
+            rmq = RabbitMQAPI.from_zocalo_configuration(zc)
+            queues = [q.name for q in rmq.queues() if q.name.startswith("dlq.")]
     for queue_ in queues:
         print("Looking for DLQ messages in " + queue_)
         transport.subscribe(
