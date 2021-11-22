@@ -230,7 +230,7 @@ def get_policy_specs(policies: Dict) -> List[PolicySpec]:
     ]
 
 
-def main():
+def run():
     logging.basicConfig(level=logging.DEBUG, format="%(message)s")
     zc = zocalo.configuration.from_file()
     zc.activate_environment("live")
@@ -275,4 +275,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    run()
