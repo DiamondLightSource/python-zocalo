@@ -6,6 +6,7 @@ Unreleased
 ----------
 * ``zocalo.queue_drain`` now allows the automatic determination
   of destination queues for recipe messages
+* ``zocalo.queue_drain`` fixed for use in a RabbitMQ environment
 
 0.12.0 (2021-11-15)
 -------------------

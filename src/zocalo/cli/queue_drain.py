@@ -75,7 +75,9 @@ def run(args=None):
         messages.put((header, message))
 
     print(f"Reading messages from {args.SOURCE}")
-    transport.subscribe(args.SOURCE, receive_message, acknowledgement=True)
+    subscription_id = transport.subscribe(
+        args.SOURCE, receive_message, acknowledgement=True
+    )
 
     if args.DEST == ".":
         print("Writing messages to automatically determined destinations")
@@ -137,7 +139,7 @@ def run(args=None):
             new_headers = {
                 key: header[key] for key in header if key not in header_filter
             }
-            txn = transport.transaction_begin()
+            txn = transport.transaction_begin(subscription_id=subscription_id)
             transport.send(target_queue, message, headers=new_headers, transaction=txn)
             transport.ack(header, transaction=txn)
             transport.transaction_commit(txn)
