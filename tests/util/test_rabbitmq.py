@@ -138,16 +138,25 @@ def test_api_bindings(requests_mock, rmqapi):
         "properties_key": "bar",
         "vhost": "zocalo",
     }
+    response = {
+        "source": "foo",
+        "destination": "bar",
+        "destination_type": "queue",
+        "arguments": {},
+        "routing_key": "bar",
+        "properties_key": "bar",
+        "vhost": "zocalo",
+    }
 
-    requests_mock.get("/api/bindings", json=[binding])
+    requests_mock.get("/api/bindings", json=[response])
     assert rmqapi.bindings() == [rabbitmq.BindingInfo(**binding)]
 
-    requests_mock.get("/api/bindings/zocalo", json=[binding])
+    requests_mock.get("/api/bindings/zocalo", json=[response])
     assert rmqapi.bindings(vhost="zocalo") == [rabbitmq.BindingInfo(**binding)]
 
     requests_mock.get(
         f"/api/bindings/zocalo/e/{binding['source']}/q/{binding['destination']}",
-        json=[binding],
+        json=[response],
     )
     assert (
         rmqapi.bindings(
@@ -189,7 +198,7 @@ def test_api_bindings_delete(requests_mock, rmqapi, binding_spec):
     binding = {
         "source": "foo",
         "destination": "bar",
-        "destination_type": "q",
+        "destination_type": "queue",
         "arguments": {},
         "routing_key": "bar",
         "properties_key": "bar",
