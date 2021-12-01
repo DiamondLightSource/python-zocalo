@@ -7,7 +7,6 @@ import argparse
 import faulthandler
 import json
 import logging
-import os
 import signal
 import sys
 
@@ -18,6 +17,7 @@ import workflows.transport
 import workflows.util
 
 import zocalo.configuration.argparse
+import zocalo.util
 import zocalo.wrapper
 
 
@@ -105,9 +105,8 @@ def run():
     transport = workflows.transport.lookup(args.transport)()
     transport.connect()
     st = zocalo.wrapper.StatusNotifications(transport.broadcast_status, args.wrapper)
-    for env in ("SGE_CELL", "JOB_ID"):
-        if env in os.environ:
-            st.set_static_status_field("cluster_" + env, os.getenv(env))
+    for field, value in zocalo.util.extended_status_dictionary().items():
+        st.set_static_status_field(field, value)
 
     # Instantiate chosen wrapper
     instance = known_wrappers[args.wrapper]()()

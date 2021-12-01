@@ -1,10 +1,10 @@
 import logging
-import os
 import sys
 
 import workflows.contrib.start_service
 
 import zocalo.configuration.argparse
+import zocalo.util
 
 
 def start_service():
@@ -121,12 +121,9 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
         if self.options.service_restart:
             frontend.restart_service = True
 
-        extended_status = {"zocalo": zocalo.__version__}
+        extended_status = zocalo.util.extended_status_dictionary()
         if self.options.tag:
             extended_status["tag"] = self.options.tag
-        for env in ("SGE_CELL", "JOB_ID"):
-            if env in os.environ:
-                extended_status["cluster_" + env] = os.environ[env]
 
         original_status_function = frontend.get_status
 
