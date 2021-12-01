@@ -4,10 +4,15 @@ History
 
 Unreleased
 ----------
+
+0.13.0 (2021-12-01)
+-------------------
 * ``zocalo.queue_drain`` now allows the automatic determination
   of destination queues for recipe messages
 * ``zocalo.queue_drain`` fixed for use in a RabbitMQ environment
 * ``zocalo.dlq_purge`` fixed for use in a RabbitMQ environment
+* New functions in ``zocalo.util`` to easily annotate log messages
+  with system context information
 
 0.12.0 (2021-11-15)
 -------------------
