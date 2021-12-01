@@ -33,8 +33,9 @@ def extended_status_dictionary() -> Dict[str, str]:
                 pass
 
     k8s = get_kubernetes_pod_information()
-    if k8s and "image" in k8s:
-        extended_status["container_image"] = k8s["image"]
+    if k8s:
+        if k8s.get("image"):
+            extended_status["container_image"] = k8s["image"]
         extended_status["container_node"] = k8s["node"]
 
     return extended_status
