@@ -360,7 +360,7 @@ def test_api_users(requests_mock, rmqapi):
         "name": "guest",
         "password_hash": "guest",
         "hashing_algorithm": "rabbit_password_hashing_sha256",
-        "tags": "administrator",
+        "tags": ["administrator"],
     }
 
     # First call rmq.users() with defaults
