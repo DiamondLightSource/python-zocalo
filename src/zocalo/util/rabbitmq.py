@@ -548,7 +548,16 @@ class HashingAlgorithm(enum.Enum):
     rabbit_password_hashing_md5 = "rabbit_password_hashing_md5"
 
 
-class UserSpec(BaseModel):
+class UserBase(BaseModel):
+    name: str = Field(..., description="Username")
+    password_hash: str = Field(..., description="Hash of the user password.")
+    hashing_algorithm: HashingAlgorithm
+
+    class Config:
+        use_enum_values = True
+
+
+class UserSpec(UserBase):
     """
     The tags key is mandatory.
     Either password or password_hash can be set.If neither are set the user will not be
@@ -562,16 +571,10 @@ class UserSpec(BaseModel):
     rabbit_password_hashing_md5.
     """
 
-    name: str = Field(..., description="Username")
-    password_hash: str = Field(..., description="Hash of the user password.")
-    hashing_algorithm: HashingAlgorithm
-    tags: Union[str, List[str]]
-
-    class Config:
-        use_enum_values = True
+    tags: str
 
 
-class UserInfo(UserSpec):
+class UserInfo(UserBase):
     tags: List[str]
 
 
