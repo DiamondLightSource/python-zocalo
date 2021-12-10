@@ -144,8 +144,8 @@ def update_config(api: _RabbitMQAPI, incoming, current):
             api.create_component(ic)
 
 
-def hash_password(passwd: str) -> str:
-    random.seed(7)
+def hash_password(passwd: str, seed: int) -> str:
+    random.seed(seed)
     intsalt = random.getrandbits(4 * 8)
     salt = intsalt.to_bytes(4, sys.byteorder)
     utf8 = passwd.encode("utf-8")
@@ -156,7 +156,7 @@ def hash_password(passwd: str) -> str:
     return pass_hash.decode()
 
 
-def get_user_specs(config_files: List[Path]) -> List[UserSpec]:
+def get_user_specs(config_files: List[Path], seed: int = 0) -> List[UserSpec]:
     users = []
     for config_file in config_files:
         config = configparser.ConfigParser()
@@ -164,7 +164,7 @@ def get_user_specs(config_files: List[Path]) -> List[UserSpec]:
         users.append(
             UserSpec(
                 name=config["rabbitmq"]["username"],
-                password_hash=hash_password(config["rabbitmq"]["password"]),
+                password_hash=hash_password(config["rabbitmq"]["password"], seed),
                 hashing_algorithm="rabbit_password_hashing_sha256",
                 tags=config["rabbitmq"].get("tags", ""),
             )
@@ -269,18 +269,27 @@ def run():
     zc = zocalo.configuration.from_file()
     zc.activate_environment("live")
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config_file", help="RabbitMQ configuration yaml file")
+    parser.add_argument(
+        "--config_file", dest="config_file", help="RabbitMQ configuration yaml file"
+    )
+    parser.add_argument(
+        "--seed",
+        dest="seed",
+        help="Seed used in random salt generation for password hashing",
+    )
     api = _RabbitMQAPI.from_zocalo_configuration(zc)
     try:
         rmq_config = zc.storage["zocalo.rabbitmq_user_config"]
     except Exception as e:
         print(e.message, e.args)
-    rmq_config_file = parser.parse_args().config_file
+    args = parser.parse_args()
+    rmq_config_file = args.config_file
+    seed = args.seed
 
     with open(rmq_config_file) as in_file:
         yaml_data = yaml.safe_load(in_file)
     configuration_files = Path(rmq_config).glob("**/*.ini")
-    user_specs = get_user_specs(configuration_files)
+    user_specs = get_user_specs(configuration_files, seed=seed)
 
     queue_specs = []
     exchange_specs = []
