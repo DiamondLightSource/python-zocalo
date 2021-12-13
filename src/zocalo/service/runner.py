@@ -170,21 +170,21 @@ class Runner(CommonService):
         try:
             commands_list = [cmd.split(" ") for cmd in commands]
             for cmd in commands_list:
+                output_file = parameters.get("output_file")
                 result = subprocess.run(
                     cmd,
                     timeout=parameters.get("timeout", 30),
                     cwd=workingdir,
-                    capture_output=parameters.get("output_file") is not None,
+                    stdout=subprocess.PIPE if output_file else None,
+                    stderr=subprocess.STDOUT if output_file else None
                 )
-                result.check_returncode()
-
-                if parameters.get("output_file"):
-                    output_file = os.path.join(workingdir, parameters["output_file"])
-                    with open(output_file, "a") as f:
-                        f.write(result.stdout.decode("utf-8"))
-
-                        if result.stderr:
-                            f.write(result.stderr.decode("utf-8"))
+                try:
+                    result.check_returncode()
+                finally:
+                    if output_file:
+                        output_file = os.path.join(workingdir, output_file)
+                        with open(output_file, "a") as f:
+                            f.write(result.stdout.decode("utf-8"))
 
         except (subprocess.CalledProcessError, FileNotFoundError) as e:
             self.log.exception(f"Had error running command: {cmd} {str(e)}")
