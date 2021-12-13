@@ -4,6 +4,7 @@ History
 
 Unreleased
 ----------
+* Minor fixes in ``zocalo.dlq_*`` commands
 
 0.13.0 (2021-12-01)
 -------------------

@@ -46,7 +46,7 @@ def run() -> None:
     )
     zc.add_command_line_options(parser)
     workflows.transport.add_command_line_options(parser, transport_argument=True)
-    print(sys.argv)
+
     args = parser.parse_args(["--stomp-prfx=DLQ"] + sys.argv[1:])
     if args.transport == "PikaTransport":
         queues = ["dlq." + a for a in args.queues]
@@ -106,7 +106,7 @@ def run() -> None:
         with open(os.path.join(filepath, filename), "w") as fh:
             fh.write(json.dumps(dlqmsg, indent=2, sort_keys=True))
         print(
-            f"Message {header['message-id']} ({time.strftime('%Y-%m-%d %H:%M:%S', timestamp)}) exported:\n {os.path.join(filepath, filename)}"
+            f"Message {header['message-id']} ({time.strftime('%Y-%m-%d %H:%M:%S', timestamp)}) exported:\n  {os.path.join(filepath, filename)}"
         )
         transport.ack(header)
         idlequeue.put_nowait("done")
