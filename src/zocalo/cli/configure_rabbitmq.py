@@ -84,13 +84,13 @@ class _RabbitMQAPI(RabbitMQAPI):
 
 
 @functools.singledispatch
-def _info_to_spec(infos: list, incoming):
+def _info_to_spec(incoming, infos: list):
     cls = type(incoming)
     return [cls(**i.dict()) for i in infos]
 
 
 @_info_to_spec.register  # type: ignore
-def _(infos: list, incoming: UserSpec):
+def _(incoming: UserSpec, infos: list):
     cls = type(incoming)
 
     def _dict(info: UserInfo) -> dict:
@@ -124,7 +124,7 @@ def _(comp: BindingSpec) -> bool:
 
 def update_config(api: _RabbitMQAPI, incoming, current):
     cls = type(incoming[0])
-    current = _info_to_spec(current, incoming[0])
+    current = _info_to_spec(incoming[0], current)
     for cc in current:
         if cc in incoming:
             if hasattr(cc, "name"):
@@ -281,7 +281,10 @@ def run():
     try:
         rmq_config = zc.storage["zocalo.rabbitmq_user_config"]
     except Exception as e:
-        print(e.message, e.args)
+        logger.error(
+            "Problem with Zocalo configuration file. Possibly zocalo.rabbitmq_user_config storage plugin is missing"
+        )
+        raise e
     args = parser.parse_args()
     rmq_config_file = args.config_file
     seed = args.seed
