@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Dict, List
 
 import yaml
+from pydantic import BaseModel
 
 import zocalo.configuration
 from zocalo.util.rabbitmq import (
@@ -27,11 +28,11 @@ logger = logging.getLogger("zocalo.cli.configure_rabbitmq")
 
 class _RabbitMQAPI(RabbitMQAPI):
     @functools.singledispatchmethod  # type: ignore
-    def create_component(self, component):
+    def create_component(self, component: BaseModel):
         raise NotImplementedError(f"Component {component} not recognised")
 
     @functools.singledispatchmethod  # type: ignore
-    def delete_component(self, component):
+    def delete_component(self, component: BaseModel):
         raise NotImplementedError(f"Component {component} not recognised")
 
     @create_component.register  # type: ignore
@@ -90,7 +91,7 @@ def _info_to_spec(incoming, infos: list):
 
 
 @_info_to_spec.register  # type: ignore
-def _(incoming: UserSpec, infos: list):
+def _(incoming: UserSpec, infos: List[UserInfo]):
     cls = type(incoming)
 
     def _dict(info: UserInfo) -> dict:
@@ -122,7 +123,9 @@ def _(comp: BindingSpec) -> bool:
     return False
 
 
-def update_config(api: _RabbitMQAPI, incoming, current):
+def update_config(
+    api: _RabbitMQAPI, incoming: List[BaseModel], current: List[BaseModel]
+):
     cls = type(incoming[0])
     current = _info_to_spec(incoming[0], current)
     for cc in current:
