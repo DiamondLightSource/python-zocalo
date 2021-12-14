@@ -8,6 +8,7 @@ Unreleased
   being written
 * ``zocalo.dlq_reinject`` can again understand ``zocalo.dlq_purge`` output
   passed on stdin
+* Reinjected messages now carry a ``dlq-reinjected: True`` header field
 
 0.13.0 (2021-12-01)
 -------------------
