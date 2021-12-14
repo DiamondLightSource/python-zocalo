@@ -3,11 +3,13 @@
 #   Take a dead letter queue message from a file and send it back to its queue
 #   for a retry.
 #
-
+from __future__ import annotations
 
 import argparse
 import json
 import os
+import re
+import select
 import sys
 import time
 from pprint import pprint
@@ -66,14 +68,28 @@ def run() -> None:
     args = parser.parse_args()
     transport = workflows.transport.lookup(args.transport)()
 
-    if not args.files:
-        print("No DLQ message files given.")
-        sys.exit(0)
+    stdin = []
+    try:
+        stdin_fileno = getattr(sys.stdin, "fileno", lambda: None)()
+    except Exception:
+        stdin_fileno = None
+    if isinstance(stdin_fileno, int) and select.select([sys.stdin], [], [], 0.0)[0]:
+        dlq_purge_filename_format = re.compile(r"^  \/")
+        while True:
+            line = sys.stdin.readline()
+            if not line:
+                break
+            if dlq_purge_filename_format.match(line):
+                stdin.append(line.strip())
+        print(f"{len(stdin)} filenames read from stdin")
+
+    if not stdin and not args.files:
+        sys.exit("No DLQ message files given.")
 
     transport.connect()
 
     first = True
-    for dlqfile in args.files:
+    for dlqfile in args.files + stdin:
         if not os.path.exists(dlqfile):
             print(f"Ignoring missing file {dlqfile}")
             continue
