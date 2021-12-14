@@ -69,7 +69,8 @@ def run() -> None:
     transport = workflows.transport.lookup(args.transport)()
 
     stdin = []
-    if select.select([sys.stdin], [], [], 0.0)[0]:
+    stdin_fileno = getattr(sys.stdin, "fileno", lambda: None)()
+    if isinstance(stdin_fileno, int) and select.select([sys.stdin], [], [], 0.0)[0]:
         dlq_purge_filename_format = re.compile(r"^  \/")
         while True:
             line = sys.stdin.readline()
