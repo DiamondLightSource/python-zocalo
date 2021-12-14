@@ -4,6 +4,9 @@ History
 
 Unreleased
 ----------
+
+0.14.0 (2021-12-14)
+-------------------
 * ``zocalo.dlq_purge`` offers a ``--location`` flag to override where files are
   being written
 * ``zocalo.dlq_reinject`` can again understand ``zocalo.dlq_purge`` output
