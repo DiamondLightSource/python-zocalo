@@ -130,7 +130,6 @@ def run() -> None:
             print("pika transport detected")
             header = dlqmsg["header"]
             header["dlq-reinjected"] = "True"
-            header = _rabbit_prepare_header(header)
             exchange = header.get("headers", {}).get("x-death", {})[0].get("exchange")
             if exchange:
                 rmqapi = RabbitMQAPI.from_zocalo_configuration(zc)
@@ -141,7 +140,7 @@ def run() -> None:
                             transport.broadcast(
                                 args.destination_override or destination,
                                 dlqmsg["message"],
-                                headers=header,
+                                headers=_rabbit_prepare_header(header),
                             )
             else:
                 destination = (
@@ -150,7 +149,7 @@ def run() -> None:
                 transport.send(
                     args.destination_override or destination,
                     dlqmsg["message"],
-                    headers=header,
+                    headers=_rabbit_prepare_header(header),
                 )
         if args.remove:
             os.remove(dlqfile)
