@@ -4,6 +4,7 @@ History
 
 Unreleased
 ----------
+* Reinjected messages now carry a ``dlq-reinjected: True`` header field
 
 0.13.0 (2021-12-01)
 -------------------
