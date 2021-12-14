@@ -69,7 +69,10 @@ def run() -> None:
     transport = workflows.transport.lookup(args.transport)()
 
     stdin = []
-    stdin_fileno = getattr(sys.stdin, "fileno", lambda: None)()
+    try:
+        stdin_fileno = getattr(sys.stdin, "fileno", lambda: None)()
+    except Exception:
+        stdin_fileno = None
     if isinstance(stdin_fileno, int) and select.select([sys.stdin], [], [], 0.0)[0]:
         dlq_purge_filename_format = re.compile(r"^  \/")
         while True:
