@@ -24,7 +24,7 @@ def run() -> None:
     zc = zocalo.configuration.from_file()
     zc.activate()
     parser = argparse.ArgumentParser(
-        usage="dlstbx.dlq_purge [options] [queue [queue ...]]"
+        usage="zocalo.dlq_purge [options] [queue [queue ...]]"
     )
 
     parser.add_argument("-?", action="help", help=argparse.SUPPRESS)

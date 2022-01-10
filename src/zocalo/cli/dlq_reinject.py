@@ -24,7 +24,7 @@ def run() -> None:
     zc = zocalo.configuration.from_file()
     zc.activate()
     parser = argparse.ArgumentParser(
-        usage="dlstbx.dlq_reinject [options] file [file [..]]"
+        usage="zocalo.dlq_reinject [options] file [file [..]]"
     )
 
     parser.add_argument("-?", action="help", help=argparse.SUPPRESS)
