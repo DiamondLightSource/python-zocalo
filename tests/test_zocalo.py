@@ -2,6 +2,8 @@
 
 """Tests for `zocalo` package."""
 
+from __future__ import annotations
+
 import pytest
 
 import zocalo

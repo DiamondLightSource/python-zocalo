@@ -3,6 +3,8 @@
 #   Wraps a command so that its status can be tracked in zocalo
 #
 
+from __future__ import annotations
+
 import argparse
 import faulthandler
 import json

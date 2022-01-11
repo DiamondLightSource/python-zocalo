@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import zocalo.configuration
 
 sample_configuration = """

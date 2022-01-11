@@ -10,6 +10,8 @@
 #  jmx.org.apache.activemq(type="Broker", brokerName="localhost/TotalConsumerCount")
 
 
+from __future__ import annotations
+
 import base64
 import json
 import urllib.request
@@ -46,7 +48,9 @@ class JMXAPI:
             raise zocalo.ConfigurationError(
                 "There are no JMX credentials configured in your environment"
             )
-        self.url = f"http://{zc.jmx['host']}:{zc.jmx['port']}/{zc.jmx['base_url']}/read/"
+        self.url = (
+            f"http://{zc.jmx['host']}:{zc.jmx['port']}/{zc.jmx['base_url']}/read/"
+        )
         self._authstring = b"Basic " + base64.b64encode(
             zc.jmx["username"].encode("utf-8")
             + b":"
