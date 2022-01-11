@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import base64
 import configparser
@@ -17,14 +19,14 @@ from zocalo.util.rabbitmq import (
     ExchangeSpec,
     PolicySpec,
     QueueSpec,
-    RabbitMQAPI,
-    UserSpec,
 )
+from zocalo.util.rabbitmq import RabbitMQAPI as _RabbitMQAPI
+from zocalo.util.rabbitmq import UserSpec
 
 logger = logging.getLogger("zocalo.cli.configure_rabbitmq")
 
 
-class RabbitMQAPI(RabbitMQAPI):
+class RabbitMQAPI(_RabbitMQAPI):
     @functools.singledispatchmethod  # type: ignore
     def create_component(self, component):
         raise NotImplementedError(f"Component {component} not recognised")

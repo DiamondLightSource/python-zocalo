@@ -1,6 +1,8 @@
 """Tests related to graylog functionality."""
 
 
+from __future__ import annotations
+
 from unittest import mock
 
 import pytest

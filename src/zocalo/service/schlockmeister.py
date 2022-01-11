@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import collections
 import uuid
 from typing import Any, Dict, Set, Tuple
