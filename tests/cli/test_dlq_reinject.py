@@ -28,9 +28,7 @@ def gen_header_rabbitmq(i, use_datetime=True):
     if use_datetime:
         tstamp = datetime.fromtimestamp(tstamp)
     return {
-        "headers": {
-            "x-death": [{"time": tstamp, "queue": "garbage.per_image_analysis"}]
-        },
+        "x-death": [{"time": tstamp, "queue": "garbage.per_image_analysis"}],
         "message-id": f"ID:foo.bar.com-{i}",
     }
 
