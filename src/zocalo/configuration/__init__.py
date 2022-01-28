@@ -110,6 +110,13 @@ class Configuration:
                 f"Plugin configuration {plugin_configuration} could not be resolved, "
                 f"{e}"
             ) from None
+        except FileNotFoundError as e:
+            logger.warning(
+                f"Plugin configuration {plugin_configuration} could not be resolved, "
+                f"{e}",
+            )
+            self._plugin_configurations[plugin_configuration] = {}
+            return
         try:
             yaml_dict = yaml.safe_load(configuration)
         except yaml.MarkedYAMLError as e:
@@ -134,6 +141,8 @@ class Configuration:
             if isinstance(self._plugin_configurations[config_name], pathlib.Path):
                 self._resolve(config_name)
             configuration = self._plugin_configurations[config_name]
+            if not configuration:
+                continue
             plugin = _load_plugin(configuration["plugin"])  # type: ignore
             if plugin:
                 plugin_parameters = inspect.signature(plugin.activate).parameters
