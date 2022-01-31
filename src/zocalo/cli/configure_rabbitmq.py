@@ -13,20 +13,14 @@ import yaml
 from pydantic import BaseModel
 
 import zocalo.configuration
-from zocalo.util.rabbitmq import (
-    BindingSpec,
-    ExchangeSpec,
-    PolicySpec,
-    QueueSpec,
-    RabbitMQAPI,
-    UserInfo,
-    UserSpec,
-)
+from zocalo.util.rabbitmq import BindingSpec, ExchangeSpec, PolicySpec, QueueSpec
+from zocalo.util.rabbitmq import RabbitMQAPI as _RabbitMQAPI
+from zocalo.util.rabbitmq import UserInfo, UserSpec
 
 logger = logging.getLogger("zocalo.cli.configure_rabbitmq")
 
 
-class _RabbitMQAPI(RabbitMQAPI):
+class RabbitMQAPI(_RabbitMQAPI):
     @functools.singledispatchmethod  # type: ignore
     def create_component(self, component: BaseModel):
         raise NotImplementedError(f"Component {component} not recognised")
@@ -124,7 +118,7 @@ def _(comp: BindingSpec) -> bool:
 
 
 def update_config(
-    api: _RabbitMQAPI, incoming: List[BaseModel], current: List[BaseModel]
+    api: RabbitMQAPI, incoming: List[BaseModel], current: List[BaseModel]
 ):
     cls = type(incoming[0])
     current = _info_to_spec(incoming[0], current)
@@ -280,7 +274,7 @@ def run():
         dest="seed",
         help="Seed used in random salt generation for password hashing",
     )
-    api = _RabbitMQAPI.from_zocalo_configuration(zc)
+    api = RabbitMQAPI.from_zocalo_configuration(zc)
     try:
         rmq_config = zc.storage["zocalo.rabbitmq_user_config"]
     except Exception as e:
