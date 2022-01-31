@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime
 import enum
 import logging
@@ -548,7 +550,16 @@ class HashingAlgorithm(enum.Enum):
     rabbit_password_hashing_md5 = "rabbit_password_hashing_md5"
 
 
-class UserSpec(BaseModel):
+class UserBase(BaseModel):
+    name: str = Field(..., description="Username")
+    password_hash: str = Field(..., description="Hash of the user password.")
+    hashing_algorithm: HashingAlgorithm
+
+    class Config:
+        use_enum_values = True
+
+
+class UserSpec(UserBase):
     """
     The tags key is mandatory.
     Either password or password_hash can be set.If neither are set the user will not be
@@ -562,17 +573,11 @@ class UserSpec(BaseModel):
     rabbit_password_hashing_md5.
     """
 
-    name: str = Field(..., description="Username")
-    password_hash: str = Field(..., description="Hash of the user password.")
-    hashing_algorithm: HashingAlgorithm
     tags: str
 
-    class Config:
-        use_enum_values = True
 
-
-class UserInfo(UserSpec):
-    pass
+class UserInfo(UserBase):
+    tags: List[str]
 
 
 def http_api_request(
@@ -841,7 +846,7 @@ class RabbitMQAPI:
         endpoint = f"queues/{vhost}/{name}"
         self.delete(endpoint, params={"if_unused": if_unused, "if_empty": if_empty})
 
-    def users(self, name: str = None) -> Union[List[UserInfo], UserInfo]:
+    def users(self, name: Optional[str] = None) -> Union[List[UserInfo], UserInfo]:
         endpoint = "users"
         if name:
             endpoint = f"{endpoint}/{name}/"

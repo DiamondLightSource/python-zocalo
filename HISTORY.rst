@@ -7,6 +7,14 @@ Unreleased
 * Fix for getting user information from the RabbitMQ management API 
 * Add user removal to RabbitMQ configuration command line tool
 
+0.14.0 (2021-12-14)
+-------------------
+* ``zocalo.dlq_purge`` offers a ``--location`` flag to override where files are
+  being written
+* ``zocalo.dlq_reinject`` can again understand ``zocalo.dlq_purge`` output
+  passed on stdin
+* Reinjected messages now carry a ``dlq-reinjected: True`` header field
+
 0.13.0 (2021-12-01)
 -------------------
 * ``zocalo.queue_drain`` now allows the automatic determination

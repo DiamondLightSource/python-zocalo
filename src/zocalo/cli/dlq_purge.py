@@ -4,11 +4,11 @@
 #   in a temporary directory.
 #
 
+from __future__ import annotations
 
 import argparse
-import errno
 import json
-import os
+import pathlib
 import queue
 import re
 import sys
@@ -26,18 +26,29 @@ def run() -> None:
     zc = zocalo.configuration.from_file()
     zc.activate()
     parser = argparse.ArgumentParser(
-        usage="dlstbx.dlq_purge [options] [queue [queue ...]]"
+        usage="zocalo.dlq_purge [options] [queue [queue ...]]"
     )
 
     parser.add_argument("-?", action="help", help=argparse.SUPPRESS)
     dlqprefix = "zocalo"
-    # override default stomp host
     parser.add_argument(
         "--wait",
         action="store",
         dest="wait",
         type=float,
-        help="Wait this many seconds for ActiveMQ replies",
+        help="Wait this many seconds for incoming messages",
+    )
+    if zc.storage and zc.storage.get("zocalo.dlq.purge_location"):
+        dlq_dump_path = zc.storage["zocalo.dlq.purge_location"]
+    else:
+        dlq_dump_path = "./DLQ"
+    parser.add_argument(
+        "--location",
+        action="store",
+        dest="location",
+        type=str,
+        default=dlq_dump_path,
+        help=f"Where to write out DLQ message files (default: {dlq_dump_path})",
     )
     parser.add_argument(
         "queues",
@@ -46,18 +57,13 @@ def run() -> None:
     )
     zc.add_command_line_options(parser)
     workflows.transport.add_command_line_options(parser, transport_argument=True)
-    print(sys.argv)
+
     args = parser.parse_args(["--stomp-prfx=DLQ"] + sys.argv[1:])
     if args.transport == "PikaTransport":
         queues = ["dlq." + a for a in args.queues]
     else:
         queues = args.queues
     transport = workflows.transport.lookup(args.transport)()
-
-    if zc.storage and zc.storage.get("zocalo.dlq.purge_location"):
-        dlq_dump_path = zc.storage["zocalo.dlq.purge_location"]
-    else:
-        dlq_dump_path = "./DLQ"
 
     characterfilter = re.compile(r"[^a-zA-Z0-9._-]+", re.UNICODE)
     idlequeue: queue.Queue = queue.Queue()
@@ -73,26 +79,14 @@ def run() -> None:
             msg_time = int(header["timestamp"])
         timestamp = time.localtime(msg_time / 1000)
         millisec = msg_time % 1000
-        filepath = os.path.join(
-            dlq_dump_path,
-            time.strftime("%Y-%m-%d", timestamp),
-            #       time.strftime('%H-%M', timestamp),
-        )
-        filename = (
+        filepath = pathlib.Path(args.location, time.strftime("%Y-%m-%d", timestamp))
+        filepath.mkdir(parents=True, exist_ok=True)
+        filename = filepath / (
             "msg-"
             + time.strftime("%Y%m%d-%H%M%S", timestamp)
-            + "-"
-            + "%03d" % millisec
-            + "-"
+            + f"-{millisec:03d}-"
             + characterfilter.sub("_", str(header["message-id"]))
         )
-        try:
-            os.makedirs(filepath)
-        except OSError as exc:
-            if exc.errno == errno.EEXIST and os.path.isdir(filepath):
-                pass
-            else:
-                raise
 
         dlqmsg = {
             "exported": {
@@ -103,10 +97,10 @@ def run() -> None:
             "message": message,
         }
 
-        with open(os.path.join(filepath, filename), "w") as fh:
-            fh.write(json.dumps(dlqmsg, indent=2, sort_keys=True))
+        with filename.open("w") as fh:
+            json.dump(dlqmsg, fh, indent=2, sort_keys=True)
         print(
-            f"Message {header['message-id']} ({time.strftime('%Y-%m-%d %H:%M:%S', timestamp)}) exported:\n {os.path.join(filepath, filename)}"
+            f"Message {header['message-id']} ({time.strftime('%Y-%m-%d %H:%M:%S', timestamp)}) exported:\n  {filename}"
         )
         transport.ack(header)
         idlequeue.put_nowait("done")

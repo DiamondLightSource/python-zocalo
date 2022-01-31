@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import sys
 import time
@@ -34,12 +36,11 @@ def gen_header_rabbitmq(i, use_datetime=True):
 
 
 def test_dlq_reinject_activemq(mocker, tmp_path):
-
     mocked_transport = mocker.MagicMock(CommonTransport)
     mocker.patch.object(workflows.transport, "lookup", return_value=mocked_transport)
 
     dlq_path = tmp_path / "DLQ"
-    dlq_path.mkdir(exist_ok=True)
+    dlq_path.mkdir()
 
     for i in range(10):
         with open(dlq_path / f"msg_{i}", "w") as f:
@@ -73,12 +74,11 @@ def test_dlq_reinject_activemq(mocker, tmp_path):
 
 
 def test_dlq_reinject_rabbitmq(mocker, tmp_path):
-
     mocked_transport = mocker.MagicMock(CommonTransport)
     mocker.patch.object(workflows.transport, "lookup", return_value=mocked_transport)
 
     dlq_path = tmp_path / "DLQ"
-    dlq_path.mkdir(exist_ok=True)
+    dlq_path.mkdir()
 
     for i in range(10):
         with open(dlq_path / f"msg_{i}", "w") as f:

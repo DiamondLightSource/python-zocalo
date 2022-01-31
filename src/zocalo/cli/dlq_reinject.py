@@ -3,11 +3,13 @@
 #   Take a dead letter queue message from a file and send it back to its queue
 #   for a retry.
 #
-
+from __future__ import annotations
 
 import argparse
 import json
 import os
+import re
+import select
 import sys
 import time
 from pprint import pprint
@@ -22,7 +24,7 @@ def run() -> None:
     zc = zocalo.configuration.from_file()
     zc.activate()
     parser = argparse.ArgumentParser(
-        usage="dlstbx.dlq_reinject [options] file [file [..]]"
+        usage="zocalo.dlq_reinject [options] file [file [..]]"
     )
 
     parser.add_argument("-?", action="help", help=argparse.SUPPRESS)
@@ -66,14 +68,28 @@ def run() -> None:
     args = parser.parse_args()
     transport = workflows.transport.lookup(args.transport)()
 
-    if not args.files:
-        print("No DLQ message files given.")
-        sys.exit(0)
+    stdin = []
+    try:
+        stdin_fileno = getattr(sys.stdin, "fileno", lambda: None)()
+    except Exception:
+        stdin_fileno = None
+    if isinstance(stdin_fileno, int) and select.select([sys.stdin], [], [], 0.0)[0]:
+        dlq_purge_filename_format = re.compile(r"^  \/")
+        while True:
+            line = sys.stdin.readline()
+            if not line:
+                break
+            if dlq_purge_filename_format.match(line):
+                stdin.append(line.strip())
+        print(f"{len(stdin)} filenames read from stdin")
+
+    if not stdin and not args.files:
+        sys.exit("No DLQ message files given.")
 
     transport.connect()
 
     first = True
-    for dlqfile in args.files:
+    for dlqfile in args.files + stdin:
         if not os.path.exists(dlqfile):
             print(f"Ignoring missing file {dlqfile}")
             continue
@@ -122,12 +138,14 @@ def run() -> None:
             ):
                 if drop_field in header:
                     del header[drop_field]
+            header["dlq-reinjected"] = "True"
             send_function(
                 destination[2], dlqmsg["message"], headers=header, ignore_namespace=True
             )
         elif args.transport == "PikaTransport":
             print("pika transport detected")
             header = dlqmsg["header"]
+            header["dlq-reinjected"] = "True"
             exchange = header.get("headers", {}).get("x-death", {})[0].get("exchange")
             if exchange:
                 rmqapi = RabbitMQAPI.from_zocalo_configuration(zc)
@@ -135,21 +153,19 @@ def run() -> None:
                 for exch in exchange_info:
                     if exch["name"] == exchange:
                         if exch["type"] == "fanout":
-                            header = _rabbit_prepare_header(header)
                             transport.broadcast(
                                 args.destination_override or destination,
                                 dlqmsg["message"],
-                                headers=header,
+                                headers=_rabbit_prepare_header(header),
                             )
             else:
                 destination = (
                     header.get("headers", {}).get("x-death", {})[0].get("queue")
                 )
-                header = _rabbit_prepare_header(header)
                 transport.send(
                     args.destination_override or destination,
                     dlqmsg["message"],
-                    headers=header,
+                    headers=_rabbit_prepare_header(header),
                 )
         if args.remove:
             os.remove(dlqfile)

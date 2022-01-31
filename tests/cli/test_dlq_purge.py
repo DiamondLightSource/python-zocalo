@@ -1,4 +1,5 @@
-import os
+from __future__ import annotations
+
 import sys
 from datetime import datetime
 from unittest import mock
@@ -6,7 +7,7 @@ from unittest import mock
 import workflows.transport
 from workflows.transport.common_transport import CommonTransport
 
-from zocalo.cli.dlq_purge import run
+import zocalo.cli.dlq_purge as dlq_purge
 
 
 def gen_header_activemq(i):
@@ -32,8 +33,6 @@ def gen_header_rabbitmq(i, use_datetime=True):
 
 
 def test_dlq_purge_activemq(mocker, tmp_path):
-    os.chdir(tmp_path)
-
     def mock_subscribe(source, receive_message, acknowledgement):
         for i in range(10):
             header = gen_header_activemq(i)
@@ -46,22 +45,20 @@ def test_dlq_purge_activemq(mocker, tmp_path):
     mocker.patch.object(workflows.transport, "lookup", return_value=mocked_transport)
     mocked_transport().subscribe = mock_subscribe
 
-    testargs = ["prog", "garbage.per_image_analysis"]
+    testargs = ["prog", "--location", str(tmp_path), "garbage.per_image_analysis"]
     with mock.patch.object(sys, "argv", testargs):
-        run()
+        dlq_purge.run()
 
     mocked_transport().ack.assert_has_calls(
         [mock.call(gen_header_activemq(i)) for i in range(10)]
     )
 
-    dlq_dirs = list(tmp_path.glob("DLQ/*"))
+    dlq_dirs = list(tmp_path.iterdir())
     assert len(dlq_dirs) == 1
     assert len(list(dlq_dirs[0].glob("**/*"))) == 10
 
 
 def test_dlq_purge_rabbitmq(mocker, tmp_path):
-    os.chdir(tmp_path)
-
     def mock_subscribe(source, receive_message, acknowledgement):
         for i in range(10):
             header = gen_header_rabbitmq(i)
@@ -74,9 +71,16 @@ def test_dlq_purge_rabbitmq(mocker, tmp_path):
     mocker.patch.object(workflows.transport, "lookup", return_value=mocked_transport)
     mocked_transport().subscribe = mock_subscribe
 
-    testargs = ["prog", "--transport", "PikaTransport", "garbage.per_image_analysis"]
+    testargs = [
+        "prog",
+        "--location",
+        str(tmp_path),
+        "--transport",
+        "PikaTransport",
+        "garbage.per_image_analysis",
+    ]
     with mock.patch.object(sys, "argv", testargs):
-        run()
+        dlq_purge.run()
 
     mocked_transport().ack.assert_has_calls(
         [
@@ -87,6 +91,6 @@ def test_dlq_purge_rabbitmq(mocker, tmp_path):
         ]
     )
 
-    dlq_dirs = list(tmp_path.glob("DLQ/*"))
+    dlq_dirs = list(tmp_path.iterdir())
     assert len(dlq_dirs) == 1
     assert len(list(dlq_dirs[0].glob("**/*"))) == 10

@@ -1,5 +1,7 @@
 """Top-level package for Zocalo."""
 
+from __future__ import annotations
+
 import logging
 import socket
 import warnings
@@ -8,7 +10,7 @@ import graypy.handler
 
 __author__ = "Markus Gerstel"
 __email__ = "scientificsoftware@diamond.ac.uk"
-__version__ = "0.13.0"
+__version__ = "0.14.0"
 
 logging.getLogger("zocalo").addHandler(logging.NullHandler())
 
