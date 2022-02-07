@@ -4,6 +4,8 @@ History
 
 Unreleased
 ----------
+* Fix for getting user information from the RabbitMQ management API 
+* Add user removal to RabbitMQ configuration command line tool
 
 0.14.0 (2021-12-14)
 -------------------
