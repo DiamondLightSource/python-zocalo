@@ -113,6 +113,13 @@ def _(comp: QueueSpec) -> bool:
 
 
 @_skip.register  # type: ignore
+def _(comp: ExchangeSpec) -> bool:
+    if comp.name == "" or "amq." in comp.name:
+        return True
+    return False
+
+
+@_skip.register  # type: ignore
 def _(comp: BindingSpec) -> bool:
     if comp.source == "" or "amq." in comp.source:
         return True
