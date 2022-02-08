@@ -67,14 +67,6 @@ class RabbitMQAPI(_RabbitMQAPI):
             vhost=queue.vhost, name=queue.name, if_unused=if_unused, if_empty=if_empty
         )
 
-    @create_component.register  # type: ignore
-    def _(self, user: UserSpec):
-        self.add_user(user)
-
-    @delete_component.register  # type: ignore
-    def _(self, user: UserSpec):
-        self.delete_user(name=user.name)
-
 
 @functools.singledispatch
 def _info_to_spec(incoming, infos: list):
@@ -279,7 +271,7 @@ def _configure_users(api, rabbitmq_user_config_area: Path):
                 logger.info(
                     f"Updating user {user} due to password/tag mismatch (tags={planned_users[user]['tags']})"
                 )
-                api.create_component(
+                api.add_user(
                     UserSpec(
                         name=user,
                         password_hash=hashed_password,
@@ -292,7 +284,7 @@ def _configure_users(api, rabbitmq_user_config_area: Path):
             logger.info(
                 f"Creating user {user} not defined on the server (tags={planned_users[user]['tags']})"
             )
-            api.create_component(
+            api.add_user(
                 UserSpec(
                     name=user,
                     password_hash=hash_password(password),
@@ -303,16 +295,7 @@ def _configure_users(api, rabbitmq_user_config_area: Path):
 
     for user in set(existing_users) - set(planned_users):
         logger.info(f"Removing user {user} not defined in the configuration")
-        api.delete_component(
-            UserSpec(
-                name=user,
-                password_hash="",
-                hashing_algorithm="rabbit_password_hashing_sha256",
-                tags="",
-            )
-        )
-
-    exit()
+        api.delete_user(name=user)
 
 
 def run():
