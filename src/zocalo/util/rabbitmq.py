@@ -6,8 +6,7 @@ import enum
 import hashlib
 import logging
 import pathlib
-import random
-import sys
+import secrets
 import urllib
 import urllib.request
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -873,8 +872,7 @@ def hash_password(passwd: str, salt: Optional[str] = None) -> str:
         # extract salt from an existing password hash
         salt_bytes = base64.b64decode(salt)[:4]
     else:
-        intsalt = random.getrandbits(4 * 8)
-        salt_bytes = intsalt.to_bytes(4, sys.byteorder)
+        salt_bytes = secrets.token_bytes(4)
     utf8 = passwd.encode("utf-8")
     temp1 = salt_bytes + utf8
     temp2 = hashlib.sha256(temp1).digest()  # lgtm
