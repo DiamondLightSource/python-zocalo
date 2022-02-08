@@ -245,18 +245,15 @@ def _configure_users(api, rabbitmq_user_config_area: Path):
                 "password"
             ], "Configuration file does not specify a password"
             username = config["rabbitmq"]["username"]
-            password = config["rabbitmq"]["password"]
-            tags = config["rabbitmq"].get("tags", "")
         except Exception:
             raise ValueError(f"Could not parse configuration file {config_file}")
-        if config["rabbitmq"]["username"] in planned_users:
+        if username in planned_users:
             raise ValueError(
-                f"Configuration file {config_file} declares user {config['rabbitmq']['username']}, who was previously declared in {planned_users[config['rabbitmq']['username']]['file']}"
+                f"Configuration file {config_file} declares user {username}, who was previously declared in {planned_users[username]['file']}"
             )
         planned_users[username] = {
-            "username": config["rabbitmq"]["username"],
             "password": config["rabbitmq"]["password"],
-            "tags": tags,
+            "tags": config["rabbitmq"].get("tags", ""),
             "file": str(config_file),
         }
 
@@ -265,33 +262,26 @@ def _configure_users(api, rabbitmq_user_config_area: Path):
             hashed_password = hash_password(
                 planned_users[user]["password"], salt=existing_users[user].password_hash
             )
-            if existing_users[user].password_hash != hashed_password or set(
+            if existing_users[user].password_hash == hashed_password and set(
                 existing_users[user].tags
-            ) != set(planned_users[user]["tags"].split(",")):
-                logger.info(
-                    f"Updating user {user} due to password/tag mismatch (tags={planned_users[user]['tags']})"
-                )
-                api.add_user(
-                    UserSpec(
-                        name=user,
-                        password_hash=hashed_password,
-                        hashing_algorithm="rabbit_password_hashing_sha256",
-                        tags=planned_users[user]["tags"],
-                    )
-                )
-
-        if user not in existing_users:
+            ) == set(planned_users[user]["tags"].split(",")):
+                continue
+            logger.info(
+                f"Updating user {user} due to password/tag mismatch (tags={planned_users[user]['tags']})"
+            )
+        else:
+            hashed_password = hash_password(planned_users[user]["password"])
             logger.info(
                 f"Creating user {user} not defined on the server (tags={planned_users[user]['tags']})"
             )
-            api.add_user(
-                UserSpec(
-                    name=user,
-                    password_hash=hash_password(password),
-                    hashing_algorithm="rabbit_password_hashing_sha256",
-                    tags="",
-                )
+        api.add_user(
+            UserSpec(
+                name=user,
+                password_hash=hashed_password,
+                hashing_algorithm="rabbit_password_hashing_sha256",
+                tags=planned_users[user]["tags"],
             )
+        )
 
     for user in set(existing_users) - set(planned_users):
         logger.info(f"Removing user {user} not defined in the configuration")
