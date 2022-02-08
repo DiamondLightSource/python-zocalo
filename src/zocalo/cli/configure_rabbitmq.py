@@ -146,22 +146,6 @@ def update_config(
             api.create_component(ic)
 
 
-def get_user_specs(config_files: List[Path]) -> List[UserSpec]:
-    users = []
-    for config_file in config_files:
-        config = configparser.ConfigParser()
-        config.read(config_file)
-        users.append(
-            UserSpec(
-                name=config["rabbitmq"]["username"],
-                password_hash=hash_password(config["rabbitmq"]["password"], 0),
-                hashing_algorithm="rabbit_password_hashing_sha256",
-                tags=config["rabbitmq"].get("tags", ""),
-            )
-        )
-    return users
-
-
 def get_binding_specs(group: Dict) -> List[BindingSpec]:
     source = group.get("bindings", "")
     vhost = group.get("vhost", "/")
@@ -254,6 +238,83 @@ def get_policy_specs(policies: Dict) -> List[PolicySpec]:
     ]
 
 
+def _configure_users(api, rabbitmq_user_config_area: Path):
+    existing_users = {user.name: user for user in api.users()}
+
+    planned_users: dict[str, dict[str, str]] = {}
+    for config_file in rabbitmq_user_config_area.glob("**/*.ini"):
+        try:
+            config = configparser.ConfigParser()
+            config.read(config_file)
+            assert config["rabbitmq"][
+                "username"
+            ], "Configuration file does not contain a username"
+            assert config["rabbitmq"][
+                "password"
+            ], "Configuration file does not specify a password"
+            username = config["rabbitmq"]["username"]
+            password = config["rabbitmq"]["password"]
+            tags = config["rabbitmq"].get("tags", "")
+        except Exception:
+            raise ValueError(f"Could not parse configuration file {config_file}")
+        if config["rabbitmq"]["username"] in planned_users:
+            raise ValueError(
+                f"Configuration file {config_file} declares user {config['rabbitmq']['username']}, who was previously declared in {planned_users[config['rabbitmq']['username']]['file']}"
+            )
+        planned_users[username] = {
+            "username": config["rabbitmq"]["username"],
+            "password": config["rabbitmq"]["password"],
+            "tags": tags,
+            "file": str(config_file),
+        }
+
+    for user in planned_users:
+        if user in existing_users:
+            hashed_password = hash_password(
+                planned_users[user]["password"], salt=existing_users[user].password_hash
+            )
+            if existing_users[user].password_hash != hashed_password or set(
+                existing_users[user].tags
+            ) != set(planned_users[user]["tags"].split(",")):
+                logger.info(
+                    f"Updating user {user} due to password/tag mismatch (tags={planned_users[user]['tags']})"
+                )
+                api.create_component(
+                    UserSpec(
+                        name=user,
+                        password_hash=hashed_password,
+                        hashing_algorithm="rabbit_password_hashing_sha256",
+                        tags=planned_users[user]["tags"],
+                    )
+                )
+
+        if user not in existing_users:
+            logger.info(
+                f"Creating user {user} not defined on the server (tags={planned_users[user]['tags']})"
+            )
+            api.create_component(
+                UserSpec(
+                    name=user,
+                    password_hash=hash_password(password),
+                    hashing_algorithm="rabbit_password_hashing_sha256",
+                    tags="",
+                )
+            )
+
+    for user in set(existing_users) - set(planned_users):
+        logger.info(f"Removing user {user} not defined in the configuration")
+        api.delete_component(
+            UserSpec(
+                name=user,
+                password_hash="",
+                hashing_algorithm="rabbit_password_hashing_sha256",
+                tags="",
+            )
+        )
+
+    exit()
+
+
 def run():
     logging.basicConfig(level=logging.DEBUG, format="%(message)s")
     zc = zocalo.configuration.from_file()
@@ -272,8 +333,8 @@ def run():
 
     with open(args.configuration) as in_file:
         yaml_data = yaml.safe_load(in_file)
-    configuration_files = Path(rmq_config).glob("**/*.ini")
-    user_specs = get_user_specs(configuration_files)
+
+    _configure_users(api, Path(rmq_config))
 
     queue_specs = []
     exchange_specs = []
@@ -287,7 +348,6 @@ def run():
 
     policies = get_policy_specs(yaml_data["policies"])
 
-    update_config(api, user_specs, api.users())
     update_config(api, policies, api.policies())
     update_config(api, queue_specs, api.queues())
     update_config(api, exchange_specs, api.exchanges())

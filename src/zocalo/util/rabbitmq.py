@@ -868,13 +868,16 @@ class RabbitMQAPI:
         self.delete(endpoint)
 
 
-def hash_password(passwd: str, seed: int) -> str:
-    random.seed(seed)
-    intsalt = random.getrandbits(4 * 8)
-    salt = intsalt.to_bytes(4, sys.byteorder)
+def hash_password(passwd: str, salt: Optional[str] = None) -> str:
+    if salt:
+        # extract salt from an existing password hash
+        salt_bytes = base64.b64decode(salt)[:4]
+    else:
+        intsalt = random.getrandbits(4 * 8)
+        salt_bytes = intsalt.to_bytes(4, sys.byteorder)
     utf8 = passwd.encode("utf-8")
-    temp1 = salt + utf8
+    temp1 = salt_bytes + utf8
     temp2 = hashlib.sha256(temp1).digest()  # lgtm
-    salted_hash = salt + temp2
+    salted_hash = salt_bytes + temp2
     pass_hash = base64.b64encode(salted_hash)
     return pass_hash.decode()
