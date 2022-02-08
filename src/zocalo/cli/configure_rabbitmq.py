@@ -146,7 +146,7 @@ def update_config(
             api.create_component(ic)
 
 
-def get_user_specs(config_files: List[Path], seed: int = 0) -> List[UserSpec]:
+def get_user_specs(config_files: List[Path]) -> List[UserSpec]:
     users = []
     for config_file in config_files:
         config = configparser.ConfigParser()
@@ -154,7 +154,7 @@ def get_user_specs(config_files: List[Path], seed: int = 0) -> List[UserSpec]:
         users.append(
             UserSpec(
                 name=config["rabbitmq"]["username"],
-                password_hash=hash_password(config["rabbitmq"]["password"], seed),
+                password_hash=hash_password(config["rabbitmq"]["password"], 0),
                 hashing_algorithm="rabbit_password_hashing_sha256",
                 tags=config["rabbitmq"].get("tags", ""),
             )
@@ -259,14 +259,7 @@ def run():
     zc = zocalo.configuration.from_file()
     zc.activate_environment("live")
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--config_file", dest="config_file", help="RabbitMQ configuration yaml file"
-    )
-    parser.add_argument(
-        "--seed",
-        dest="seed",
-        help="Seed used in random salt generation for password hashing",
-    )
+    parser.add_argument("configuration", help="RabbitMQ configuration yaml file")
     api = RabbitMQAPI.from_zocalo_configuration(zc)
     try:
         rmq_config = zc.storage["zocalo.rabbitmq_user_config"]
@@ -276,13 +269,11 @@ def run():
         )
         raise e
     args = parser.parse_args()
-    rmq_config_file = args.config_file
-    seed = args.seed
 
-    with open(rmq_config_file) as in_file:
+    with open(args.configuration) as in_file:
         yaml_data = yaml.safe_load(in_file)
     configuration_files = Path(rmq_config).glob("**/*.ini")
-    user_specs = get_user_specs(configuration_files, seed=seed)
+    user_specs = get_user_specs(configuration_files)
 
     queue_specs = []
     exchange_specs = []
