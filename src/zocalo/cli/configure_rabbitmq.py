@@ -1,13 +1,9 @@
 from __future__ import annotations
 
 import argparse
-import base64
 import configparser
 import functools
-import hashlib
 import logging
-import random
-import sys
 from pathlib import Path
 from typing import Dict, List
 
@@ -17,7 +13,7 @@ from pydantic import BaseModel
 import zocalo.configuration
 from zocalo.util.rabbitmq import BindingSpec, ExchangeSpec, PolicySpec, QueueSpec
 from zocalo.util.rabbitmq import RabbitMQAPI as _RabbitMQAPI
-from zocalo.util.rabbitmq import UserInfo, UserSpec
+from zocalo.util.rabbitmq import UserInfo, UserSpec, hash_password
 
 logger = logging.getLogger("zocalo.cli.configure_rabbitmq")
 
@@ -148,18 +144,6 @@ def update_config(
         if ic not in current:
             logger.info(f"creating {cls.__name__} {ic}")
             api.create_component(ic)
-
-
-def hash_password(passwd: str, seed: int) -> str:
-    random.seed(seed)
-    intsalt = random.getrandbits(4 * 8)
-    salt = intsalt.to_bytes(4, sys.byteorder)
-    utf8 = passwd.encode("utf-8")
-    temp1 = salt + utf8
-    temp2 = hashlib.sha256(temp1).digest()  # lgtm
-    salted_hash = salt + temp2
-    pass_hash = base64.b64encode(salted_hash)
-    return pass_hash.decode()
 
 
 def get_user_specs(config_files: List[Path], seed: int = 0) -> List[UserSpec]:

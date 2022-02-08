@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import base64
 import datetime
 import enum
+import hashlib
 import logging
 import pathlib
+import random
+import sys
 import urllib
 import urllib.request
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -862,3 +866,15 @@ class RabbitMQAPI:
     def delete_user(self, name: str):
         endpoint = f"users/{name}/"
         self.delete(endpoint)
+
+
+def hash_password(passwd: str, seed: int) -> str:
+    random.seed(seed)
+    intsalt = random.getrandbits(4 * 8)
+    salt = intsalt.to_bytes(4, sys.byteorder)
+    utf8 = passwd.encode("utf-8")
+    temp1 = salt + utf8
+    temp2 = hashlib.sha256(temp1).digest()  # lgtm
+    salted_hash = salt + temp2
+    pass_hash = base64.b64encode(salted_hash)
+    return pass_hash.decode()
