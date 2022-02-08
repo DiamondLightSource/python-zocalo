@@ -13,7 +13,7 @@ from pydantic import BaseModel
 import zocalo.configuration
 from zocalo.util.rabbitmq import BindingSpec, ExchangeSpec, PolicySpec, QueueSpec
 from zocalo.util.rabbitmq import RabbitMQAPI as _RabbitMQAPI
-from zocalo.util.rabbitmq import UserInfo, UserSpec, hash_password
+from zocalo.util.rabbitmq import UserSpec, hash_password
 
 logger = logging.getLogger("zocalo.cli.configure_rabbitmq")
 
@@ -72,18 +72,6 @@ class RabbitMQAPI(_RabbitMQAPI):
 def _info_to_spec(incoming, infos: list):
     cls = type(incoming)
     return [cls(**i.dict()) for i in infos]
-
-
-@_info_to_spec.register  # type: ignore
-def _(incoming: UserSpec, infos: List[UserInfo]):
-    cls = type(incoming)
-
-    def _dict(info: UserInfo) -> dict:
-        d = {k: v for k, v in info.dict().items() if k != "tags"}
-        d["tags"] = ",".join(info.dict()["tags"])
-        return d
-
-    return [cls(**(_dict(i))) for i in infos]
 
 
 @functools.singledispatch
@@ -233,53 +221,46 @@ def get_policy_specs(policies: Dict) -> List[PolicySpec]:
 def _configure_users(api, rabbitmq_user_config_area: Path):
     existing_users = {user.name: user for user in api.users()}
 
-    planned_users: dict[str, dict[str, str]] = {}
+    planned_users: dict[str, Path] = {}
     for config_file in rabbitmq_user_config_area.glob("**/*.ini"):
         try:
             config = configparser.ConfigParser()
             config.read(config_file)
-            assert config["rabbitmq"][
-                "username"
-            ], "Configuration file does not contain a username"
-            assert config["rabbitmq"][
-                "password"
-            ], "Configuration file does not specify a password"
             username = config["rabbitmq"]["username"]
+            password = config["rabbitmq"]["password"]
+            assert username, "Configuration file does not contain a username"
+            assert password, "Configuration file does not specify a password"
+            tags = config["rabbitmq"].get("tags", "")
         except Exception:
             raise ValueError(f"Could not parse configuration file {config_file}")
         if username in planned_users:
             raise ValueError(
-                f"Configuration file {config_file} declares user {username}, who was previously declared in {planned_users[username]['file']}"
+                f"Configuration file {config_file} declares user {username}, who was previously declared in {planned_users[username]}"
             )
-        planned_users[username] = {
-            "password": config["rabbitmq"]["password"],
-            "tags": config["rabbitmq"].get("tags", ""),
-            "file": str(config_file),
-        }
+        planned_users[username] = config_file
 
-    for user in planned_users:
-        if user in existing_users:
+        if username in existing_users:
             hashed_password = hash_password(
-                planned_users[user]["password"], salt=existing_users[user].password_hash
+                password, salt=existing_users[username].password_hash
             )
-            if existing_users[user].password_hash == hashed_password and set(
-                existing_users[user].tags
-            ) == set(planned_users[user]["tags"].split(",")):
+            if existing_users[username].password_hash == hashed_password and set(
+                existing_users[username].tags
+            ) == set(tags.split(",")):
                 continue
             logger.info(
-                f"Updating user {user} due to password/tag mismatch (tags={planned_users[user]['tags']})"
+                f"Updating user {username} due to password/tag mismatch (tags={tags})"
             )
         else:
-            hashed_password = hash_password(planned_users[user]["password"])
+            hashed_password = hash_password(password)
             logger.info(
-                f"Creating user {user} not defined on the server (tags={planned_users[user]['tags']})"
+                f"Creating user {username} not defined on the server (tags={tags})"
             )
         api.add_user(
             UserSpec(
-                name=user,
+                name=username,
                 password_hash=hashed_password,
                 hashing_algorithm="rabbit_password_hashing_sha256",
-                tags=planned_users[user]["tags"],
+                tags=tags,
             )
         )
 
