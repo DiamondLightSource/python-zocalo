@@ -49,16 +49,6 @@ class RabbitMQAPI(_RabbitMQAPI):
     def _(self, exchange: ExchangeSpec, **kwargs):
         self.exchange_delete(vhost=exchange.vhost, name=exchange.name, **kwargs)
 
-    @create_component.register  # type: ignore
-    def _(self, queue: QueueSpec):
-        self.queue_declare(queue)
-
-    @delete_component.register  # type: ignore
-    def _(self, queue: QueueSpec, if_unused: bool = False, if_empty: bool = False):
-        self.queue_delete(
-            vhost=queue.vhost, name=queue.name, if_unused=if_unused, if_empty=if_empty
-        )
-
 
 @functools.singledispatch
 def _info_to_spec(incoming, infos: list):
@@ -68,15 +58,6 @@ def _info_to_spec(incoming, infos: list):
 
 @functools.singledispatch
 def _skip(comp) -> bool:
-    return False
-
-
-@_skip.register  # type: ignore
-def _(comp: QueueSpec) -> bool:
-    if comp.name == "" or "amq." in comp.name:
-        return True
-    if comp.auto_delete or comp.exclusive:
-        return True
     return False
 
 
@@ -230,6 +211,41 @@ def _configure_policies(api, policies: list[dict[str, Any]]):
         api.clear_policy(vhost=policy_id[0], name=policy_id[1])
 
 
+def _configure_queues(api, queues: list[QueueSpec]):
+    existing_queues = {(q.vhost, q.name): q for q in api.queues()}
+    known_queues: set[tuple[str, str]] = set()
+
+    for queue_spec in queues:
+        queue_id = (queue_spec.vhost, queue_spec.name)
+        if queue_id in known_queues:
+            raise ValueError(f"Configuration defines duplicate queue {queue_id}")
+        known_queues.add(queue_id)
+
+        if queue_id in existing_queues:
+            equivalent_definition = all(
+                getattr(existing_queues[queue_id], key) == value
+                for key, value in queue_spec
+            )
+            if equivalent_definition:
+                continue
+            logger.info(f"Updating queue: {queue_spec}")
+        else:
+            logger.info(f"Creating queue: {queue_spec}")
+        api.queue_declare(queue_spec)
+
+    for queue_id in set(existing_queues) - known_queues:
+        if (
+            existing_queues[queue_id].name == ""
+            or existing_queues[queue_id].name.startswith("amq.")
+            or existing_queues[queue_id].auto_delete
+            or existing_queues[queue_id].exclusive
+        ):
+            # Leave temporary queues alone
+            continue
+        logger.info(f"Removing undefined queue {queue_id}")
+        api.queue_delete(vhost=queue_id[0], name=queue_id[1])
+
+
 def _configure_users(api, rabbitmq_user_config_area: Path):
     existing_users = {user.name: user for user in api.users()}
 
@@ -313,7 +329,7 @@ def run():
             queue_specs.extend(get_queue_specs(group))
             binding_specs.extend(get_binding_specs(group))
 
-    update_config(api, queue_specs, api.queues())
+    _configure_queues(api, queue_specs)
     update_config(api, exchange_specs, api.exchanges())
     permanent_bindings = []
     # don't remove bindings to temporary queues
