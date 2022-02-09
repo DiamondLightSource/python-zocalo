@@ -298,7 +298,7 @@ def _configure_users(api, rabbitmq_user_config_area: Path):
 
 
 def run():
-    logging.basicConfig(level=logging.DEBUG, format="%(message)s")
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
     zc = zocalo.configuration.from_file()
     zc.activate_environment("live")
     parser = argparse.ArgumentParser()
