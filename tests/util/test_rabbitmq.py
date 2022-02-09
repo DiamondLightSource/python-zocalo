@@ -419,17 +419,17 @@ def test_api_policies(requests_mock, rmqapi):
 
     # First call rmq.policies() with defaults
     requests_mock.get("/api/policies", json=[policy])
-    assert rmqapi.policies() == [rabbitmq.PolicyInfo(**policy)]
+    assert rmqapi.policies() == [rabbitmq.PolicySpec(**policy)]
 
     # Now call with vhost=...
     requests_mock.get(f"/api/policies/{policy['vhost']}/", json=[policy])
-    assert rmqapi.policies(vhost=policy["vhost"]) == [rabbitmq.PolicyInfo(**policy)]
+    assert rmqapi.policies(vhost=policy["vhost"]) == [rabbitmq.PolicySpec(**policy)]
 
     # Now call with vhost=..., name=...
     requests_mock.get(f"/api/policies/{policy['vhost']}/{policy['name']}/", json=policy)
     assert rmqapi.policies(
         vhost=policy["vhost"], name=policy["name"]
-    ) == rabbitmq.PolicyInfo(**policy)
+    ) == rabbitmq.PolicySpec(**policy)
 
 
 @pytest.fixture

@@ -5,7 +5,7 @@ import configparser
 import functools
 import logging
 from pathlib import Path
-from typing import Dict, List
+from typing import Any, Dict, List
 
 import yaml
 from pydantic import BaseModel
@@ -48,14 +48,6 @@ class RabbitMQAPI(_RabbitMQAPI):
     @delete_component.register  # type: ignore
     def _(self, exchange: ExchangeSpec, **kwargs):
         self.exchange_delete(vhost=exchange.vhost, name=exchange.name, **kwargs)
-
-    @create_component.register  # type: ignore
-    def _(self, policy: PolicySpec):
-        self.set_policy(policy)
-
-    @delete_component.register  # type: ignore
-    def _(self, policy: PolicySpec):
-        self.clear_policy(vhost=policy.vhost, name=policy.name)
 
     @create_component.register  # type: ignore
     def _(self, queue: QueueSpec):
@@ -204,18 +196,38 @@ def get_exchange_specs(group: Dict) -> List[ExchangeSpec]:
     ]
 
 
-def get_policy_specs(policies: Dict) -> List[PolicySpec]:
-    return [
-        PolicySpec(
+def _configure_policies(api, policies: list[dict[str, Any]]):
+    existing_policies = {
+        (policy.vhost, policy.name): policy for policy in api.policies()
+    }
+    known_policies: set[tuple[str, str]] = set()
+
+    for policy in policies:
+        policy_id = (policy["vhost"], policy["name"])
+        if policy_id in known_policies:
+            raise ValueError(f"Configuration defines duplicate policy {policy_id}")
+        known_policies.add(policy_id)
+
+        policy_spec = PolicySpec(
+            vhost=policy.get("vhost", "/"),
             name=policy["name"],
             pattern=policy.get("pattern", "^amq."),
             definition=policy.get("definition", {}),
             priority=policy.get("priority", 0),
             apply_to=policy.get("apply-to", "queues"),
-            vhost=policy.get("vhost", "/"),
         )
-        for policy in policies
-    ]
+
+        if policy_id in existing_policies:
+            if existing_policies[policy_id] == policy_spec:
+                continue
+            logger.info(f"Updating policy: {policy_spec}")
+        else:
+            logger.info(f"Creating policy: {policy_spec}")
+        api.set_policy(policy_spec)
+
+    for policy_id in set(existing_policies) - known_policies:
+        logger.info(f"Removing undefined policy {policy_id}")
+        api.clear_policy(vhost=policy_id[0], name=policy_id[1])
 
 
 def _configure_users(api, rabbitmq_user_config_area: Path):
@@ -289,6 +301,7 @@ def run():
         yaml_data = yaml.safe_load(in_file)
 
     _configure_users(api, Path(rmq_config))
+    _configure_policies(api, yaml_data["policies"])
 
     queue_specs = []
     exchange_specs = []
@@ -300,9 +313,6 @@ def run():
             queue_specs.extend(get_queue_specs(group))
             binding_specs.extend(get_binding_specs(group))
 
-    policies = get_policy_specs(yaml_data["policies"])
-
-    update_config(api, policies, api.policies())
     update_config(api, queue_specs, api.queues())
     update_config(api, exchange_specs, api.exchanges())
     permanent_bindings = []

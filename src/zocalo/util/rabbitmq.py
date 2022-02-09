@@ -382,6 +382,9 @@ class PolicyApplyTo(enum.Enum):
 class PolicySpec(BaseModel):
     """Sets a policy."""
 
+    vhost: str = Field(
+        ..., description="Virtual host name with non-ASCII characters escaped as in C."
+    )
     name: str = Field(..., description="The name of the policy.")
     pattern: str = Field(
         ...,
@@ -400,18 +403,11 @@ class PolicySpec(BaseModel):
         alias="apply-to",
         description="Which types of object this policy should apply to.",
     )
-    vhost: str = Field(
-        ..., description="Virtual host name with non-ASCII characters escaped as in C."
-    )
 
     class Config:
         use_enum_values = True
         validate_all = True
         allow_population_by_field_name = True
-
-
-class PolicyInfo(PolicySpec):
-    pass
 
 
 class QueueState(str, enum.Enum):
@@ -784,18 +780,18 @@ class RabbitMQAPI:
 
     def policies(
         self, vhost: Optional[str] = None, name: Optional[str] = None
-    ) -> Union[List[PolicyInfo], PolicyInfo]:
+    ) -> Union[List[PolicySpec], PolicySpec]:
         endpoint = "policies"
         if vhost is not None and name is not None:
             endpoint = f"{endpoint}/{vhost}/{name}/"
             response = self.get(endpoint)
-            return PolicyInfo(**response.json())
+            return PolicySpec(**response.json())
         elif vhost is not None:
             endpoint = f"{endpoint}/{vhost}/"
         elif name is not None:
             raise ValueError("name can not be set without vhost")
         response = self.get(endpoint)
-        return [PolicyInfo(**p) for p in response.json()]
+        return [PolicySpec(**p) for p in response.json()]
 
     def set_policy(self, policy: PolicySpec):
         endpoint = f"policies/{policy.vhost}/{policy.name}/"
