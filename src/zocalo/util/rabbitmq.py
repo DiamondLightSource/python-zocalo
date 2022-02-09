@@ -778,20 +778,17 @@ class RabbitMQAPI:
         endpoint = f"exchanges/{vhost}/{name}"
         self.delete(endpoint, params={"if_unused": if_unused})
 
-    def policies(
-        self, vhost: Optional[str] = None, name: Optional[str] = None
-    ) -> Union[List[PolicySpec], PolicySpec]:
+    def policies(self, vhost: Optional[str] = None) -> List[PolicySpec]:
         endpoint = "policies"
-        if vhost is not None and name is not None:
-            endpoint = f"{endpoint}/{vhost}/{name}/"
-            response = self.get(endpoint)
-            return PolicySpec(**response.json())
-        elif vhost is not None:
+        if vhost is not None:
             endpoint = f"{endpoint}/{vhost}/"
-        elif name is not None:
-            raise ValueError("name can not be set without vhost")
         response = self.get(endpoint)
         return [PolicySpec(**p) for p in response.json()]
+
+    def policy(self, vhost: str, name: str) -> PolicySpec:
+        endpoint = f"policies/{vhost}/{name}/"
+        response = self.get(endpoint)
+        return PolicySpec(**response.json())
 
     def set_policy(self, policy: PolicySpec):
         endpoint = f"policies/{policy.vhost}/{policy.name}/"

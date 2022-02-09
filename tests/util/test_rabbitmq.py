@@ -427,7 +427,7 @@ def test_api_policies(requests_mock, rmqapi):
 
     # Now call with vhost=..., name=...
     requests_mock.get(f"/api/policies/{policy['vhost']}/{policy['name']}/", json=policy)
-    assert rmqapi.policies(
+    assert rmqapi.policy(
         vhost=policy["vhost"], name=policy["name"]
     ) == rabbitmq.PolicySpec(**policy)
 
