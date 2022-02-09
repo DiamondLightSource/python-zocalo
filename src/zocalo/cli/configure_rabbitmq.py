@@ -300,9 +300,12 @@ def _configure_users(api, rabbitmq_user_config_area: Path):
 def run():
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     zc = zocalo.configuration.from_file()
-    zc.activate_environment("live")
+    zc.activate()
     parser = argparse.ArgumentParser()
     parser.add_argument("configuration", help="RabbitMQ configuration yaml file")
+    zc.add_command_line_options(parser)
+    args = parser.parse_args()
+
     api = RabbitMQAPI.from_zocalo_configuration(zc)
     try:
         rmq_config = zc.storage["zocalo.rabbitmq_user_config"]
@@ -311,7 +314,6 @@ def run():
             "Problem with Zocalo configuration file. Possibly zocalo.rabbitmq_user_config storage plugin is missing"
         )
         raise e
-    args = parser.parse_args()
 
     with open(args.configuration) as in_file:
         yaml_data = yaml.safe_load(in_file)
