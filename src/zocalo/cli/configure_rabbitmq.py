@@ -230,7 +230,7 @@ def _configure_users(api, rabbitmq_user_config_area: Path):
             password = config["rabbitmq"]["password"]
             assert username, "Configuration file does not contain a username"
             assert password, "Configuration file does not specify a password"
-            tags = config["rabbitmq"].get("tags", "")
+            tags = config["rabbitmq"].get("tags", "").split(",")
         except Exception:
             raise ValueError(f"Could not parse configuration file {config_file}")
         if username in planned_users:
@@ -245,7 +245,7 @@ def _configure_users(api, rabbitmq_user_config_area: Path):
             )
             if existing_users[username].password_hash == hashed_password and set(
                 existing_users[username].tags
-            ) == set(tags.split(",")):
+            ) == set(tags):
                 continue
             logger.info(
                 f"Updating user {username} due to password/tag mismatch (tags={tags})"
@@ -255,7 +255,7 @@ def _configure_users(api, rabbitmq_user_config_area: Path):
             logger.info(
                 f"Creating user {username} not defined on the server (tags={tags})"
             )
-        api.add_user(
+        api.user_put(
             UserSpec(
                 name=username,
                 password_hash=hashed_password,
@@ -266,7 +266,7 @@ def _configure_users(api, rabbitmq_user_config_area: Path):
 
     for user in set(existing_users) - set(planned_users):
         logger.info(f"Removing user {user} not defined in the configuration")
-        api.delete_user(name=user)
+        api.user_delete(name=user)
 
 
 def run():

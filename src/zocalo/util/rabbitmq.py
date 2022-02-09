@@ -553,34 +553,22 @@ class HashingAlgorithm(enum.Enum):
     rabbit_password_hashing_md5 = "rabbit_password_hashing_md5"
 
 
-class UserBase(BaseModel):
+class UserSpec(BaseModel):
+    """
+    Either password or password_hash can be set. If neither are set the user will not be
+    able to log in with a password, but other mechanisms like client certificates may
+    be used. Setting password_hash to "" will ensure the user cannot use a password to
+    log in. tags is a list of tags for the user. Currently recognised tags are
+    administrator, monitoring, and management.
+    """
+
     name: str = Field(..., description="Username")
     password_hash: str = Field(..., description="Hash of the user password.")
     hashing_algorithm: HashingAlgorithm
+    tags: List[str]
 
     class Config:
         use_enum_values = True
-
-
-class UserSpec(UserBase):
-    """
-    The tags key is mandatory.
-    Either password or password_hash can be set.If neither are set the user will not be
-    able to log in with a password, but other mechanisms like client certificates may
-    be used. Setting password_hash to "" will ensure the user cannot use a password to
-    log in. tags is a comma-separated list of tags for the user. Currently recognised
-    tags are administrator, monitoring and management. password_hash must be generated
-    using the algorithm described here. You may also specify the hash function being used
-    by adding the hashing_algorithm key to the body. Currently recognised algorithms are
-    rabbit_password_hashing_sha256, rabbit_password_hashing_sha512, and
-    rabbit_password_hashing_md5.
-    """
-
-    tags: str
-
-
-class UserInfo(UserBase):
-    tags: List[str]
 
 
 def http_api_request(
@@ -849,20 +837,23 @@ class RabbitMQAPI:
         endpoint = f"queues/{vhost}/{name}"
         self.delete(endpoint, params={"if_unused": if_unused, "if_empty": if_empty})
 
-    def users(self, name: Optional[str] = None) -> Union[List[UserInfo], UserInfo]:
+    def users(self) -> List[UserSpec]:
         endpoint = "users"
-        if name:
-            endpoint = f"{endpoint}/{name}/"
-            response = self.get(endpoint)
-            return UserInfo(**response.json())
         response = self.get(endpoint)
-        return [UserInfo(**u) for u in response.json()]
+        return [UserSpec(**user) for user in response.json()]
 
-    def add_user(self, user: UserSpec):
+    def user(self, name: str) -> UserSpec:
+        endpoint = f"users/{name}/"
+        response = self.get(endpoint).json()
+        return UserSpec(**response)
+
+    def user_put(self, user: UserSpec):
         endpoint = f"users/{user.name}/"
-        self.put(endpoint, json=user.dict(exclude_defaults=True, exclude={"name"}))
+        submission = user.dict(exclude_defaults=True, exclude={"name"})
+        submission["tags"] = ",".join(submission["tags"])
+        self.put(endpoint, json=submission)
 
-    def delete_user(self, name: str):
+    def user_delete(self, name: str):
         endpoint = f"users/{name}/"
         self.delete(endpoint)
 
