@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import base64
 import datetime
 import enum
+import hashlib
 import logging
 import pathlib
+import secrets
 import urllib
 import urllib.request
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -379,6 +382,9 @@ class PolicyApplyTo(enum.Enum):
 class PolicySpec(BaseModel):
     """Sets a policy."""
 
+    vhost: str = Field(
+        ..., description="Virtual host name with non-ASCII characters escaped as in C."
+    )
     name: str = Field(..., description="The name of the policy.")
     pattern: str = Field(
         ...,
@@ -397,18 +403,11 @@ class PolicySpec(BaseModel):
         alias="apply-to",
         description="Which types of object this policy should apply to.",
     )
-    vhost: str = Field(
-        ..., description="Virtual host name with non-ASCII characters escaped as in C."
-    )
 
     class Config:
         use_enum_values = True
         validate_all = True
         allow_population_by_field_name = True
-
-
-class PolicyInfo(PolicySpec):
-    pass
 
 
 class QueueState(str, enum.Enum):
@@ -550,34 +549,22 @@ class HashingAlgorithm(enum.Enum):
     rabbit_password_hashing_md5 = "rabbit_password_hashing_md5"
 
 
-class UserBase(BaseModel):
+class UserSpec(BaseModel):
+    """
+    Either password or password_hash can be set. If neither are set the user will not be
+    able to log in with a password, but other mechanisms like client certificates may
+    be used. Setting password_hash to "" will ensure the user cannot use a password to
+    log in. tags is a list of tags for the user. Currently recognised tags are
+    administrator, monitoring, and management.
+    """
+
     name: str = Field(..., description="Username")
     password_hash: str = Field(..., description="Hash of the user password.")
     hashing_algorithm: HashingAlgorithm
+    tags: List[str]
 
     class Config:
         use_enum_values = True
-
-
-class UserSpec(UserBase):
-    """
-    The tags key is mandatory.
-    Either password or password_hash can be set.If neither are set the user will not be
-    able to log in with a password, but other mechanisms like client certificates may
-    be used. Setting password_hash to "" will ensure the user cannot use a password to
-    log in. tags is a comma-separated list of tags for the user. Currently recognised
-    tags are administrator, monitoring and management. password_hash must be generated
-    using the algorithm described here. You may also specify the hash function being used
-    by adding the hashing_algorithm key to the body. Currently recognised algorithms are
-    rabbit_password_hashing_sha256, rabbit_password_hashing_sha512, and
-    rabbit_password_hashing_md5.
-    """
-
-    tags: str
-
-
-class UserInfo(UserBase):
-    tags: List[str]
 
 
 def http_api_request(
@@ -791,20 +778,17 @@ class RabbitMQAPI:
         endpoint = f"exchanges/{vhost}/{name}"
         self.delete(endpoint, params={"if_unused": if_unused})
 
-    def policies(
-        self, vhost: Optional[str] = None, name: Optional[str] = None
-    ) -> Union[List[PolicyInfo], PolicyInfo]:
+    def policies(self, vhost: Optional[str] = None) -> List[PolicySpec]:
         endpoint = "policies"
-        if vhost is not None and name is not None:
-            endpoint = f"{endpoint}/{vhost}/{name}/"
-            response = self.get(endpoint)
-            return PolicyInfo(**response.json())
-        elif vhost is not None:
+        if vhost is not None:
             endpoint = f"{endpoint}/{vhost}/"
-        elif name is not None:
-            raise ValueError("name can not be set without vhost")
         response = self.get(endpoint)
-        return [PolicyInfo(**p) for p in response.json()]
+        return [PolicySpec(**p) for p in response.json()]
+
+    def policy(self, vhost: str, name: str) -> PolicySpec:
+        endpoint = f"policies/{vhost}/{name}/"
+        response = self.get(endpoint)
+        return PolicySpec(**response.json())
 
     def set_policy(self, policy: PolicySpec):
         endpoint = f"policies/{policy.vhost}/{policy.name}/"
@@ -846,19 +830,36 @@ class RabbitMQAPI:
         endpoint = f"queues/{vhost}/{name}"
         self.delete(endpoint, params={"if_unused": if_unused, "if_empty": if_empty})
 
-    def users(self, name: Optional[str] = None) -> Union[List[UserInfo], UserInfo]:
+    def users(self) -> List[UserSpec]:
         endpoint = "users"
-        if name:
-            endpoint = f"{endpoint}/{name}/"
-            response = self.get(endpoint)
-            return UserInfo(**response.json())
         response = self.get(endpoint)
-        return [UserInfo(**u) for u in response.json()]
+        return [UserSpec(**user) for user in response.json()]
 
-    def add_user(self, user: UserSpec):
+    def user(self, name: str) -> UserSpec:
+        endpoint = f"users/{name}/"
+        response = self.get(endpoint).json()
+        return UserSpec(**response)
+
+    def user_put(self, user: UserSpec):
         endpoint = f"users/{user.name}/"
-        self.put(endpoint, json=user.dict(exclude_defaults=True, exclude={"name"}))
+        submission = user.dict(exclude_defaults=True, exclude={"name"})
+        submission["tags"] = ",".join(submission["tags"])
+        self.put(endpoint, json=submission)
 
-    def delete_user(self, name: str):
+    def user_delete(self, name: str):
         endpoint = f"users/{name}/"
         self.delete(endpoint)
+
+
+def hash_password(passwd: str, salt: Optional[str] = None) -> str:
+    if salt:
+        # extract salt from an existing password hash
+        salt_bytes = base64.b64decode(salt)[:4]
+    else:
+        salt_bytes = secrets.token_bytes(4)
+    utf8 = passwd.encode("utf-8")
+    temp1 = salt_bytes + utf8
+    temp2 = hashlib.sha256(temp1).digest()  # lgtm
+    salted_hash = salt_bytes + temp2
+    pass_hash = base64.b64encode(salted_hash)
+    return pass_hash.decode()

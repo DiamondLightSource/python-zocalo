@@ -367,11 +367,11 @@ def test_api_users(requests_mock, rmqapi):
 
     # First call rmq.users() with defaults
     requests_mock.get("/api/users", json=[user])
-    assert rmqapi.users() == [rabbitmq.UserInfo(**user)]
+    assert rmqapi.users() == [rabbitmq.UserSpec(**user)]
 
     # Now call with name=...
     requests_mock.get(f"/api/users/{user['name']}/", json=user)
-    assert rmqapi.users(name=user["name"]) == rabbitmq.UserInfo(**user)
+    assert rmqapi.user(user["name"]) == rabbitmq.UserSpec(**user)
 
 
 @pytest.fixture
@@ -380,13 +380,13 @@ def user_spec():
         name="guest",
         password_hash="guest",
         hashing_algorithm="rabbit_password_hashing_sha256",
-        tags="administrator",
+        tags=["administrator"],
     )
 
 
 def test_api_add_user(requests_mock, rmqapi, user_spec):
     requests_mock.put(f"/api/users/{user_spec.name}/")
-    rmqapi.add_user(user=user_spec)
+    rmqapi.user_put(user=user_spec)
     assert requests_mock.call_count == 1
     history = requests_mock.request_history[0]
     assert history.method == "PUT"
@@ -400,7 +400,7 @@ def test_api_add_user(requests_mock, rmqapi, user_spec):
 
 def test_api_delete_user(requests_mock, rmqapi, user_spec):
     requests_mock.delete("/api/users/guest/")
-    rmqapi.delete_user(name="guest")
+    rmqapi.user_delete(name="guest")
     assert requests_mock.call_count == 1
     history = requests_mock.request_history[0]
     assert history.method == "DELETE"
@@ -419,17 +419,17 @@ def test_api_policies(requests_mock, rmqapi):
 
     # First call rmq.policies() with defaults
     requests_mock.get("/api/policies", json=[policy])
-    assert rmqapi.policies() == [rabbitmq.PolicyInfo(**policy)]
+    assert rmqapi.policies() == [rabbitmq.PolicySpec(**policy)]
 
     # Now call with vhost=...
     requests_mock.get(f"/api/policies/{policy['vhost']}/", json=[policy])
-    assert rmqapi.policies(vhost=policy["vhost"]) == [rabbitmq.PolicyInfo(**policy)]
+    assert rmqapi.policies(vhost=policy["vhost"]) == [rabbitmq.PolicySpec(**policy)]
 
     # Now call with vhost=..., name=...
     requests_mock.get(f"/api/policies/{policy['vhost']}/{policy['name']}/", json=policy)
-    assert rmqapi.policies(
+    assert rmqapi.policy(
         vhost=policy["vhost"], name=policy["name"]
-    ) == rabbitmq.PolicyInfo(**policy)
+    ) == rabbitmq.PolicySpec(**policy)
 
 
 @pytest.fixture
