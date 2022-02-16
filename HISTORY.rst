@@ -4,8 +4,14 @@ History
 
 Unreleased
 ----------
-* Fix for getting user information from the RabbitMQ management API 
-* Add user removal to RabbitMQ configuration command line tool
+
+0.15.0 (2022-02-16)
+-------------------
+* Fix for getting user information from the RabbitMQ management API
+* Major changes to the RabbitMQ configuration command line tool.
+  Users are now updated and deleted, and the tool now understands
+  zocalo environment parameters. Configuration files are now
+  mandatory, and the ``--seed`` parameter has been removed.
 
 0.14.0 (2021-12-14)
 -------------------
