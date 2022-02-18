@@ -20,7 +20,13 @@ def zocalo_configuration(mocker):
     return mock_zc
 
 
-def test_mailer_receive_msg(mocker, zocalo_configuration):
+@pytest.fixture
+def mock_smtp_send_message(mocker):
+    mock_smtp = mocker.patch("smtplib.SMTP")
+    return mock_smtp.return_value.__enter__.return_value.send_message
+
+
+def test_mailer_receive_msg(zocalo_configuration, mock_smtp_send_message):
     message = {
         "recipe": {
             "1": {
@@ -51,16 +57,13 @@ def test_mailer_receive_msg(mocker, zocalo_configuration):
     mailer = Mailer()
     mailer.transport = t
     mailer.start()
-    mock_smtp = mocker.patch("smtplib.SMTP")
     msg = {
         "foo": "bar",
         "ham": "spam",
     }
     mailer.receive_msg(rw, header, msg)
-    mock_smtp.return_value.__enter__.return_value.send_message.assert_called_once()
-    email_msg = mock_smtp.return_value.__enter__.return_value.send_message.call_args[0][
-        0
-    ]
+    mock_smtp_send_message.assert_called_once()
+    email_msg = mock_smtp_send_message.call_args[0][0]
     assert email_msg["To"] == "bar@example.com, foo@example.com"
     assert email_msg["From"] == "zocalo@example.com"
     assert email_msg["Subject"] == "This is a test email"
