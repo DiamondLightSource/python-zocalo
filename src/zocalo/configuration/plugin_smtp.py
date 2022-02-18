@@ -9,6 +9,7 @@ class SMTP:
     class Schema(PluginSchema):
         host = fields.Str(required=True)
         port = fields.Int(required=True)
+        from_ = fields.Email(data_key="from")
 
     @staticmethod
     def activate(configuration):
