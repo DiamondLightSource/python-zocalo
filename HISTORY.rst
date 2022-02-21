@@ -5,6 +5,10 @@ History
 Unreleased
 ----------
 
+* Add ``Mailer`` service for sending email notifications.
+  Subscribes to the ``mailnotification`` queue. SMTP settings are specified
+  via the ``smtp`` plugin in ``zocalo.configuration``.
+
 0.15.0 (2022-02-16)
 -------------------
 * Fix for getting user information from the RabbitMQ management API
