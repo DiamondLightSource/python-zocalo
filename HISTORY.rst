@@ -5,6 +5,8 @@ History
 Unreleased
 ----------
 
+0.15.0 (2022-02-21)
+-------------------
 * Add ``Mailer`` service for sending email notifications.
   Subscribes to the ``mailnotification`` queue. SMTP settings are specified
   via the ``smtp`` plugin in ``zocalo.configuration``.
