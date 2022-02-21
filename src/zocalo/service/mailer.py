@@ -32,13 +32,12 @@ class Mailer(CommonService):
         Received messages must be acknowledged."""
         self.log.debug("Mail notifications starting")
 
-        zc = zocalo.configuration.from_file()
-        zc.activate()
-        if not zc.smtp:
+        if not self.config:
+            raise zocalo.ConfigurationError("No Zocalo configuration loaded")
+        if not self.config.smtp:
             raise zocalo.ConfigurationError(
                 "There are no SMTP settings configured in your environment"
             )
-        self._smtp = zc.smtp
 
         workflows.recipe.wrap_subscribe(
             self._transport,
@@ -103,7 +102,7 @@ class Mailer(CommonService):
         else:
             recipients = self.listify(recipients)
 
-        sender = parameters.get("from", self._smtp["from"])
+        sender = parameters.get("from", self.config.smtp["from"])
 
         subject = parameters.get("subject", "mail notification via zocalo")
 
@@ -138,7 +137,7 @@ class Mailer(CommonService):
             msg["From"] = sender
             msg.set_content(content)
             with smtplib.SMTP(
-                host=self._smtp["host"], port=self._smtp["port"], timeout=60
+                host=self.config.smtp["host"], port=self.config.smtp["port"], timeout=60
             ) as s:
                 s.send_message(msg)
         except TimeoutError as e:

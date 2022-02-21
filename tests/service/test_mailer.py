@@ -6,13 +6,14 @@ import pytest
 from workflows.recipe.wrapper import RecipeWrapper
 from workflows.transport.offline_transport import OfflineTransport
 
+import zocalo.configuration
 from zocalo.service.mailer import Mailer
 
 
 @pytest.fixture
-def zocalo_configuration(mocker):
-    mock_zc = mocker.patch("zocalo.configuration.from_file", autospec=True)
-    mock_zc.return_value.smtp = {
+def zocalo_configuration():
+    mock_zc = mock.MagicMock(zocalo.configuration.Configuration)
+    mock_zc.smtp = {
         "host": "localhost",
         "port": 4242,
         "from": "zocalo@example.com",
@@ -55,6 +56,7 @@ def test_mailer_receive_msg(zocalo_configuration, mock_smtp_send_message):
     t = OfflineTransport()
     rw = RecipeWrapper(message=message, transport=t)
     mailer = Mailer()
+    mailer._environment = {"config": zocalo_configuration}
     mailer.transport = t
     mailer.start()
     msg = {
