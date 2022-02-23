@@ -328,6 +328,7 @@ class ExchangeType(enum.Enum):
     topic = "topic"
     headers = "headers"
     fanout = "fanout"
+    x_delayed_message = "x-delayed-message"
 
 
 class ExchangeSpec(BaseModel):
