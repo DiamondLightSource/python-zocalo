@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import configparser
 import functools
+import itertools
 import logging
 from pathlib import Path
 from typing import Any, Dict, List
@@ -100,21 +101,27 @@ def update_config(
 
 
 def get_binding_specs(group: Dict) -> List[BindingSpec]:
-    source = group.get("bindings", "")
+    sources = group.get("bindings", [""])
     vhost = group.get("vhost", "/")
-    bspecs = [
-        BindingSpec(
-            vhost=vhost,
-            source=source,
-            destination=name,
-            destination_type="q",
-            routing_key=name,
-            arguments={},
-            properties_key=name,
+    return list(
+        itertools.chain(
+            *[
+                [
+                    BindingSpec(
+                        vhost=vhost,
+                        source=source,
+                        destination=name,
+                        destination_type="q",
+                        routing_key=name,
+                        arguments={},
+                        properties_key=name,
+                    )
+                    for source in sources
+                ]
+                for name in group["names"]
+            ]
         )
-        for name in group["names"]
-    ]
-    return bspecs
+    )
 
 
 def get_queue_specs(group: Dict) -> List[QueueSpec]:
@@ -157,7 +164,16 @@ def get_queue_specs(group: Dict) -> List[QueueSpec]:
     return qspecs
 
 
-def get_exchange_specs(group: Dict) -> List[ExchangeSpec]:
+def get_exchange_specs(exchanges: Dict) -> List[ExchangeSpec]:
+    return [
+        ExchangeSpec(
+            **exchange,
+        )
+        for exchange in exchanges
+    ]
+
+
+def get_exchange_specs_for_group(group: Dict) -> List[ExchangeSpec]:
     vhost = group.get("vhost", "/")
     if group.get("settings", {}).get("broadcast"):
         etype = "fanout"
@@ -322,11 +338,11 @@ def run():
     _configure_policies(api, yaml_data["policies"])
 
     queue_specs = []
-    exchange_specs = []
+    exchange_specs = get_exchange_specs(yaml_data["exchanges"])
     binding_specs = []
     for group in yaml_data["groups"]:
         if group.get("settings", {}).get("broadcast"):
-            exchange_specs.extend(get_exchange_specs(group))
+            exchange_specs.extend(get_exchange_specs_for_group(group))
         else:
             queue_specs.extend(get_queue_specs(group))
             binding_specs.extend(get_binding_specs(group))
