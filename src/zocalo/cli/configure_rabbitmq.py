@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import configparser
 import functools
-import itertools
 import logging
 from pathlib import Path
 from typing import Any, Dict, List
@@ -103,25 +102,19 @@ def update_config(
 def get_binding_specs(group: Dict) -> List[BindingSpec]:
     sources = group.get("bindings", [""])
     vhost = group.get("vhost", "/")
-    return list(
-        itertools.chain(
-            *[
-                [
-                    BindingSpec(
-                        vhost=vhost,
-                        source=source,
-                        destination=name,
-                        destination_type="q",
-                        routing_key=name,
-                        arguments={},
-                        properties_key=name,
-                    )
-                    for source in sources
-                ]
-                for name in group["names"]
-            ]
+    return [
+        BindingSpec(
+            vhost=vhost,
+            source=source,
+            destination=name,
+            destination_type="q",
+            routing_key=name,
+            arguments={},
+            properties_key=name,
         )
-    )
+        for source in sources
+        for name in group["names"]
+    ]
 
 
 def get_queue_specs(group: Dict) -> List[QueueSpec]:
