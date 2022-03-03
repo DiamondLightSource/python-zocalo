@@ -5,6 +5,12 @@ History
 Unreleased
 ----------
 
+0.17.0 (2022-03-03)
+-------------------
+* ``zocalo.configure_rabbitmq`` cli:
+    * Support for explicitly declaring exchanges
+    * Allow queues to bind to more than one exchange
+
 0.16.0 (2022-02-21)
 -------------------
 * Add ``Mailer`` service for sending email notifications.
