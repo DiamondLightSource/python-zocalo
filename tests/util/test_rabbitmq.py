@@ -20,8 +20,11 @@ def zocalo_configuration(mocker):
 
 
 @pytest.fixture
-def rmqapi(zocalo_configuration):
-    return rabbitmq.RabbitMQAPI.from_zocalo_configuration(zocalo_configuration)
+def rmqapi(requests_mock, zocalo_configuration):
+    requests_mock.get(re.compile("/health/checks/alarms"), json={"status": "ok"})
+    api = rabbitmq.RabbitMQAPI.from_zocalo_configuration(zocalo_configuration)
+    requests_mock.reset_mock()
+    return api
 
 
 def test_http_api_request(zocalo_configuration):

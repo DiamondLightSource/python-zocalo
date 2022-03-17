@@ -602,16 +602,29 @@ def http_api_request(
 
 class RabbitMQAPI:
     def __init__(self, url: str, user: str, password: str):
-        self._auth = (user, password)
         self._url = url
+        self._session = requests.Session()
+        self._session.auth = (user, password)
 
     @classmethod
     def from_zocalo_configuration(cls, zc: zocalo.configuration.Configuration):
-        return cls(
-            url=zc.rabbitmqapi["base_url"],
-            user=zc.rabbitmqapi["username"],
-            password=zc.rabbitmqapi["password"],
-        )
+        instance = None
+        base_url = zc.rabbitmqapi["base_url"]
+        for url in base_url.split(","):
+            instance = cls(
+                url=url,
+                user=zc.rabbitmqapi["username"],
+                password=zc.rabbitmqapi["password"],
+            )
+            try:
+                instance.get("health/checks/alarms")
+                break
+            except requests.ConnectionError as e:
+                logger.warning(f"Could not connect to {url}: {e}")
+                instance = None
+        if not instance:
+            raise RuntimeError(f"Could not connect to RabbitMQ API: {base_url}")
+        return instance
 
     @property
     def health_checks(self) -> Tuple[Dict[str, Any], Dict[str, str]]:
@@ -638,14 +651,22 @@ class RabbitMQAPI:
                 failure[health_check] = response.json()
         return success, failure
 
-    def get(self, endpoint: str, params: Dict[str, Any] = None) -> requests.Response:
-        return requests.get(f"{self._url}/{endpoint}", auth=self._auth, params=params)
+    def get(
+        self, endpoint: str, params: Dict[str, Any] = None, timeout: float = None
+    ) -> requests.Response:
+        return self._session.get(
+            f"{self._url}/{endpoint}", params=params, timeout=timeout
+        )
 
     def put(
-        self, endpoint: str, params: Dict[str, Any] = None, json: Dict[str, Any] = None
+        self,
+        endpoint: str,
+        params: Dict[str, Any] = None,
+        json: Dict[str, Any] = None,
+        timeout: float = None,
     ) -> requests.Response:
-        return requests.put(
-            f"{self._url}/{endpoint}", auth=self._auth, params=params, json=json
+        return self._session.put(
+            f"{self._url}/{endpoint}", params=params, json=json, timeout=timeout
         )
 
     def post(
@@ -653,14 +674,18 @@ class RabbitMQAPI:
         endpoint: str,
         data: Optional[Dict[str, Any]] = None,
         json: Optional[Dict[str, Any]] = None,
+        timeout: float = None,
     ) -> requests.Response:
-        return requests.post(
-            f"{self._url}/{endpoint}", auth=self._auth, data=data, json=json
+        print(f"POST {self._url}/{endpoint}")
+        return self._session.post(
+            f"{self._url}/{endpoint}", data=data, json=json, timeout=timeout
         )
 
-    def delete(self, endpoint: str, params: Dict[str, Any] = None) -> requests.Response:
-        return requests.delete(
-            f"{self._url}/{endpoint}", auth=self._auth, params=params
+    def delete(
+        self, endpoint: str, params: Dict[str, Any] = None, timeout: float = None
+    ) -> requests.Response:
+        return self._session.delete(
+            f"{self._url}/{endpoint}", params=params, timeout=timeout
         )
 
     def bindings(
