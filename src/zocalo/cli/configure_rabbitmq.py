@@ -237,7 +237,8 @@ def _configure_queues(api, queues: list[QueueSpec]):
             )
             if equivalent_definition:
                 continue
-            logger.info(f"Updating queue: {queue_spec}")
+            logger.info(f"Deleting/recreating queue: {queue_spec}")
+            api.queue_delete(vhost=queue_id[0], name=queue_id[1], if_empty=True)
         else:
             logger.info(f"Creating queue: {queue_spec}")
         api.queue_declare(queue_spec)
@@ -252,7 +253,7 @@ def _configure_queues(api, queues: list[QueueSpec]):
             # Leave temporary queues alone
             continue
         logger.info(f"Removing undefined queue {queue_id}")
-        api.queue_delete(vhost=queue_id[0], name=queue_id[1])
+        api.queue_delete(vhost=queue_id[0], name=queue_id[1], if_empty=True)
 
 
 def _configure_users(api, rabbitmq_user_config_area: Path):
