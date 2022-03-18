@@ -652,7 +652,7 @@ class RabbitMQAPI:
         return success, failure
 
     def get(
-        self, endpoint: str, params: Dict[str, Any] = None, timeout: float = None
+        self, endpoint: str, params: Dict[str, Any] = None, timeout: float | None = None
     ) -> requests.Response:
         return self._session.get(
             f"{self._url}/{endpoint}", params=params, timeout=timeout
@@ -663,7 +663,7 @@ class RabbitMQAPI:
         endpoint: str,
         params: Dict[str, Any] = None,
         json: Dict[str, Any] = None,
-        timeout: float = None,
+        timeout: float | None = None,
     ) -> requests.Response:
         return self._session.put(
             f"{self._url}/{endpoint}", params=params, json=json, timeout=timeout
@@ -674,15 +674,14 @@ class RabbitMQAPI:
         endpoint: str,
         data: Optional[Dict[str, Any]] = None,
         json: Optional[Dict[str, Any]] = None,
-        timeout: float = None,
+        timeout: float | None = None,
     ) -> requests.Response:
-        print(f"POST {self._url}/{endpoint}")
         return self._session.post(
             f"{self._url}/{endpoint}", data=data, json=json, timeout=timeout
         )
 
     def delete(
-        self, endpoint: str, params: Dict[str, Any] = None, timeout: float = None
+        self, endpoint: str, params: Dict[str, Any] = None, timeout: float | None = None
     ) -> requests.Response:
         return self._session.delete(
             f"{self._url}/{endpoint}", params=params, timeout=timeout
