@@ -47,6 +47,7 @@ def test_activemq_dlq_rabbitmq_check(requests_mock):
             },
         ],
     )
+    requests_mock.get("/api/health/checks/alarms", json={"status": "ok"})
 
     checked = zocalo.cli.dlq_check.check_dlq_rabbitmq(zc, "zocalo")
     assert checked == {"dlq.images": 2, "dlq.transient": 5}
