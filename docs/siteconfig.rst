@@ -122,6 +122,9 @@ configuration. While it is fundamentally possible to combine multiple
 configurations (using the ``incremental`` key), this will cause all sorts of
 problems and is therefore strongly discouraged.
 
+Please note that Zocalo commands will currently always add a handler to log
+to the console. This behaviour may be reviewed in the future.
+
 The Zocalo configuration object exposes a facility to read out and increase
 a verbosity level, which will apply incremental changes to the logging
 configuration. In the above example setting ``zc.logging.verbosity = 1``
