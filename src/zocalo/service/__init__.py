@@ -41,9 +41,9 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
             logging.getLogger().setLevel(logging.WARN)
             logging.getLogger("workflows").setLevel(logging.INFO)
             logging.getLogger("zocalo").setLevel(logging.DEBUG)
+            logging.getLogger("zocalo.service").setLevel(logging.DEBUG)
 
         self.log = logging.getLogger("zocalo.service")
-        self.log.setLevel(logging.DEBUG)
 
     def __init__(self):
         # load configuration and initialize logging
@@ -104,6 +104,8 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
     def on_parsing(self, options, args):
         if options.verbose:
             self.console.setLevel(logging.DEBUG)
+            if self._zc.logging:
+                self._zc.logging.verbosity = options.verbose
         if options.debug:
             self.console.setLevel(logging.DEBUG)
             if not self._zc.logging:
