@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import copy
-import logging
 import logging.config
 import socket
 from typing import Any
@@ -148,3 +147,47 @@ def GraylogUDPHandler(*, host: str, port: int) -> logging.Handler:
     """
     _monkeypatch_graypy()
     return graypy.GELFUDPHandler(_resolve_hostname(host), port, level_names=True)
+
+
+class DowngradeFilter(logging.Filter):
+    """
+    Reduces the level of a log message within certain boundaries.
+
+    The two thresholds are 'reduce_to' and 'only_below'.
+
+    Messages with a level between 'reduce_to' (default: WARNING) and 'only_below'
+    (default: CRITICAL) have their log level changed to 'reduce_to'.
+
+    Messages with a level below the 'reduce_to' threshold, or at or above the
+    'only_below' threshold are passed through unchanged.
+    """
+
+    def __init__(self, reduce_to: str = "WARNING", *, only_below: str = "CRITICAL"):
+        super().__init__()
+
+        self._reduce_to_name = reduce_to
+        self._reduce_to_value = logging.getLevelName(reduce_to)
+        self._only_below_name = only_below
+        self._only_below_value = logging.getLevelName(only_below)
+
+        if self._only_below_value <= self._reduce_to_value:
+            raise ValueError(
+                f"'reduce_to' ({self._reduce_to_name} = {self._reduce_to_value})"
+                " must be smaller than"
+                f" 'only_below' ({self._only_below_name} = {self._only_below_value})"
+            )
+
+    def __repr__(self) -> str:
+        return (
+            f"<DowngradeFilter reduce_to={self._reduce_to_name}"
+            f" only_below={self._only_below_name}>"
+        )
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        if record.levelno <= self._reduce_to_value:
+            return True
+        if record.levelno >= self._only_below_value:
+            return True
+        record.levelno = self._reduce_to_value
+        record.levelname = self._reduce_to_name
+        return True

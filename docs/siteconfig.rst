@@ -147,14 +147,31 @@ To use these handlers you can declare them as follows:
 
    some-unique-name:
        plugin: logging
-        handlers:
-          graylog:
-            (): zocalo.configuration.plugin_logging.GraylogUDPHandler
-            host: example.com
-            port: 1234
-        root:
-          handlers: [ graylog ]
+       handlers:
+         graylog:
+           (): zocalo.configuration.plugin_logging.GraylogUDPHandler
+           host: example.com
+           port: 1234
+       root:
+         handlers: [ graylog ]
 
+The logging plugin offers a log filter (``DowngradeFilter``), which can
+be attached to loggers to reduce the severity of messages. It takes two
+parameters, ``reduce_to`` (default: ``WARNING``) and ``only_below``
+(default: ``CRITICAL``), and messages with a level between ``reduce_to``
+and ``only_below`` have their log level changed to ``reduce_to``:
+
+.. code-block:: yaml
+
+   some-unique-name:
+       plugin: logging
+       filters:
+         downgrade_all_warnings_and_errors:
+           (): zocalo.configuration.plugin_logging.DowngradeFilter
+           reduce_to: INFO
+       loggers:
+         pika:
+           filters: [ downgrade_all_warnings_and_errors ]
 
 Graylog plugin
 ^^^^^^^^^^^^^^

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from unittest import mock
 
 import pytest
@@ -214,3 +215,43 @@ environments:
     )
     with pytest.raises(zocalo.ConfigurationError, match="not a dictionary"):
         zc.activate_environment("live")
+
+
+def test_downgrade_filter_downgrades_log_messages():
+    record = logging.LogRecord(
+        "some.logger", logging.ERROR, "path", 10, "msg", (), None
+    )
+
+    f = zocalo.configuration.plugin_logging.DowngradeFilter(
+        "WARNING", only_below="CRITICAL"
+    )
+    f.filter(record)
+
+    assert record.levelname == "WARNING"
+    assert record.levelno == logging.WARNING
+
+
+def test_downgrade_filter_leaves_low_level_messages_alone():
+    record = logging.LogRecord("some.logger", logging.INFO, "path", 10, "msg", (), None)
+
+    f = zocalo.configuration.plugin_logging.DowngradeFilter(
+        "WARNING", only_below="CRITICAL"
+    )
+    f.filter(record)
+
+    assert record.levelname == "INFO"
+    assert record.levelno == logging.INFO
+
+
+def test_downgrade_filter_leaves_high_level_messages_alone():
+    record = logging.LogRecord(
+        "some.logger", logging.CRITICAL, "path", 10, "msg", (), None
+    )
+
+    f = zocalo.configuration.plugin_logging.DowngradeFilter(
+        "WARNING", only_below="CRITICAL"
+    )
+    f.filter(record)
+
+    assert record.levelname == "CRITICAL"
+    assert record.levelno == logging.CRITICAL
