@@ -4,11 +4,11 @@ import copy
 import logging
 import logging.config
 import socket
-from pprint import pprint
 from typing import Any
 
 import graypy.handler
-import logging_tree
+
+import zocalo
 
 
 def _config_is_incremental(config: dict[str, Any]) -> bool:
@@ -48,13 +48,8 @@ class LoggingIncrementer:
                 incremental = self._setup.get("verbose", [])[verbosity_level]
             except IndexError:
                 break
-            print(f"== Applying verbosity {verbosity_level+1} ==")
-            incremental.setdefault("version", self._setup["version"])
-            incremental.setdefault("incremental", True)
-            pprint(incremental)
             logging.config.dictConfig(incremental)
-            self._verbosity_level = value
-            logging_tree.printout()
+            self._verbosity_level = verbosity_level + 1
 
     def __repr__(self) -> str:
         return f"<LoggingConfiguration verbosity={self._verbosity_level}>"
@@ -67,27 +62,25 @@ class Logging:
     """
 
     @staticmethod
-    def activate(configuration, config_object):
+    def activate(configuration: dict) -> LoggingIncrementer:
         logconfig = copy.deepcopy(configuration)
 
-        pprint(logconfig)
         del logconfig["plugin"]
         logconfig.setdefault("version", 1)
         logconfig.setdefault("disable_existing_loggers", False)
         logconfig.setdefault("incremental", False)
-        pprint(logconfig)
-        logging.config.dictConfig(logconfig)
-        logging_tree.printout()
 
         if logconfig["incremental"] and not _config_is_incremental(logconfig):
-            raise ValueError(
+            raise zocalo.ConfigurationError(
                 "Logging configuration error: definition defines items not allowed "
                 "in an incremental definition"
             )
 
+        logging.config.dictConfig(logconfig)
+
         for level, verbosity_def in enumerate(logconfig.get("verbose", [])):
             if not isinstance(verbosity_def, dict):
-                raise ValueError(
+                raise zocalo.ConfigurationError(
                     f"Logging configuration error: verbosity level {level+1} definition "
                     "is not a dictionary"
                 )
@@ -96,7 +89,7 @@ class Logging:
             if verbosity_def["incremental"] and not _config_is_incremental(
                 verbosity_def
             ):
-                raise ValueError(
+                raise zocalo.ConfigurationError(
                     f"Logging configuration error: verbosity level {level+1} definition "
                     "defines items not allowed in an incremental definition"
                 )
