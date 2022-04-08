@@ -97,20 +97,30 @@ This plugin allows site-wide logging configuration. For example:
    some-unique-name:
        plugin: logging
        loggers:
-         zocalo: WARNING
-         workflows: WARNING
+         zocalo:
+           level: WARNING
+         workflows:
+           level: WARNING
        verbose:
          - loggers:
-             zocalo: INFO
+             zocalo:
+               level: INFO
          - loggers:
-             zocalo: DEBUG
-             workflows: DEBUG
+             zocalo:
+               level: DEBUG
+             workflows:
+               level: DEBUG
 
 would set the Python loggers ``zocalo`` and ``workflows`` to only report
 messages of level ``WARNING`` and above. Apart from the additional
 ``plugin:``- and ``verbose:``-keys the syntax follows the
 `Python Logging Configuration Schema`_. This allows not only the setting of
 log levels, but also the definition of log handlers, filters, and formatters.
+
+A plugin definition will, by default, overwrite any previous logging
+configuration. While it is fundamentally possible to combine multiple
+configurations (using the ``incremental`` key), this will cause all sorts of
+problems and is therefore strongly discouraged.
 
 The Zocalo configuration object exposes a facility to read out and increase
 a verbosity level, which will apply incremental changes to the logging
