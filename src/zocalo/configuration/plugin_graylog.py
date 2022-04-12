@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import socket
+import warnings
 
 import graypy.handler
 from marshmallow import fields, validate
@@ -45,6 +46,12 @@ class Graylog:
 
     @staticmethod
     def activate(configuration):
+        warnings.warn(
+            "The Graylog configuration plugin will soon be deprecated."
+            " It will be replaced by the more powerful logging plugin.",
+            PendingDeprecationWarning,
+        )
+
         graypy.handler.SYSLOG_LEVELS = _PythonLevelToSyslogConverter()
 
         # Create and enable graylog handler
