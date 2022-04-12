@@ -5,7 +5,7 @@ History
 Unreleased
 ----------
 
-0.18.0 (2022-04-08)
+0.18.0 (2022-04-12)
 -------------------
 * Added a logging configuration plugin to comprehensively
   configure logging across applications.
