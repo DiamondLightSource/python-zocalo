@@ -37,15 +37,6 @@ def _enable_faulthandler():
 
 
 def run():
-    # Enable logging to console
-    console = logging.StreamHandler()
-    console.setLevel(logging.INFO)
-    logging.getLogger("workflows").setLevel(logging.INFO)
-    logging.getLogger("zocalo").setLevel(logging.INFO)
-    logging.getLogger().setLevel(logging.WARN)
-    logging.getLogger().addHandler(console)
-    log = logging.getLogger("zocalo.wrap")
-
     zc = zocalo.configuration.from_file()
     zc.activate()
 
@@ -77,10 +68,9 @@ def run():
     parser.add_argument(
         "-v",
         "--verbose",
-        dest="verbose",
-        action="store_true",
-        default=False,
-        help="Show debug level messages",
+        action="count",
+        default=0,
+        help="Increase output verbosity",
     )
 
     zc.add_command_line_options(parser)
@@ -89,19 +79,32 @@ def run():
     # Parse command line arguments
     args = parser.parse_args()
 
+    # Always enable logging to console
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    logging.getLogger().addHandler(console)
+    if args.verbose:
+        console.setLevel(logging.DEBUG)
+
+    if zc.logging:
+        zc.logging.verbosity = args.verbose
+    else:
+        logging.getLogger("workflows").setLevel(logging.INFO)
+        logging.getLogger("zocalo").setLevel(logging.INFO)
+        logging.getLogger().setLevel(logging.WARN)
+
+    _enable_faulthandler()
+    log = logging.getLogger("zocalo.wrap")
+
     # Instantiate specific wrapper
     if not args.wrapper:
         sys.exit("A wrapper object must be specified.")
-
-    if args.verbose:
-        console.setLevel(logging.DEBUG)
 
     log.info(
         "Starting wrapper for %s with recipewrapper file %s",
         args.wrapper,
         args.recipewrapper,
     )
-    _enable_faulthandler()
 
     # Connect to transport and start sending notifications
     transport = workflows.transport.lookup(args.transport)()

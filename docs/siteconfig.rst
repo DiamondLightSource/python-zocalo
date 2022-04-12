@@ -87,10 +87,97 @@ Storage plugin
 
 tbd.
 
+Logging plugin
+^^^^^^^^^^^^^^
+
+This plugin allows site-wide logging configuration. For example:
+
+.. code-block:: yaml
+
+   some-unique-name:
+       plugin: logging
+       loggers:
+         zocalo:
+           level: WARNING
+         workflows:
+           level: WARNING
+       verbose:
+         - loggers:
+             zocalo:
+               level: INFO
+         - loggers:
+             zocalo:
+               level: DEBUG
+             workflows:
+               level: DEBUG
+
+would set the Python loggers ``zocalo`` and ``workflows`` to only report
+messages of level ``WARNING`` and above. Apart from the additional
+``plugin:``- and ``verbose:``-keys the syntax follows the
+`Python Logging Configuration Schema`_. This allows not only the setting of
+log levels, but also the definition of log handlers, filters, and formatters.
+
+A plugin definition will, by default, overwrite any previous logging
+configuration. While it is fundamentally possible to combine multiple
+configurations (using the ``incremental`` key), this will cause all sorts of
+problems and is therefore strongly discouraged.
+
+Please note that Zocalo commands will currently always add a handler to log
+to the console. This behaviour may be reviewed in the future.
+
+The Zocalo configuration object exposes a facility to read out and increase
+a verbosity level, which will apply incremental changes to the logging
+configuration. In the above example setting ``zc.logging.verbosity = 1``
+would change the log level for ``zocalo`` to ``INFO`` while leaving
+``workflows`` at ``WARNING``. Setting ``zc.logging.verbosity = 2`` would
+change both to ``DEBUG``.
+
+Note that the verbosity level cannot be decreased, and due to the Python
+Logging model verbosity changes should be done close to the initial logging
+setup, as otherwise child loggers may have been set up inheriting previous
+settings.
+
+The logging plugin offers two Graylog handlers (``GraylogUDPHandler``,
+``GraylogTCPHandler``). These are based on `graypy`_, but offer slightly
+improved performance by front-loading DNS lookups and apply a patch to
+``graypy`` to ensure syslog levels are correctly reported to Graylog.
+To use these handlers you can declare them as follows:
+
+.. code-block:: yaml
+
+   some-unique-name:
+       plugin: logging
+       handlers:
+         graylog:
+           (): zocalo.configuration.plugin_logging.GraylogUDPHandler
+           host: example.com
+           port: 1234
+       root:
+         handlers: [ graylog ]
+
+The logging plugin offers a log filter (``DowngradeFilter``), which can
+be attached to loggers to reduce the severity of messages. It takes two
+parameters, ``reduce_to`` (default: ``WARNING``) and ``only_below``
+(default: ``CRITICAL``), and messages with a level between ``reduce_to``
+and ``only_below`` have their log level changed to ``reduce_to``:
+
+.. code-block:: yaml
+
+   some-unique-name:
+       plugin: logging
+       filters:
+         downgrade_all_warnings_and_errors:
+           (): zocalo.configuration.plugin_logging.DowngradeFilter
+           reduce_to: INFO
+       loggers:
+         pika:
+           filters: [ downgrade_all_warnings_and_errors ]
+
 Graylog plugin
 ^^^^^^^^^^^^^^
 
-tbd.
+This should be considered deprecated and will be removed at some point in the
+future. Use the Logging plugin instead.
 
 .. _environments:
 
@@ -158,8 +245,10 @@ Writing your own plugins
 
 tbd.
 
-.. _example configuration file: https://github.com/DiamondLightSource/python-zocalo/blob/main/contrib/site-configuration.yml
-.. _workflows: https://github.com/DiamondLightSource/python-workflows/tree/main/src/workflows/util/zocalo
-.. _YAML: https://en.wikipedia.org/wiki/YAML
-.. _YAML primer: https://getopentest.org/reference/yaml-primer.html
+.. _Python Logging Configuration Schema: https://docs.python.org/3/library/logging.config.html#dictionary-schema-details
 .. _Python entry points: https://amir.rachum.com/blog/2017/07/28/python-entry-points/
+.. _YAML primer: https://getopentest.org/reference/yaml-primer.html
+.. _YAML: https://en.wikipedia.org/wiki/YAML
+.. _example configuration file: https://github.com/DiamondLightSource/python-zocalo/blob/main/contrib/site-configuration.yml
+.. _graypy: https://pypi.org/project/graypy/
+.. _workflows: https://github.com/DiamondLightSource/python-workflows/tree/main/src/workflows/util/zocalo

@@ -5,6 +5,11 @@ History
 Unreleased
 ----------
 
+0.18.0 (2022-04-08)
+-------------------
+* Added a logging configuration plugin to comprehensively
+  configure logging across applications.
+
 0.17.0 (2022-03-03)
 -------------------
 * ``zocalo.configure_rabbitmq`` cli:

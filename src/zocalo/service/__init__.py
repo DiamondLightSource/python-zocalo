@@ -26,10 +26,8 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
         """Initialize common logging framework. Everything is logged to central
         graylog server. Depending on setting messages of DEBUG or INFO and higher
         go to console."""
-        logger = logging.getLogger()
-        logger.setLevel(logging.WARN)
 
-        # Enable logging to console
+        # Always enable logging to console
         try:
             from dlstbx.util.colorstreamhandler import ColorStreamHandler
 
@@ -37,13 +35,15 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
         except ImportError:
             self.console = logging.StreamHandler()
         self.console.setLevel(logging.INFO)
-        logger.addHandler(self.console)
+        logging.getLogger().addHandler(self.console)
 
-        logging.getLogger("workflows").setLevel(logging.INFO)
-        logging.getLogger("zocalo").setLevel(logging.DEBUG)
+        if not self._zc.logging:
+            logging.getLogger().setLevel(logging.WARN)
+            logging.getLogger("workflows").setLevel(logging.INFO)
+            logging.getLogger("zocalo").setLevel(logging.DEBUG)
+            logging.getLogger("zocalo.service").setLevel(logging.DEBUG)
 
         self.log = logging.getLogger("zocalo.service")
-        self.log.setLevel(logging.DEBUG)
 
     def __init__(self):
         # load configuration and initialize logging
@@ -71,10 +71,9 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
         parser.add_option(
             "-v",
             "--verbose",
-            action="store_true",
-            dest="verbose",
-            default=False,
-            help="Show debug output",
+            action="count",
+            default=0,
+            help="Increase output verbosity",
         )
         parser.add_option(
             "--tag",
@@ -105,11 +104,14 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
     def on_parsing(self, options, args):
         if options.verbose:
             self.console.setLevel(logging.DEBUG)
+            if self._zc.logging:
+                self._zc.logging.verbosity = options.verbose
         if options.debug:
             self.console.setLevel(logging.DEBUG)
-            logging.getLogger("pika").setLevel(logging.INFO)
-            logging.getLogger("stomp.py").setLevel(logging.DEBUG)
-            logging.getLogger("workflows").setLevel(logging.DEBUG)
+            if not self._zc.logging:
+                logging.getLogger("pika").setLevel(logging.INFO)
+                logging.getLogger("stomp.py").setLevel(logging.DEBUG)
+                logging.getLogger("workflows").setLevel(logging.DEBUG)
         self.options = options
 
     def before_frontend_construction(self, kwargs):
