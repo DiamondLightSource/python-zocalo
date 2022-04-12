@@ -8,8 +8,8 @@ import warnings
 
 import graypy.handler
 
-__author__ = "Markus Gerstel"
-__email__ = "scientificsoftware@diamond.ac.uk"
+__author__ = "Diamond Light Source - Data Analysis Group"
+__email__ = "dataanalysis@diamond.ac.uk"
 __version__ = "0.18.0"
 
 logging.getLogger("zocalo").addHandler(logging.NullHandler())
