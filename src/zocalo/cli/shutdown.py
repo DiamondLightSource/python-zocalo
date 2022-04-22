@@ -23,7 +23,7 @@ def run(args=None):
     zc = zocalo.configuration.from_file()
     zc.activate()
 
-    known_services = workflows.services.get_known_services()
+    known_services = sorted(workflows.services.get_known_services())
     parser.add_argument("-?", action="help", help=argparse.SUPPRESS)
     parser.add_argument(
         "HOSTS",
