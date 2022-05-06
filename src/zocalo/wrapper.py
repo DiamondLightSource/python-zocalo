@@ -47,13 +47,13 @@ class BaseWrapper:
 class DummyWrapper(BaseWrapper):
     def run(self):
         logging.getLogger("zocalo.wrapper.DummyWrapper").info(
-            "This is a dummy wrapper that simply waits for ten seconds."
+            "This is a dummy wrapper that simply waits for twenty seconds."
         )
         import time
 
-        time.sleep(5)
+        time.sleep(10)
         self.status_thread.taskname += " (still running)"
-        time.sleep(5)
+        time.sleep(10)
         return True
 
 
