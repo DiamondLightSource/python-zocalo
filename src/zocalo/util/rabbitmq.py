@@ -720,13 +720,17 @@ class RabbitMQAPI:
 
     def binding_declare(self, binding: BindingSpec):
         endpoint = f"bindings/{binding.vhost}/e/{binding.source}/{binding.destination_type.value}/{binding.destination}"
-        self.post(
+        resp = self.post(
             endpoint,
             json=binding.dict(
                 exclude_defaults=True,
                 exclude={"vhost", "source", "destination", "destination_type"},
             ),
         )
+        if resp.status_code == 404:
+            logger.error(f"404 not found when declaring {endpoint}")
+        elif resp.status_code == 405:
+            logger.error(f"405 not allowed to declare {endpoint}")
 
     def bindings_delete(
         self,
@@ -806,7 +810,11 @@ class RabbitMQAPI:
 
     def exchange_delete(self, vhost: str, name: str, if_unused: bool = False):
         endpoint = f"exchanges/{vhost}/{name}"
-        self.delete(endpoint, params={"if_unused": if_unused})
+        resp = self.delete(endpoint, params={"if-unused": if_unused})
+        if resp.status_code == 404:
+            logger.error(f"404 not found when deleting {endpoint}")
+        elif resp.status_code == 405:
+            logger.error(f"405 not allowed to delete {endpoint}")
 
     def policies(self, vhost: Optional[str] = None) -> List[PolicySpec]:
         endpoint = "policies"
@@ -858,7 +866,7 @@ class RabbitMQAPI:
         self, vhost: str, name: str, if_unused: bool = False, if_empty: bool = False
     ):
         endpoint = f"queues/{vhost}/{name}"
-        self.delete(endpoint, params={"if_unused": if_unused, "if_empty": if_empty})
+        self.delete(endpoint, params={"if-unused": if_unused, "if-empty": if_empty})
 
     def users(self) -> List[UserSpec]:
         endpoint = "users"
