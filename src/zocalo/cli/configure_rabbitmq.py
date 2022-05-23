@@ -111,7 +111,7 @@ def get_binding_specs(group: Dict) -> List[BindingSpec]:
         else:
             source = binding_group["source"]
             destinations = [binding_group["destination"]]
-            routing_keys = [binding_group["routing_key"]]
+            routing_keys = [binding_group.get("routing_key", destinations[0])]
             properties_keys = [binding_group["destination"]]
 
         binding_specs.extend(
