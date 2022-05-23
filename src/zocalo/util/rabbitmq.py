@@ -312,7 +312,9 @@ class BindingSpec(BaseModel):
         ..., description="Virtual host name with non-ASCII characters escaped as in C."
     )
     routing_key: str = Field("", description="Routing key attached to binding")
-    arguments: Optional[dict] = Field(None, description="Binding arguments")
+    arguments: Optional[dict] = Field(
+        default_factory=dict, description="Binding arguments"
+    )
     properties_key: str = Field(
         "",
         description="Unique identifier composed of the bindings routing key and a hash of its arguments",
@@ -348,7 +350,9 @@ class ExchangeSpec(BaseModel):
         False,
         description="Whether the exchange is internal, i.e. cannot be directly published to by a client.",
     )
-    arguments: Optional[Dict[str, Any]] = Field(None, description="Exchange arguments.")
+    arguments: Optional[Dict[str, Any]] = Field(
+        default_factory=dict, description="Exchange arguments."
+    )
     vhost: str = Field(
         ..., description="Virtual host name with non-ASCII characters escaped as in C."
     )
@@ -431,7 +435,9 @@ class QueueSpec(BaseModel):
         False,
         description="Whether the queue will be deleted automatically when no longer used.",
     )
-    arguments: Optional[Dict[str, Any]] = Field(None, description="Queue arguments.")
+    arguments: Optional[Dict[str, Any]] = Field(
+        default_factory=dict, description="Queue arguments."
+    )
     vhost: str = Field(
         ..., description="Virtual host name with non-ASCII characters escaped as in C."
     )
