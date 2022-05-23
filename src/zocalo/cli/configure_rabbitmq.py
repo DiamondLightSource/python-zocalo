@@ -100,21 +100,35 @@ def update_config(
 
 
 def get_binding_specs(group: Dict) -> List[BindingSpec]:
-    sources = group.get("bindings", [""])
     vhost = group.get("vhost", "/")
-    return [
-        BindingSpec(
-            vhost=vhost,
-            source=source,
-            destination=name,
-            destination_type="q",
-            routing_key=name,
-            arguments={},
-            properties_key=name,
+    binding_specs = []
+    for binding_group in group.get("bindings", [""]):
+        if isinstance(binding_group, str):
+            source = binding_group
+            destinations = group["names"]
+            routing_keys = group["names"]
+            properties_keys = group["names"]
+        else:
+            source = binding_group["source"]
+            destinations = [binding_group["destination"]]
+            routing_keys = [binding_group["routing_key"]]
+            properties_keys = [binding_group["destination"]]
+
+        binding_specs.extend(
+            [
+                BindingSpec(
+                    vhost=vhost,
+                    source=source,
+                    destination=dest,
+                    destination_type="q",
+                    routing_key=rk,
+                    arguments={},
+                    properties_key=pk,
+                )
+                for dest, rk, pk in zip(destinations, routing_keys, properties_keys)
+            ]
         )
-        for source in sources
-        for name in group["names"]
-    ]
+    return binding_specs
 
 
 def get_queue_specs(group: Dict) -> List[QueueSpec]:
