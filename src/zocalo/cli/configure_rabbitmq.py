@@ -38,7 +38,6 @@ class RabbitMQAPI(_RabbitMQAPI):
             source=binding.source,
             destination=binding.destination,
             destination_type=binding.destination_type.value,
-            properties_key=binding.properties_key,
         )
 
     @create_component.register  # type: ignore
@@ -107,12 +106,10 @@ def get_binding_specs(group: Dict) -> List[BindingSpec]:
             source = binding_group
             destinations = group["names"]
             routing_keys = group["names"]
-            properties_keys = group["names"]
         else:
             source = binding_group["source"]
             destinations = [binding_group["destination"]]
             routing_keys = [binding_group.get("routing_key", destinations[0])]
-            properties_keys = [binding_group["destination"]]
 
         binding_specs.extend(
             [
@@ -123,9 +120,8 @@ def get_binding_specs(group: Dict) -> List[BindingSpec]:
                     destination_type="q",
                     routing_key=rk,
                     arguments={},
-                    properties_key=pk,
                 )
-                for dest, rk, pk in zip(destinations, routing_keys, properties_keys)
+                for dest, rk in zip(destinations, routing_keys)
             ]
         )
     return binding_specs

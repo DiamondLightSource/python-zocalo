@@ -315,14 +315,13 @@ class BindingSpec(BaseModel):
     arguments: Optional[dict] = Field(
         default_factory=dict, description="Binding arguments"
     )
+
+
+class BindingInfo(BindingSpec):
     properties_key: str = Field(
         "",
         description="Unique identifier composed of the bindings routing key and a hash of its arguments",
     )
-
-
-class BindingInfo(BindingSpec):
-    pass
 
 
 class ExchangeType(enum.Enum):
