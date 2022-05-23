@@ -130,7 +130,7 @@ def test_api_queue_delete(requests_mock, rmqapi, queue_spec):
     assert requests_mock.call_count == 1
     history = requests_mock.request_history[0]
     assert history.method == "DELETE"
-    assert history.url.endswith("/api/queues/zocalo/foo?if_unused=True&if_empty=True")
+    assert history.url.endswith("/api/queues/zocalo/foo?if-unused=True&if-empty=True")
 
 
 def test_api_bindings(requests_mock, rmqapi):
@@ -163,15 +163,12 @@ def test_api_bindings(requests_mock, rmqapi):
         f"/api/bindings/zocalo/e/{binding['source']}/q/{binding['destination']}",
         json=[response],
     )
-    assert (
-        rmqapi.bindings(
-            vhost="zocalo",
-            source=binding["source"],
-            destination=binding["destination"],
-            destination_type="q",
-        )
-        == [rabbitmq.BindingInfo(**binding)]
-    )
+    assert rmqapi.bindings(
+        vhost="zocalo",
+        source=binding["source"],
+        destination=binding["destination"],
+        destination_type="q",
+    ) == [rabbitmq.BindingInfo(**binding)]
 
 
 @pytest.fixture
@@ -317,6 +314,7 @@ def test_api_exchange_declare(name, requests_mock, rmqapi):
         "type": "fanout",
         "auto_delete": True,
         "durable": True,
+        "arguments": {},
     }
 
 
@@ -326,7 +324,7 @@ def test_api_exchange_delete(requests_mock, rmqapi):
     assert requests_mock.call_count == 1
     history = requests_mock.request_history[0]
     assert history.method == "DELETE"
-    assert history.url.endswith("/api/exchanges/zocalo/foo?if_unused=True")
+    assert history.url.endswith("/api/exchanges/zocalo/foo?if-unused=True")
 
 
 def test_api_connections(requests_mock, rmqapi):
