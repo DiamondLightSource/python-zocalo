@@ -5,6 +5,10 @@ History
 Unreleased
 ----------
 
+0.19.0 (2022-05-24)
+-------------------
+* ``zocalo.configure_rabbitmq`` cli: advanced binding configuration
+
 0.18.0 (2022-04-12)
 -------------------
 * Added a logging configuration plugin to comprehensively
