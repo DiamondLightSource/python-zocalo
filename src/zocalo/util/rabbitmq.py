@@ -312,15 +312,16 @@ class BindingSpec(BaseModel):
         ..., description="Virtual host name with non-ASCII characters escaped as in C."
     )
     routing_key: str = Field("", description="Routing key attached to binding")
-    arguments: Optional[dict] = Field(None, description="Binding arguments")
-    properties_key: str = Field(
-        "",
-        description="Unique identifier composed of the bindings routing key and a hash of its arguments",
+    arguments: Optional[dict] = Field(
+        default_factory=dict, description="Binding arguments"
     )
 
 
 class BindingInfo(BindingSpec):
-    pass
+    properties_key: str = Field(
+        "",
+        description="Unique identifier composed of the bindings routing key and a hash of its arguments",
+    )
 
 
 class ExchangeType(enum.Enum):
@@ -348,7 +349,9 @@ class ExchangeSpec(BaseModel):
         False,
         description="Whether the exchange is internal, i.e. cannot be directly published to by a client.",
     )
-    arguments: Optional[Dict[str, Any]] = Field(None, description="Exchange arguments.")
+    arguments: Optional[Dict[str, Any]] = Field(
+        default_factory=dict, description="Exchange arguments."
+    )
     vhost: str = Field(
         ..., description="Virtual host name with non-ASCII characters escaped as in C."
     )
@@ -431,7 +434,9 @@ class QueueSpec(BaseModel):
         False,
         description="Whether the queue will be deleted automatically when no longer used.",
     )
-    arguments: Optional[Dict[str, Any]] = Field(None, description="Queue arguments.")
+    arguments: Optional[Dict[str, Any]] = Field(
+        default_factory=dict, description="Queue arguments."
+    )
     vhost: str = Field(
         ..., description="Virtual host name with non-ASCII characters escaped as in C."
     )
@@ -715,13 +720,17 @@ class RabbitMQAPI:
 
     def binding_declare(self, binding: BindingSpec):
         endpoint = f"bindings/{binding.vhost}/e/{binding.source}/{binding.destination_type.value}/{binding.destination}"
-        self.post(
+        resp = self.post(
             endpoint,
             json=binding.dict(
                 exclude_defaults=True,
                 exclude={"vhost", "source", "destination", "destination_type"},
             ),
         )
+        if resp.status_code == 404:
+            logger.error(f"404 not found when declaring {endpoint}")
+        elif resp.status_code == 405:
+            logger.error(f"405 not allowed to declare {endpoint}")
 
     def bindings_delete(
         self,
@@ -801,7 +810,11 @@ class RabbitMQAPI:
 
     def exchange_delete(self, vhost: str, name: str, if_unused: bool = False):
         endpoint = f"exchanges/{vhost}/{name}"
-        self.delete(endpoint, params={"if_unused": if_unused})
+        resp = self.delete(endpoint, params={"if-unused": if_unused})
+        if resp.status_code == 404:
+            logger.error(f"404 not found when deleting {endpoint}")
+        elif resp.status_code == 405:
+            logger.error(f"405 not allowed to delete {endpoint}")
 
     def policies(self, vhost: Optional[str] = None) -> List[PolicySpec]:
         endpoint = "policies"
@@ -853,7 +866,7 @@ class RabbitMQAPI:
         self, vhost: str, name: str, if_unused: bool = False, if_empty: bool = False
     ):
         endpoint = f"queues/{vhost}/{name}"
-        self.delete(endpoint, params={"if_unused": if_unused, "if_empty": if_empty})
+        self.delete(endpoint, params={"if-unused": if_unused, "if-empty": if_empty})
 
     def users(self) -> List[UserSpec]:
         endpoint = "users"

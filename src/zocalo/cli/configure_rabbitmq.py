@@ -38,7 +38,6 @@ class RabbitMQAPI(_RabbitMQAPI):
             source=binding.source,
             destination=binding.destination,
             destination_type=binding.destination_type.value,
-            properties_key=binding.properties_key,
         )
 
     @create_component.register  # type: ignore
@@ -99,7 +98,23 @@ def update_config(
             api.create_component(ic)
 
 
-def get_binding_specs(group: Dict) -> List[BindingSpec]:
+def get_binding_specs(bindings: Dict) -> List[BindingSpec]:
+    binding_specs = []
+    for binding in bindings:
+        binding_specs.append(
+            BindingSpec(
+                source=binding["source"],
+                destination=binding["destination"],
+                destination_type=binding.get("destination_type", "q"),
+                routing_key=binding.get("routing_key", binding["destination"]),
+                vhost=binding["vhost"],
+                arguments=binding.get("arguments", {}),
+            )
+        )
+    return binding_specs
+
+
+def get_binding_specs_for_group(group: Dict) -> List[BindingSpec]:
     sources = group.get("bindings", [""])
     vhost = group.get("vhost", "/")
     return [
@@ -332,13 +347,13 @@ def run():
 
     queue_specs = []
     exchange_specs = get_exchange_specs(yaml_data["exchanges"])
-    binding_specs = []
+    binding_specs = get_binding_specs(yaml_data.get("bindings", []))
     for group in yaml_data["groups"]:
         if group.get("settings", {}).get("broadcast"):
             exchange_specs.extend(get_exchange_specs_for_group(group))
         else:
             queue_specs.extend(get_queue_specs(group))
-            binding_specs.extend(get_binding_specs(group))
+            binding_specs.extend(get_binding_specs_for_group(group))
 
     _configure_queues(api, queue_specs)
     update_config(api, exchange_specs, api.exchanges())
