@@ -133,20 +133,30 @@ def get_binding_specs_for_group(group: Dict) -> List[BindingSpec]:
 
 
 def get_queue_specs(group: Dict) -> List[QueueSpec]:
-    qtype = group.get("settings", {}).get("queues", {}).get("type", "classic")
+    queue_settings = group.get("settings", {}).get("queues", {})
+    qtype = queue_settings.get("type", "classic")
+    dlq_pattern = queue_settings.get("dead-letter-routing-key-pattern")
+    dlq_exchange = queue_settings.get("dead-letter-exchange", "")
     vhost = group.get("vhost", "/")
     single_active_consumer = group.get("settings", {}).get(
         "single_active_consumer", False
     )
+
     qspecs = [
         QueueSpec(
             name=name,
             vhost=vhost,
             arguments={
                 "x-queue-type": qtype,
-                "x-dead-letter-exchange": "",
-                "x-dead-letter-routing-key": f"dlq.{name}",
                 "x-single-active-consumer": single_active_consumer,
+                **(
+                    {
+                        "x-dead-letter-exchange": dlq_exchange,
+                        "x-dead-letter-routing-key": dlq_pattern.format(name=name),
+                    }
+                    if dlq_pattern
+                    else {}
+                ),
             },
             auto_delete=False,
             durable=True,
@@ -155,20 +165,21 @@ def get_queue_specs(group: Dict) -> List[QueueSpec]:
     ]
 
     # Add dead-letter queues within the default exchange with the "dlq." prefix
-    qspecs.extend(
-        [
-            QueueSpec(
-                name=f"dlq.{name}",
-                vhost=vhost,
-                arguments={
-                    "x-queue-type": qtype,
-                },
-                auto_delete=False,
-                durable=True,
-            )
-            for name in group["names"]
-        ]
-    )
+    if dlq_pattern:
+        qspecs.extend(
+            [
+                QueueSpec(
+                    name=f"dlq.{name}",
+                    vhost=vhost,
+                    arguments={
+                        "x-queue-type": qtype,
+                    },
+                    auto_delete=False,
+                    durable=True,
+                )
+                for name in group["names"]
+            ]
+        )
     return qspecs
 
 
