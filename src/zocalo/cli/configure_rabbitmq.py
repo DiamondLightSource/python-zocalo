@@ -169,7 +169,7 @@ def get_queue_specs(group: Dict) -> List[QueueSpec]:
         qspecs.extend(
             [
                 QueueSpec(
-                    name=f"dlq.{name}",
+                    name=dlq_pattern.format(name=name),
                     vhost=vhost,
                     arguments={
                         "x-queue-type": qtype,
