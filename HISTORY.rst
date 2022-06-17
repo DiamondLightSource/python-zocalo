@@ -4,6 +4,9 @@ History
 
 Unreleased
 ----------
+* ``zocalo.configure_rabbitmq`` cli: require explicit
+  `dead-letter-routing-key-pattern` when requesting
+  creation of a DLQ for a given queue.
 
 0.19.0 (2022-05-24)
 -------------------
