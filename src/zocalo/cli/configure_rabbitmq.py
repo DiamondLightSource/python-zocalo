@@ -336,24 +336,30 @@ def run():
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     zc = zocalo.configuration.from_file()
     zc.activate()
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("configuration", help="RabbitMQ configuration yaml file")
+    parser.add_argument(
+        "--user-config",
+        action="store",
+        dest="user_config",
+        type=Path,
+        help="Path to directory containing *.ini files containing RabbitMQ\n"
+        "    user credentials in the form:\n"
+        "    [rabbitmq]\n"
+        "    username = user\n"
+        "    password = letmein\n"
+        "    tags = comma,separated,tags",
+    )
     zc.add_command_line_options(parser)
     args = parser.parse_args()
 
     api = RabbitMQAPI.from_zocalo_configuration(zc)
-    try:
-        rmq_config = zc.storage["zocalo.rabbitmq_user_config"]
-    except Exception as e:
-        logger.error(
-            "Problem with Zocalo configuration file. Possibly zocalo.rabbitmq_user_config storage plugin is missing"
-        )
-        raise e
 
     with open(args.configuration) as in_file:
         yaml_data = yaml.safe_load(in_file)
 
-    _configure_users(api, Path(rmq_config))
+    if args.user_config:
+        _configure_users(api, args.user_config)
     _configure_policies(api, yaml_data["policies"])
 
     queue_specs = []
