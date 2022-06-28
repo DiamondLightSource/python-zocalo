@@ -137,6 +137,7 @@ def get_queue_specs(group: Dict) -> List[QueueSpec]:
     qtype = queue_settings.get("type", "classic")
     dlq_pattern = queue_settings.get("dead-letter-routing-key-pattern")
     dlq_exchange = queue_settings.get("dead-letter-exchange", "")
+    dlq_create = queue_settings.get("dead-letter-queue-create", True)
     vhost = group.get("vhost", "/")
     single_active_consumer = group.get("settings", {}).get(
         "single_active_consumer", False
@@ -165,7 +166,7 @@ def get_queue_specs(group: Dict) -> List[QueueSpec]:
     ]
 
     # Add dead-letter queues within the default exchange with the "dlq." prefix
-    if dlq_pattern:
+    if dlq_create and dlq_pattern:
         qspecs.extend(
             [
                 QueueSpec(
