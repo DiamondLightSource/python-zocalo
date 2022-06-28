@@ -4,6 +4,9 @@ History
 
 Unreleased
 ----------
+
+0.21.0 (2022-06-28)
+-------------------
 * ``zocalo.configure_rabbitmq`` cli: require passing user config
   via explicit ``--user-config`` parameter
 * ``zocalo.configure_rabbitmq`` cli: optionally disable implicit
