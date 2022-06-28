@@ -6,6 +6,8 @@ Unreleased
 ----------
 * ``zocalo.configure_rabbitmq`` cli: require passing user config
   via explicit ``--user-config`` parameter
+* ``zocalo.configure_rabbitmq`` cli: optionally disable implicit
+  dlq creation via ``dead-letter-queue-create: false``
 
 0.20.0 (2022-06-17)
 -------------------
