@@ -54,7 +54,9 @@ def test_dlq_reinject_activemq(mocker, tmp_path):
             }
             json.dump(dlqmsg, f)
 
-    testargs = ["prog"] + [str(dlq_path / f"msg_{i}") for i in range(10)]
+    testargs = ["prog", "--transport", "StompTransport"] + [
+        str(dlq_path / f"msg_{i}") for i in range(10)
+    ]
     with mock.patch.object(sys, "argv", testargs):
         run()
 

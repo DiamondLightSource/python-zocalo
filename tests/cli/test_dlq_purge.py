@@ -45,7 +45,14 @@ def test_dlq_purge_activemq(mocker, tmp_path):
     mocker.patch.object(workflows.transport, "lookup", return_value=mocked_transport)
     mocked_transport().subscribe = mock_subscribe
 
-    testargs = ["prog", "--location", str(tmp_path), "garbage.per_image_analysis"]
+    testargs = [
+        "prog",
+        "--location",
+        str(tmp_path),
+        "--transport",
+        "StompTransport",
+        "garbage.per_image_analysis",
+    ]
     with mock.patch.object(sys, "argv", testargs):
         dlq_purge.run()
 
