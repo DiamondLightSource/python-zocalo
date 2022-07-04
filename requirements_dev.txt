@@ -8,4 +8,4 @@ pytest==7.1.2
 requests
 requests_mock
 setuptools==62.3.2
-workflows==2.23.1
+workflows==2.24.1
