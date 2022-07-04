@@ -19,7 +19,7 @@ def test_shutdown_host(mocker):
     hosts = ["uk.ac.diamond.ws123.4567", "ws987.6543"]
     expected_hosts = ["uk.ac.diamond.ws123.4567", f"{host_prefix}.ws987.6543"]
     run(hosts)
-    mocked_lookup.assert_called_with("StompTransport")
+    mocked_lookup.assert_called_with("PikaTransport")
     mocked_transport().broadcast.assert_has_calls(
         [
             mock.call("command", {"command": "shutdown", "host": host})
