@@ -4,6 +4,8 @@ History
 
 Unreleased
 ----------
+* ``zocalo.configure_rabbitmq`` cli: check response status codes to catch failed API calls
+* ``zocalo.configure_rabbitmq`` cli: don't set x-single-active-consumer for streams
 
 0.21.0 (2022-06-28)
 -------------------
