@@ -149,7 +149,11 @@ def get_queue_specs(group: Dict) -> List[QueueSpec]:
             vhost=vhost,
             arguments={
                 "x-queue-type": qtype,
-                "x-single-active-consumer": single_active_consumer,
+                **(
+                    {"x-single-active-consumer": single_active_consumer}
+                    if qtype != "stream"
+                    else {}
+                ),
                 **(
                     {
                         "x-dead-letter-exchange": dlq_exchange,
