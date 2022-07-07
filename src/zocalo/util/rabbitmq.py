@@ -720,17 +720,14 @@ class RabbitMQAPI:
 
     def binding_declare(self, binding: BindingSpec):
         endpoint = f"bindings/{binding.vhost}/e/{binding.source}/{binding.destination_type.value}/{binding.destination}"
-        resp = self.post(
+        response = self.post(
             endpoint,
             json=binding.dict(
                 exclude_defaults=True,
                 exclude={"vhost", "source", "destination", "destination_type"},
             ),
         )
-        if resp.status_code == 404:
-            logger.error(f"404 not found when declaring {endpoint}")
-        elif resp.status_code == 405:
-            logger.error(f"405 not allowed to declare {endpoint}")
+        response.raise_for_status()
 
     def bindings_delete(
         self,
@@ -759,11 +756,8 @@ class RabbitMQAPI:
         else:
             props = [properties_key]
         for prop in props:
-            resp = self.delete(f"{endpoint}/{prop}")
-            if resp.status_code == 404:
-                logger.error(f"404 not found when deleting {endpoint}/{prop}")
-            elif resp.status_code == 405:
-                logger.error(f"405 not allowed to delete {endpoint}/{prop}")
+            response = self.delete(f"{endpoint}/{prop}")
+            response.raise_for_status()
 
     def connections(
         self, name: Optional[str] = None
@@ -807,14 +801,16 @@ class RabbitMQAPI:
             endpoint,
             json=exchange.dict(exclude_defaults=True, exclude={"name", "vhost"}),
         )
+        response = self.put(
+            endpoint,
+            json=exchange.dict(exclude_defaults=True, exclude={"name", "vhost"}),
+        )
+        response.raise_for_status()
 
     def exchange_delete(self, vhost: str, name: str, if_unused: bool = False):
         endpoint = f"exchanges/{vhost}/{name}"
-        resp = self.delete(endpoint, params={"if-unused": if_unused})
-        if resp.status_code == 404:
-            logger.error(f"404 not found when deleting {endpoint}")
-        elif resp.status_code == 405:
-            logger.error(f"405 not allowed to delete {endpoint}")
+        response = self.delete(endpoint, params={"if-unused": if_unused})
+        response.raise_for_status()
 
     def policies(self, vhost: Optional[str] = None) -> List[PolicySpec]:
         endpoint = "policies"
@@ -830,16 +826,18 @@ class RabbitMQAPI:
 
     def set_policy(self, policy: PolicySpec):
         endpoint = f"policies/{policy.vhost}/{policy.name}/"
-        self.put(
+        response = self.put(
             endpoint,
             json=policy.dict(
                 exclude_defaults=True, exclude={"name", "vhost"}, by_alias=True
             ),
         )
+        response.raise_for_status()
 
     def clear_policy(self, vhost: str, name: str):
         endpoint = f"policies/{vhost}/{name}/"
-        self.delete(endpoint)
+        response = self.delete(endpoint)
+        response.raise_for_status()
 
     def queues(
         self, vhost: Optional[str] = None, name: Optional[str] = None
@@ -858,15 +856,19 @@ class RabbitMQAPI:
 
     def queue_declare(self, queue: QueueSpec):
         endpoint = f"queues/{queue.vhost}/{queue.name}"
-        self.put(
+        response = self.put(
             endpoint, json=queue.dict(exclude_defaults=True, exclude={"name", "vhost"})
         )
+        response.raise_for_status()
 
     def queue_delete(
         self, vhost: str, name: str, if_unused: bool = False, if_empty: bool = False
     ):
         endpoint = f"queues/{vhost}/{name}"
-        self.delete(endpoint, params={"if-unused": if_unused, "if-empty": if_empty})
+        response = self.delete(
+            endpoint, params={"if-unused": if_unused, "if-empty": if_empty}
+        )
+        response.raise_for_status()
 
     def users(self) -> List[UserSpec]:
         endpoint = "users"
@@ -882,11 +884,13 @@ class RabbitMQAPI:
         endpoint = f"users/{user.name}/"
         submission = user.dict(exclude_defaults=True, exclude={"name"})
         submission["tags"] = ",".join(submission["tags"])
-        self.put(endpoint, json=submission)
+        response = self.put(endpoint, json=submission)
+        response.raise_for_status()
 
     def user_delete(self, name: str):
         endpoint = f"users/{name}/"
-        self.delete(endpoint)
+        response = self.delete(endpoint)
+        response.raise_for_status()
 
 
 def hash_password(passwd: str, salt: Optional[str] = None) -> str:
