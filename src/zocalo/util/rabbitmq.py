@@ -797,10 +797,6 @@ class RabbitMQAPI:
 
     def exchange_declare(self, exchange: ExchangeSpec):
         endpoint = f"exchanges/{exchange.vhost}/{exchange.name}/"
-        self.put(
-            endpoint,
-            json=exchange.dict(exclude_defaults=True, exclude={"name", "vhost"}),
-        )
         response = self.put(
             endpoint,
             json=exchange.dict(exclude_defaults=True, exclude={"name", "vhost"}),
