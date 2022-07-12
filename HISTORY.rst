@@ -4,6 +4,10 @@ History
 
 Unreleased
 ----------
+
+0.22.0 (2022-07-12)
+-------------------
+* ``zocalo.wrapper``: Enable access to ``zocalo.configuration`` object through ``BaseWrapper.config`` attribute
 * ``zocalo.configure_rabbitmq`` cli: check response status codes to catch failed API calls
 * ``zocalo.configure_rabbitmq`` cli: don't set x-single-active-consumer for streams
 
