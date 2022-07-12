@@ -7,6 +7,7 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, List
 
+import requests
 import yaml
 from pydantic import BaseModel
 
@@ -149,7 +150,11 @@ def get_queue_specs(group: Dict) -> List[QueueSpec]:
             vhost=vhost,
             arguments={
                 "x-queue-type": qtype,
-                "x-single-active-consumer": single_active_consumer,
+                **(
+                    {"x-single-active-consumer": single_active_consumer}
+                    if qtype != "stream"
+                    else {}
+                ),
                 **(
                     {
                         "x-dead-letter-exchange": dlq_exchange,
@@ -359,31 +364,36 @@ def run():
     with open(args.configuration) as in_file:
         yaml_data = yaml.safe_load(in_file)
 
-    if args.user_config:
-        _configure_users(api, args.user_config)
-    _configure_policies(api, yaml_data["policies"])
+    try:
+        if args.user_config:
+            _configure_users(api, args.user_config)
+        _configure_policies(api, yaml_data["policies"])
 
-    queue_specs = []
-    exchange_specs = get_exchange_specs(yaml_data["exchanges"])
-    binding_specs = get_binding_specs(yaml_data.get("bindings", []))
-    for group in yaml_data["groups"]:
-        if group.get("settings", {}).get("broadcast"):
-            exchange_specs.extend(get_exchange_specs_for_group(group))
-        else:
-            queue_specs.extend(get_queue_specs(group))
-            binding_specs.extend(get_binding_specs_for_group(group))
+        queue_specs = []
+        exchange_specs = get_exchange_specs(yaml_data["exchanges"])
+        binding_specs = get_binding_specs(yaml_data.get("bindings", []))
+        for group in yaml_data["groups"]:
+            if group.get("settings", {}).get("broadcast"):
+                exchange_specs.extend(get_exchange_specs_for_group(group))
+            else:
+                queue_specs.extend(get_queue_specs(group))
+                binding_specs.extend(get_binding_specs_for_group(group))
 
-    _configure_queues(api, queue_specs)
-    update_config(api, exchange_specs, api.exchanges())
-    permanent_bindings = []
-    # don't remove bindings to temporary queues
-    queues = api.queues()
-    for b in api.bindings():
-        q = [qu for qu in queues if qu.vhost == b.vhost and qu.name == b.destination][0]
-        if q.auto_delete or q.exclusive:
-            continue
-        permanent_bindings.append(b)
-    update_config(api, binding_specs, permanent_bindings)
+        _configure_queues(api, queue_specs)
+        update_config(api, exchange_specs, api.exchanges())
+        permanent_bindings = []
+        # don't remove bindings to temporary queues
+        queues = api.queues()
+        for b in api.bindings():
+            q = [
+                qu for qu in queues if qu.vhost == b.vhost and qu.name == b.destination
+            ][0]
+            if q.auto_delete or q.exclusive:
+                continue
+            permanent_bindings.append(b)
+        update_config(api, binding_specs, permanent_bindings)
+    except requests.exceptions.HTTPError as e:
+        logger.error(e)
 
 
 if __name__ == "__main__":
