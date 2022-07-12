@@ -113,8 +113,10 @@ def run():
     for field, value in zocalo.util.extended_status_dictionary().items():
         st.set_static_status_field(field, value)
 
+    environment = {"config": zc}
+
     # Instantiate chosen wrapper
-    instance = known_wrappers[args.wrapper]()()
+    instance = known_wrappers[args.wrapper]()(environment=environment)
     instance.status_thread = st
 
     # If specified, read in a serialized recipewrapper

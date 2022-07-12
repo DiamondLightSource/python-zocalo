@@ -9,6 +9,9 @@ import zocalo
 
 
 class BaseWrapper:
+    def __init__(self, *args, **kwargs):
+        self._environment = kwargs.get("environment", {})
+
     def set_recipe_wrapper(self, recwrap):
         self.recwrap = recwrap
 
@@ -42,6 +45,10 @@ class BaseWrapper:
     def record_result_all_files(self, payload=""):
         if getattr(self, "recwrap", None):
             self.recwrap.send_to("result-all-files", payload)
+
+    @property
+    def config(self):
+        return self._environment.get("config")
 
 
 class DummyWrapper(BaseWrapper):
