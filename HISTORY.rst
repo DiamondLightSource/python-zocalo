@@ -4,6 +4,7 @@ History
 
 Unreleased
 ----------
+* Remove deprecated ``zocalo.enable_graylog()`` function
 
 0.22.0 (2022-07-12)
 -------------------
