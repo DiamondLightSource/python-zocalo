@@ -127,15 +127,6 @@ def run():
             )
         instance.set_recipe_wrapper(recwrap)
 
-        if zc.graylog and recwrap.environment.get("ID"):
-            # If recipe ID available then include that in all future log messages
-            class ContextFilter(logging.Filter):
-                def filter(self, record):
-                    record.recipe_ID = recwrap.environment["ID"]
-                    return True
-
-            zc.graylog.addFilter(ContextFilter())
-
         if recwrap.recipe_step.get("wrapper", {}).get("task_information"):
             # If the recipe contains an extra task_information field then add this to the status display
             st.taskname += (
