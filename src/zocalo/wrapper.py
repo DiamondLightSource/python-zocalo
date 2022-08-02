@@ -9,11 +9,18 @@ import zocalo
 
 
 class BaseWrapper:
+
+    _logger_name = "zocalo.wrapper"  # The logger can be accessed via self.log
+
     def __init__(self, *args, **kwargs):
         self._environment = kwargs.get("environment", {})
+        self.__log_extra = {}
+        logger = logging.getLogger(self._logger_name)
+        self.log = logging.LoggerAdapter(logger, extra=self.__log_extra)
 
     def set_recipe_wrapper(self, recwrap):
         self.recwrap = recwrap
+        self.__log_extra["recipe_ID"] = recwrap.environment["ID"]
 
     def prepare(self, payload=""):
         if getattr(self, "recwrap", None):
@@ -52,10 +59,11 @@ class BaseWrapper:
 
 
 class DummyWrapper(BaseWrapper):
+
+    _logger_name = "zocalo.wrapper.DummyWrapper"
+
     def run(self):
-        logging.getLogger("zocalo.wrapper.DummyWrapper").info(
-            "This is a dummy wrapper that simply waits for twenty seconds."
-        )
+        self.log.info("This is a dummy wrapper that simply waits for twenty seconds.")
         import time
 
         time.sleep(10)
