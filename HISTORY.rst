@@ -5,6 +5,10 @@ History
 Unreleased
 ----------
 * Remove deprecated ``zocalo.enable_graylog()`` function
+* Use ``LoggingAdapter`` to append ``recipe_ID`` to wrapper logs.
+  This was inadvertantly broken for the logging plugin added in #176.
+  Derived wrappers should now use self.log rather than instantiating
+  a logger directly.
 
 0.22.0 (2022-07-12)
 -------------------
