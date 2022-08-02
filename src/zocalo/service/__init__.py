@@ -54,10 +54,6 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
         )  # deprecated
         self.setup_logging()
 
-        if not hasattr(self._zc, "graylog") or not self._zc.graylog:
-            # Enable logging to graylog, deprecated
-            zocalo.enable_graylog()
-
         if (
             self._zc.storage
             and self._zc.storage.get("zocalo.default_transport")
