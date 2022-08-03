@@ -5,7 +5,7 @@ import configparser
 import functools
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict, List, Tuple
 
 import requests
 import yaml
@@ -84,7 +84,7 @@ def _(comp: BindingSpec) -> bool:
 
 
 def update_config(
-    api: RabbitMQAPI, incoming: list[BaseModel], current: list[BaseModel]
+    api: RabbitMQAPI, incoming: List[BaseModel], current: List[BaseModel]
 ):
     cls = type(incoming[0])
     current = _info_to_spec(incoming[0], current)
@@ -107,7 +107,7 @@ def update_config(
             api.create_component(ic)
 
 
-def get_vhost_specs(vhosts: dict) -> list[VHostSpec]:
+def get_vhost_specs(vhosts: dict) -> List[VHostSpec]:
     vhost_specs = []
     for vhost in vhosts:
         vhost_specs.append(
@@ -121,7 +121,7 @@ def get_vhost_specs(vhosts: dict) -> list[VHostSpec]:
     return vhost_specs
 
 
-def get_binding_specs(bindings: dict) -> list[BindingSpec]:
+def get_binding_specs(bindings: dict) -> List[BindingSpec]:
     binding_specs = []
     for binding in bindings:
         binding_specs.append(
@@ -137,7 +137,7 @@ def get_binding_specs(bindings: dict) -> list[BindingSpec]:
     return binding_specs
 
 
-def get_binding_specs_for_group(group: dict) -> list[BindingSpec]:
+def get_binding_specs_for_group(group: dict) -> List[BindingSpec]:
     sources = group.get("bindings", [""])
     vhost = group.get("vhost", "/")
     return [
@@ -155,7 +155,7 @@ def get_binding_specs_for_group(group: dict) -> list[BindingSpec]:
     ]
 
 
-def get_queue_specs(group: dict) -> list[QueueSpec]:
+def get_queue_specs(group: dict) -> List[QueueSpec]:
     queue_settings = group.get("settings", {}).get("queues", {})
     qtype = queue_settings.get("type", "classic")
     dlq_pattern = queue_settings.get("dead-letter-routing-key-pattern")
@@ -211,7 +211,7 @@ def get_queue_specs(group: dict) -> list[QueueSpec]:
     return qspecs
 
 
-def get_exchange_specs(exchanges: dict) -> list[ExchangeSpec]:
+def get_exchange_specs(exchanges: dict) -> List[ExchangeSpec]:
     return [
         ExchangeSpec(
             **exchange,
@@ -220,7 +220,7 @@ def get_exchange_specs(exchanges: dict) -> list[ExchangeSpec]:
     ]
 
 
-def get_exchange_specs_for_group(group: dict) -> list[ExchangeSpec]:
+def get_exchange_specs_for_group(group: dict) -> List[ExchangeSpec]:
     vhost = group.get("vhost", "/")
     if group.get("settings", {}).get("broadcast"):
         etype = "fanout"
@@ -240,11 +240,11 @@ def get_exchange_specs_for_group(group: dict) -> list[ExchangeSpec]:
     ]
 
 
-def _configure_policies(api, policies: list[dict[str, Any]]):
+def _configure_policies(api, policies: List[Dict[str, Any]]):
     existing_policies = {
         (policy.vhost, policy.name): policy for policy in api.policies()
     }
-    known_policies: set[tuple[str, str]] = set()
+    known_policies: set[Tuple[str, str]] = set()
 
     for policy in policies:
         policy_id = (policy["vhost"], policy["name"])
@@ -274,9 +274,9 @@ def _configure_policies(api, policies: list[dict[str, Any]]):
         api.clear_policy(vhost=policy_id[0], name=policy_id[1])
 
 
-def _configure_queues(api, queues: list[QueueSpec]):
+def _configure_queues(api, queues: List[QueueSpec]):
     existing_queues = {(q.vhost, q.name): q for q in api.queues()}
-    known_queues: set[tuple[str, str]] = set()
+    known_queues: set[Tuple[str, str]] = set()
 
     for queue_spec in queues:
         queue_id = (queue_spec.vhost, queue_spec.name)
@@ -312,7 +312,7 @@ def _configure_queues(api, queues: list[QueueSpec]):
 def _configure_users(api, rabbitmq_user_config_area: Path):
     existing_users = {user.name: user for user in api.users()}
 
-    planned_users: dict[str, Path] = {}
+    planned_users: Dict[str, Path] = {}
     for config_file in rabbitmq_user_config_area.glob("**/*.ini"):
         try:
             config = configparser.ConfigParser()

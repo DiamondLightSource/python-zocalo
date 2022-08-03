@@ -9,7 +9,7 @@ import pathlib
 import secrets
 import urllib
 import urllib.request
-from typing import Any, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import requests
 from pydantic import BaseModel, Field
@@ -159,7 +159,7 @@ class VHostSpec(BaseModel):
         description="The name of the virtual host entry.",
     )
     description: str = ""
-    tags: list[str] = Field(default_factory=list)
+    tags: List[str] = Field(default_factory=list)
     tracing: bool = False
 
 
@@ -176,7 +176,7 @@ class NodeInfo(BaseModel):
     # applications	List of all Erlang applications running on the node.
     # auth_mechanisms	List of all SASL authentication mechanisms installed on the node.
     # cluster_links	A list of the other nodes in the cluster. For each node, there are details of the TCP connection used to connect to it and statistics on data that has been transferred.
-    config_files: Optional[list[pathlib.Path]] = Field(
+    config_files: Optional[List[pathlib.Path]] = Field(
         None, description="List of config files read by the node."
     )
     # contexts	List of all HTTP listeners on the node.
@@ -190,7 +190,7 @@ class NodeInfo(BaseModel):
     disk_free_limit: Optional[int] = Field(
         None, description="Point at which the disk alarm will go off."
     )
-    enabled_plugins: Optional[list[str]] = Field(
+    enabled_plugins: Optional[List[str]] = Field(
         None,
         description="List of plugins which are both explicitly enabled and running.",
     )
@@ -236,7 +236,7 @@ class NodeInfo(BaseModel):
     io_write_count: Optional[int] = Field(
         None, description="Total number of write operations by the persister."
     )
-    log_files: Optional[list[pathlib.Path]] = Field(
+    log_files: Optional[List[pathlib.Path]] = Field(
         None,
         description='List of log files used by the node. If the node also sends messages to stdout, "<stdout>" is also reported in the list.',
     )
@@ -363,7 +363,7 @@ class ExchangeSpec(BaseModel):
         False,
         description="Whether the exchange is internal, i.e. cannot be directly published to by a client.",
     )
-    arguments: Optional[dict[str, Any]] = Field(
+    arguments: Optional[Dict[str, Any]] = Field(
         default_factory=dict, description="Exchange arguments."
     )
     vhost: str = Field(
@@ -408,7 +408,7 @@ class PolicySpec(BaseModel):
         ...,
         description="The regular expression, which when matches on a given resources causes the policy to apply.",
     )
-    definition: dict[str, Any] = Field(
+    definition: Dict[str, Any] = Field(
         ...,
         description="A set of key/value pairs (think a JSON document) that will be injected into the map of optional arguments of the matching queues and exchanges.",
     )
@@ -448,7 +448,7 @@ class QueueSpec(BaseModel):
         False,
         description="Whether the queue will be deleted automatically when no longer used.",
     )
-    arguments: Optional[dict[str, Any]] = Field(
+    arguments: Optional[Dict[str, Any]] = Field(
         default_factory=dict, description="Queue arguments."
     )
     vhost: str = Field(
@@ -557,7 +557,7 @@ class QueueInfo(QueueSpec):
         None,
         description="Detailed message stats for deliveries from this queue into channels.",
     )
-    consumer_details: Optional[list[Any]] = Field(
+    consumer_details: Optional[List[Any]] = Field(
         None,
         description="List of consumers on this channel, with some details on each.",
     )
@@ -581,7 +581,7 @@ class UserSpec(BaseModel):
     name: str = Field(..., description="Username")
     password_hash: str = Field(..., description="Hash of the user password.")
     hashing_algorithm: HashingAlgorithm
-    tags: list[str]
+    tags: List[str]
 
     class Config:
         use_enum_values = True
@@ -646,7 +646,7 @@ class RabbitMQAPI:
         return instance
 
     @property
-    def health_checks(self) -> tuple[dict[str, Any], dict[str, str]]:
+    def health_checks(self) -> Tuple[Dict[str, Any], Dict[str, str]]:
         # https://rawcdn.githack.com/rabbitmq/rabbitmq-server/v3.9.7/deps/rabbitmq_management/priv/www/api/index.html
         HEALTH_CHECKS = {
             "health/checks/alarms",
@@ -671,7 +671,7 @@ class RabbitMQAPI:
         return success, failure
 
     def get(
-        self, endpoint: str, params: dict[str, Any] = None, timeout: float | None = None
+        self, endpoint: str, params: Dict[str, Any] = None, timeout: float | None = None
     ) -> requests.Response:
         return self._session.get(
             f"{self._url}/{endpoint}", params=params, timeout=timeout
@@ -680,8 +680,8 @@ class RabbitMQAPI:
     def put(
         self,
         endpoint: str,
-        params: dict[str, Any] = None,
-        json: dict[str, Any] = None,
+        params: Dict[str, Any] = None,
+        json: Dict[str, Any] = None,
         timeout: float | None = None,
     ) -> requests.Response:
         return self._session.put(
@@ -691,8 +691,8 @@ class RabbitMQAPI:
     def post(
         self,
         endpoint: str,
-        data: Optional[dict[str, Any]] = None,
-        json: Optional[dict[str, Any]] = None,
+        data: Optional[Dict[str, Any]] = None,
+        json: Optional[Dict[str, Any]] = None,
         timeout: float | None = None,
     ) -> requests.Response:
         return self._session.post(
@@ -700,7 +700,7 @@ class RabbitMQAPI:
         )
 
     def delete(
-        self, endpoint: str, params: dict[str, Any] = None, timeout: float | None = None
+        self, endpoint: str, params: Dict[str, Any] = None, timeout: float | None = None
     ) -> requests.Response:
         return self._session.delete(
             f"{self._url}/{endpoint}", params=params, timeout=timeout
@@ -712,7 +712,7 @@ class RabbitMQAPI:
         source: Optional[str] = None,
         destination: Optional[str] = None,
         destination_type: Optional[str] = None,
-    ) -> list[BindingInfo]:
+    ) -> List[BindingInfo]:
         endpoint = "bindings"
         if vhost is not None:
             endpoint = f"{endpoint}/{vhost}"
@@ -775,7 +775,7 @@ class RabbitMQAPI:
 
     def connections(
         self, name: Optional[str] = None
-    ) -> Union[list[ConnectionInfo], ConnectionInfo]:
+    ) -> Union[List[ConnectionInfo], ConnectionInfo]:
         endpoint = "connections"
         if name is not None:
             endpoint = f"{endpoint}/{name}/"
@@ -784,7 +784,7 @@ class RabbitMQAPI:
         response = self.get(endpoint)
         return [ConnectionInfo(**qi) for qi in response.json()]
 
-    def nodes(self, name: Optional[str] = None) -> Union[list[NodeInfo], NodeInfo]:
+    def nodes(self, name: Optional[str] = None) -> Union[List[NodeInfo], NodeInfo]:
         # https://www.rabbitmq.com/monitoring.html#node-metrics
         endpoint = "nodes"
         if name is not None:
@@ -796,7 +796,7 @@ class RabbitMQAPI:
 
     def exchanges(
         self, vhost: Optional[str] = None, name: Optional[str] = None
-    ) -> Union[list[ExchangeInfo], ExchangeInfo]:
+    ) -> Union[List[ExchangeInfo], ExchangeInfo]:
         endpoint = "exchanges"
         if vhost is not None and name is not None:
             endpoint = f"{endpoint}/{vhost}/{name}/"
@@ -822,7 +822,7 @@ class RabbitMQAPI:
         response = self.delete(endpoint, params={"if-unused": if_unused})
         response.raise_for_status()
 
-    def policies(self, vhost: Optional[str] = None) -> list[PolicySpec]:
+    def policies(self, vhost: Optional[str] = None) -> List[PolicySpec]:
         endpoint = "policies"
         if vhost is not None:
             endpoint = f"{endpoint}/{vhost}/"
@@ -851,7 +851,7 @@ class RabbitMQAPI:
 
     def queues(
         self, vhost: Optional[str] = None, name: Optional[str] = None
-    ) -> Union[list[QueueInfo], QueueInfo]:
+    ) -> Union[List[QueueInfo], QueueInfo]:
         endpoint = "queues"
         if vhost is not None and name is not None:
             endpoint = f"{endpoint}/{vhost}/{name}"
@@ -880,7 +880,7 @@ class RabbitMQAPI:
         )
         response.raise_for_status()
 
-    def users(self) -> list[UserSpec]:
+    def users(self) -> List[UserSpec]:
         endpoint = "users"
         response = self.get(endpoint)
         return [UserSpec(**user) for user in response.json()]
@@ -902,7 +902,7 @@ class RabbitMQAPI:
         response = self.delete(endpoint)
         response.raise_for_status()
 
-    def vhosts(self) -> list[VHostInfo]:
+    def vhosts(self) -> List[VHostInfo]:
         endpoint = "vhosts"
         response = self.get(endpoint)
         return [VHostInfo(**user) for user in response.json()]
