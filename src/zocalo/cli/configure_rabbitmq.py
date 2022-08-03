@@ -393,10 +393,11 @@ def run():
 
         # configure vhosts
         vhost_specs = get_vhost_specs(yaml_data.get("vhosts", []))
-        current_vhosts_excluding_default = [
-            vhost for vhost in api.vhosts() if vhost.name != "/"
-        ]
-        update_config(api, vhost_specs, current_vhosts_excluding_default)
+        if vhost_specs:
+            current_vhosts_excluding_default = [
+                vhost for vhost in api.vhosts() if vhost.name != "/"
+            ]
+            update_config(api, vhost_specs, current_vhosts_excluding_default)
 
         # configure policies
         _configure_policies(api, yaml_data["policies"])
