@@ -5,7 +5,7 @@ import configparser
 import functools
 import logging
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import requests
 import yaml
@@ -14,7 +14,7 @@ from pydantic import BaseModel
 import zocalo.configuration
 from zocalo.util.rabbitmq import BindingSpec, ExchangeSpec, PolicySpec, QueueSpec
 from zocalo.util.rabbitmq import RabbitMQAPI as _RabbitMQAPI
-from zocalo.util.rabbitmq import UserSpec, hash_password
+from zocalo.util.rabbitmq import UserSpec, VHostSpec, hash_password
 
 logger = logging.getLogger("zocalo.cli.configure_rabbitmq")
 
@@ -49,6 +49,14 @@ class RabbitMQAPI(_RabbitMQAPI):
     def _(self, exchange: ExchangeSpec, **kwargs):
         self.exchange_delete(vhost=exchange.vhost, name=exchange.name, **kwargs)
 
+    @create_component.register  # type: ignore
+    def _(self, vhost: VHostSpec):
+        self.add_vhost(vhost)
+
+    @delete_component.register  # type: ignore
+    def _(self, vhost: VHostSpec, **kwargs):
+        self.delete_vhost(name=vhost.name, **kwargs)
+
 
 @functools.singledispatch
 def _info_to_spec(incoming, infos: list):
@@ -76,7 +84,7 @@ def _(comp: BindingSpec) -> bool:
 
 
 def update_config(
-    api: RabbitMQAPI, incoming: List[BaseModel], current: List[BaseModel]
+    api: RabbitMQAPI, incoming: list[BaseModel], current: list[BaseModel]
 ):
     cls = type(incoming[0])
     current = _info_to_spec(incoming[0], current)
@@ -99,7 +107,21 @@ def update_config(
             api.create_component(ic)
 
 
-def get_binding_specs(bindings: Dict) -> List[BindingSpec]:
+def get_vhost_specs(vhosts: dict) -> list[VHostSpec]:
+    vhost_specs = []
+    for vhost in vhosts:
+        vhost_specs.append(
+            VHostSpec(
+                name=vhost["name"],
+                description=vhost.get("description", ""),
+                tags=vhost.get("tags", []),
+                tracing=vhost.get("tracing", False),
+            )
+        )
+    return vhost_specs
+
+
+def get_binding_specs(bindings: dict) -> list[BindingSpec]:
     binding_specs = []
     for binding in bindings:
         binding_specs.append(
@@ -115,7 +137,7 @@ def get_binding_specs(bindings: Dict) -> List[BindingSpec]:
     return binding_specs
 
 
-def get_binding_specs_for_group(group: Dict) -> List[BindingSpec]:
+def get_binding_specs_for_group(group: dict) -> list[BindingSpec]:
     sources = group.get("bindings", [""])
     vhost = group.get("vhost", "/")
     return [
@@ -133,7 +155,7 @@ def get_binding_specs_for_group(group: Dict) -> List[BindingSpec]:
     ]
 
 
-def get_queue_specs(group: Dict) -> List[QueueSpec]:
+def get_queue_specs(group: dict) -> list[QueueSpec]:
     queue_settings = group.get("settings", {}).get("queues", {})
     qtype = queue_settings.get("type", "classic")
     dlq_pattern = queue_settings.get("dead-letter-routing-key-pattern")
@@ -189,7 +211,7 @@ def get_queue_specs(group: Dict) -> List[QueueSpec]:
     return qspecs
 
 
-def get_exchange_specs(exchanges: Dict) -> List[ExchangeSpec]:
+def get_exchange_specs(exchanges: dict) -> list[ExchangeSpec]:
     return [
         ExchangeSpec(
             **exchange,
@@ -198,7 +220,7 @@ def get_exchange_specs(exchanges: Dict) -> List[ExchangeSpec]:
     ]
 
 
-def get_exchange_specs_for_group(group: Dict) -> List[ExchangeSpec]:
+def get_exchange_specs_for_group(group: dict) -> list[ExchangeSpec]:
     vhost = group.get("vhost", "/")
     if group.get("settings", {}).get("broadcast"):
         etype = "fanout"
@@ -365,8 +387,18 @@ def run():
         yaml_data = yaml.safe_load(in_file)
 
     try:
+
         if args.user_config:
             _configure_users(api, args.user_config)
+
+        # configure vhosts
+        vhost_specs = get_vhost_specs(yaml_data.get("vhosts", []))
+        current_vhosts_excluding_default = [
+            vhost for vhost in api.vhosts() if vhost.name != "/"
+        ]
+        update_config(api, vhost_specs, current_vhosts_excluding_default)
+
+        # configure policies
         _configure_policies(api, yaml_data["policies"])
 
         queue_specs = []

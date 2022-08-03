@@ -408,6 +408,59 @@ def test_api_delete_user(requests_mock, rmqapi, user_spec):
     assert history.url.endswith("/api/users/guest/")
 
 
+def test_api_vhosts(requests_mock, rmqapi):
+    vhosts = [
+        {
+            "name": "foo",
+            "description": "",
+            "tags": [],
+            "tracing": False,
+        },
+        {
+            "name": "bar",
+            "description": "This is a description",
+            "tags": ["ham", "spam"],
+            "tracing": True,
+        },
+    ]
+
+    # First call rmq.users() with defaults
+    requests_mock.get("/api/vhosts", json=vhosts)
+    assert rmqapi.vhosts() == [rabbitmq.VHostInfo(**vhost) for vhost in vhosts]
+
+    # Now call with name=...
+    requests_mock.get("/api/vhosts/foo/", json=vhosts[0])
+    assert rmqapi.vhost("foo") == rabbitmq.VHostInfo(**vhosts[0])
+
+
+@pytest.fixture
+def vhost_spec():
+    return rabbitmq.VHostInfo(
+        name="foo",
+    )
+
+
+def test_api_add_vhost(requests_mock, rmqapi, vhost_spec):
+    requests_mock.put(f"/api/vhosts/{vhost_spec.name}/")
+    rmqapi.add_vhost(vhost=vhost_spec)
+    assert requests_mock.call_count == 1
+    history = requests_mock.request_history[0]
+    assert history.method == "PUT"
+    assert history.url.endswith(f"/api/vhosts/{vhost_spec.name}/")
+    assert history.json() == {
+        "tags": [],
+    }
+
+
+def test_api_delete_vhost(requests_mock, rmqapi, vhost_spec):
+    requests_mock.delete(f"/api/vhosts/{vhost_spec.name}/")
+    rmqapi.delete_vhost(name=vhost_spec.name)
+    assert requests_mock.call_count == 1
+    history = requests_mock.request_history[0]
+    assert history.method == "DELETE"
+    assert history.url.endswith(f"/api/vhosts/{vhost_spec.name}/")
+
+
 def test_api_policies(requests_mock, rmqapi):
     policy = {
         "vhost": "foo",
