@@ -408,6 +408,71 @@ def test_api_delete_user(requests_mock, rmqapi, user_spec):
     assert history.url.endswith("/api/users/guest/")
 
 
+def test_api_permissions(requests_mock, rmqapi):
+    permissions = [
+        {
+            "vhost": "my-vhost",
+            "user": "janeway",
+            "configure": "^janeway-.*",
+            "write": ".*",
+            "read": ".*",
+        },
+        {
+            "vhost": "my-vhost",
+            "user": "admin",
+            "configure": "^.*",
+            "write": ".*",
+            "read": ".*",
+        },
+    ]
+
+    # First call rmq.permissions() with defaults
+    requests_mock.get("/api/permissions", json=permissions)
+    assert rmqapi.permissions() == [rabbitmq.PermissionSpec(**p) for p in permissions]
+
+    # Now call with name=...
+    requests_mock.get("/api/permissions/my-vhost/janeway/", json=permissions[0])
+    assert rmqapi.permissions(
+        vhost="my-vhost", user="janeway"
+    ) == rabbitmq.PermissionSpec(**permissions[0])
+
+
+@pytest.fixture
+def permission_spec():
+    return rabbitmq.PermissionSpec(
+        vhost="my-vhost",
+        user="janeway",
+        configure="^janeway-.*",
+        write=".*",
+        read=".*",
+    )
+
+
+def test_api_add_permissions(requests_mock, rmqapi, permission_spec):
+    endpoint = f"/api/permissions/{permission_spec.vhost}/{permission_spec.user}/"
+    requests_mock.put(endpoint)
+    rmqapi.set_permissions(permission_spec)
+    assert requests_mock.call_count == 1
+    history = requests_mock.request_history[0]
+    assert history.method == "PUT"
+    assert history.url.endswith(endpoint)
+    assert history.json() == {
+        "configure": "^janeway-.*",
+        "write": ".*",
+        "read": ".*",
+    }
+
+
+def test_api_clear_permissions(requests_mock, rmqapi):
+    endpoint = "/api/permissions/foo/bar/"
+    requests_mock.delete(endpoint)
+    rmqapi.clear_permissions(vhost="foo", user="bar")
+    assert requests_mock.call_count == 1
+    history = requests_mock.request_history[0]
+    assert history.method == "DELETE"
+    assert history.url.endswith(endpoint)
+
+
 def test_api_vhosts(requests_mock, rmqapi):
     vhosts = [
         {
@@ -426,16 +491,16 @@ def test_api_vhosts(requests_mock, rmqapi):
 
     # First call rmq.users() with defaults
     requests_mock.get("/api/vhosts", json=vhosts)
-    assert rmqapi.vhosts() == [rabbitmq.VHostInfo(**vhost) for vhost in vhosts]
+    assert rmqapi.vhosts() == [rabbitmq.VHostSpec(**vhost) for vhost in vhosts]
 
     # Now call with name=...
     requests_mock.get("/api/vhosts/foo/", json=vhosts[0])
-    assert rmqapi.vhost("foo") == rabbitmq.VHostInfo(**vhosts[0])
+    assert rmqapi.vhost("foo") == rabbitmq.VHostSpec(**vhosts[0])
 
 
 @pytest.fixture
 def vhost_spec():
-    return rabbitmq.VHostInfo(
+    return rabbitmq.VHostSpec(
         name="foo",
     )
 

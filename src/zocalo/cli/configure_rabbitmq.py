@@ -12,7 +12,13 @@ import yaml
 from pydantic import BaseModel
 
 import zocalo.configuration
-from zocalo.util.rabbitmq import BindingSpec, ExchangeSpec, PolicySpec, QueueSpec
+from zocalo.util.rabbitmq import (
+    BindingSpec,
+    ExchangeSpec,
+    PermissionSpec,
+    PolicySpec,
+    QueueSpec,
+)
 from zocalo.util.rabbitmq import RabbitMQAPI as _RabbitMQAPI
 from zocalo.util.rabbitmq import UserSpec, VHostSpec, hash_password
 
@@ -54,8 +60,16 @@ class RabbitMQAPI(_RabbitMQAPI):
         self.add_vhost(vhost)
 
     @delete_component.register  # type: ignore
-    def _(self, vhost: VHostSpec, **kwargs):
-        self.delete_vhost(name=vhost.name, **kwargs)
+    def _(self, vhost: VHostSpec):
+        self.delete_vhost(name=vhost.name)
+
+    @create_component.register  # type: ignore
+    def _(self, permissions: PermissionSpec):
+        self.set_permissions(permissions)
+
+    @delete_component.register  # type: ignore
+    def _(self, permissions: PermissionSpec):
+        self.clear_permissions(vhost=permissions.vhost, user=permissions.user)
 
 
 @functools.singledispatch
@@ -119,6 +133,13 @@ def get_vhost_specs(vhosts: dict) -> List[VHostSpec]:
             )
         )
     return vhost_specs
+
+
+def get_permission_specs(permissions: dict) -> List[PermissionSpec]:
+    permission_specs = []
+    for permission in permissions:
+        permission_specs.append(PermissionSpec(**permission))
+    return permission_specs
 
 
 def get_binding_specs(bindings: dict) -> List[BindingSpec]:
@@ -392,12 +413,15 @@ def run():
             _configure_users(api, args.user_config)
 
         # configure vhosts
-        vhost_specs = get_vhost_specs(yaml_data.get("vhosts", []))
-        if vhost_specs:
+        if vhost_specs := get_vhost_specs(yaml_data.get("vhosts", [])):
             current_vhosts_excluding_default = [
                 vhost for vhost in api.vhosts() if vhost.name != "/"
             ]
             update_config(api, vhost_specs, current_vhosts_excluding_default)
+
+        # configure permissions
+        if permission_specs := get_permission_specs(yaml_data.get("permissions", [])):
+            update_config(api, permission_specs, api.permissions())
 
         # configure policies
         _configure_policies(api, yaml_data["policies"])
