@@ -153,6 +153,55 @@ class ConnectionInfo(BaseModel):
     )
 
 
+class VHostSpec(BaseModel):
+    name: str = Field(
+        ...,
+        description="The name of the virtual host entry.",
+    )
+    description: str = ""
+    tags: List[str] = Field(default_factory=list)
+    tracing: bool = False
+
+
+class PermissionSpec(BaseModel):
+    """Sets user permissions.
+
+    For example, this instructs the RabbitMQ broker to grant the user named
+    "janeway" access to the virtual host called "my-vhost", with configure
+    permissions on all resources whose names starts with "janeway-", and
+    write and read permissions on all resources:
+
+        PermissionSpec(
+            vhost="my-vhost",
+            user="janeway",
+            configure="^janeway-.*",
+            write=".*",
+            read=".*",
+        )
+    """
+
+    vhost: str = Field(
+        ...,
+        description='The name of the virtual host to which to grant the user access, defaulting to "/".',
+    )
+    user: str = Field(
+        ...,
+        description="The name of the user to grant access to the specified virtual host.",
+    )
+    configure: str = Field(
+        ...,
+        description="A regular expression matching resource names for which the user is granted configure permissions.",
+    )
+    write: str = Field(
+        ...,
+        description="A regular expression matching resource names for which the user is granted write permissions.",
+    )
+    read: str = Field(
+        ...,
+        description="A regular expression matching resource names for which the user is granted read permissions.",
+    )
+
+
 class NodeType(enum.Enum):
     disc = "disc"
     ram = "ram"
@@ -365,11 +414,11 @@ class ExchangeInfo(ExchangeSpec):
         None, description="Policy name for applying to the exchange."
     )
     message_stats: Optional[MessageStats] = None
-    incoming: Optional[Dict] = Field(
+    incoming: Optional[dict] = Field(
         None,
         description="Detailed message stats (see section above) for publishes from channels into this exchange.",
     )
-    outgoing: Optional[Dict] = Field(
+    outgoing: Optional[dict] = Field(
         None,
         description="Detailed message stats for publishes from this exchange into queues.",
     )
@@ -876,6 +925,32 @@ class RabbitMQAPI:
         response = self.get(endpoint).json()
         return UserSpec(**response)
 
+    def permissions(
+        self, vhost: Optional[str] = None, user: Optional[str] = None
+    ) -> List[PermissionSpec] | PermissionSpec:
+        endpoint = "permissions"
+        if vhost is not None and user is not None:
+            endpoint = f"{endpoint}/{vhost}/{user}/"
+            response = self.get(endpoint)
+            return PermissionSpec(**response.json())
+        elif vhost is not None or user is not None:
+            raise ValueError(
+                "Either both or neither of vhost and user must be set to None"
+            )
+        response = self.get(endpoint)
+        return [PermissionSpec(**ps) for ps in response.json()]
+
+    def set_permissions(self, permission: PermissionSpec):
+        endpoint = f"permissions/{permission.vhost}/{permission.user}/"
+        submission = permission.dict(exclude_defaults=True, exclude={"vhost", "user"})
+        response = self.put(endpoint, json=submission)
+        response.raise_for_status()
+
+    def clear_permissions(self, vhost: str, user: str):
+        endpoint = f"permissions/{vhost}/{user}/"
+        response = self.delete(endpoint)
+        response.raise_for_status()
+
     def user_put(self, user: UserSpec):
         endpoint = f"users/{user.name}/"
         submission = user.dict(exclude_defaults=True, exclude={"name"})
@@ -885,6 +960,28 @@ class RabbitMQAPI:
 
     def user_delete(self, name: str):
         endpoint = f"users/{name}/"
+        response = self.delete(endpoint)
+        response.raise_for_status()
+
+    def vhosts(self) -> List[VHostSpec]:
+        endpoint = "vhosts"
+        response = self.get(endpoint)
+        return [VHostSpec(**user) for user in response.json()]
+
+    def vhost(self, name: str) -> VHostSpec:
+        endpoint = f"vhosts/{name}/"
+        response = self.get(endpoint).json()
+        return VHostSpec(**response)
+
+    def add_vhost(self, vhost: VHostSpec):
+        endpoint = f"vhosts/{vhost.name}/"
+        response = self.put(
+            endpoint, json=vhost.dict(exclude_defaults=True, exclude={"name", "vhost"})
+        )
+        response.raise_for_status()
+
+    def delete_vhost(self, name: str):
+        endpoint = f"vhosts/{name}/"
         response = self.delete(endpoint)
         response.raise_for_status()
 

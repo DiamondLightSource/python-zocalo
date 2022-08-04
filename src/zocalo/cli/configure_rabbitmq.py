@@ -5,16 +5,22 @@ import configparser
 import functools
 import logging
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 import requests
 import yaml
 from pydantic import BaseModel
 
 import zocalo.configuration
-from zocalo.util.rabbitmq import BindingSpec, ExchangeSpec, PolicySpec, QueueSpec
+from zocalo.util.rabbitmq import (
+    BindingSpec,
+    ExchangeSpec,
+    PermissionSpec,
+    PolicySpec,
+    QueueSpec,
+)
 from zocalo.util.rabbitmq import RabbitMQAPI as _RabbitMQAPI
-from zocalo.util.rabbitmq import UserSpec, hash_password
+from zocalo.util.rabbitmq import UserSpec, VHostSpec, hash_password
 
 logger = logging.getLogger("zocalo.cli.configure_rabbitmq")
 
@@ -48,6 +54,22 @@ class RabbitMQAPI(_RabbitMQAPI):
     @delete_component.register  # type: ignore
     def _(self, exchange: ExchangeSpec, **kwargs):
         self.exchange_delete(vhost=exchange.vhost, name=exchange.name, **kwargs)
+
+    @create_component.register  # type: ignore
+    def _(self, vhost: VHostSpec):
+        self.add_vhost(vhost)
+
+    @delete_component.register  # type: ignore
+    def _(self, vhost: VHostSpec):
+        self.delete_vhost(name=vhost.name)
+
+    @create_component.register  # type: ignore
+    def _(self, permissions: PermissionSpec):
+        self.set_permissions(permissions)
+
+    @delete_component.register  # type: ignore
+    def _(self, permissions: PermissionSpec):
+        self.clear_permissions(vhost=permissions.vhost, user=permissions.user)
 
 
 @functools.singledispatch
@@ -99,7 +121,28 @@ def update_config(
             api.create_component(ic)
 
 
-def get_binding_specs(bindings: Dict) -> List[BindingSpec]:
+def get_vhost_specs(vhosts: dict) -> List[VHostSpec]:
+    vhost_specs = []
+    for vhost in vhosts:
+        vhost_specs.append(
+            VHostSpec(
+                name=vhost["name"],
+                description=vhost.get("description", ""),
+                tags=vhost.get("tags", []),
+                tracing=vhost.get("tracing", False),
+            )
+        )
+    return vhost_specs
+
+
+def get_permission_specs(permissions: dict) -> List[PermissionSpec]:
+    permission_specs = []
+    for permission in permissions:
+        permission_specs.append(PermissionSpec(**permission))
+    return permission_specs
+
+
+def get_binding_specs(bindings: dict) -> List[BindingSpec]:
     binding_specs = []
     for binding in bindings:
         binding_specs.append(
@@ -115,7 +158,7 @@ def get_binding_specs(bindings: Dict) -> List[BindingSpec]:
     return binding_specs
 
 
-def get_binding_specs_for_group(group: Dict) -> List[BindingSpec]:
+def get_binding_specs_for_group(group: dict) -> List[BindingSpec]:
     sources = group.get("bindings", [""])
     vhost = group.get("vhost", "/")
     return [
@@ -133,7 +176,7 @@ def get_binding_specs_for_group(group: Dict) -> List[BindingSpec]:
     ]
 
 
-def get_queue_specs(group: Dict) -> List[QueueSpec]:
+def get_queue_specs(group: dict) -> List[QueueSpec]:
     queue_settings = group.get("settings", {}).get("queues", {})
     qtype = queue_settings.get("type", "classic")
     dlq_pattern = queue_settings.get("dead-letter-routing-key-pattern")
@@ -189,7 +232,7 @@ def get_queue_specs(group: Dict) -> List[QueueSpec]:
     return qspecs
 
 
-def get_exchange_specs(exchanges: Dict) -> List[ExchangeSpec]:
+def get_exchange_specs(exchanges: dict) -> List[ExchangeSpec]:
     return [
         ExchangeSpec(
             **exchange,
@@ -198,7 +241,7 @@ def get_exchange_specs(exchanges: Dict) -> List[ExchangeSpec]:
     ]
 
 
-def get_exchange_specs_for_group(group: Dict) -> List[ExchangeSpec]:
+def get_exchange_specs_for_group(group: dict) -> List[ExchangeSpec]:
     vhost = group.get("vhost", "/")
     if group.get("settings", {}).get("broadcast"):
         etype = "fanout"
@@ -218,11 +261,11 @@ def get_exchange_specs_for_group(group: Dict) -> List[ExchangeSpec]:
     ]
 
 
-def _configure_policies(api, policies: list[dict[str, Any]]):
+def _configure_policies(api, policies: List[Dict[str, Any]]):
     existing_policies = {
         (policy.vhost, policy.name): policy for policy in api.policies()
     }
-    known_policies: set[tuple[str, str]] = set()
+    known_policies: set[Tuple[str, str]] = set()
 
     for policy in policies:
         policy_id = (policy["vhost"], policy["name"])
@@ -252,9 +295,9 @@ def _configure_policies(api, policies: list[dict[str, Any]]):
         api.clear_policy(vhost=policy_id[0], name=policy_id[1])
 
 
-def _configure_queues(api, queues: list[QueueSpec]):
+def _configure_queues(api, queues: List[QueueSpec]):
     existing_queues = {(q.vhost, q.name): q for q in api.queues()}
-    known_queues: set[tuple[str, str]] = set()
+    known_queues: set[Tuple[str, str]] = set()
 
     for queue_spec in queues:
         queue_id = (queue_spec.vhost, queue_spec.name)
@@ -290,7 +333,7 @@ def _configure_queues(api, queues: list[QueueSpec]):
 def _configure_users(api, rabbitmq_user_config_area: Path):
     existing_users = {user.name: user for user in api.users()}
 
-    planned_users: dict[str, Path] = {}
+    planned_users: Dict[str, Path] = {}
     for config_file in rabbitmq_user_config_area.glob("**/*.ini"):
         try:
             config = configparser.ConfigParser()
@@ -365,8 +408,22 @@ def run():
         yaml_data = yaml.safe_load(in_file)
 
     try:
+
         if args.user_config:
             _configure_users(api, args.user_config)
+
+        # configure vhosts
+        if vhost_specs := get_vhost_specs(yaml_data.get("vhosts", [])):
+            current_vhosts_excluding_default = [
+                vhost for vhost in api.vhosts() if vhost.name != "/"
+            ]
+            update_config(api, vhost_specs, current_vhosts_excluding_default)
+
+        # configure permissions
+        if permission_specs := get_permission_specs(yaml_data.get("permissions", [])):
+            update_config(api, permission_specs, api.permissions())
+
+        # configure policies
         _configure_policies(api, yaml_data["policies"])
 
         queue_specs = []
