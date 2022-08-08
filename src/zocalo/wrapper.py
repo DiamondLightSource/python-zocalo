@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import threading
+from typing import Any, Callable
 
 import workflows.util
 
@@ -73,7 +74,16 @@ class DummyWrapper(BaseWrapper):
 
 
 class StatusNotifications(threading.Thread):
-    def __init__(self, send_function, taskname):
+    def __init__(self, send_function: Callable[[dict], None], taskname: str):
+        """Construct and start a StatusNotifications thread object.
+
+        Once started, this will repeatedly re-broadcast the cached
+        current status, every few seconds.
+
+        Args:
+            send_function: The transport function that broadcasts the actual message.
+            taskname: The name of this task, which will be appended to the message.
+        """
         super().__init__(name="zocalo status notification")
         self.daemon = True
         self._send_status = send_function
@@ -88,14 +98,14 @@ class StatusNotifications(threading.Thread):
         self._keep_running = True
         self.start()
 
-    def set_static_status_field(self, field, value):
+    def set_static_status_field(self, field: str, value: Any) -> None:
         """
         Add an additional static field to status notifications.
         """
         with self._lock:
             self._status_dict[field] = value
 
-    def set_status(self, status):
+    def set_status(self, status: workflows.services.common_service.Status) -> None:
         with self._lock:
             self._status_dict["status"], self._status_dict["statustext"] = (
                 status.intval,
@@ -104,28 +114,28 @@ class StatusNotifications(threading.Thread):
             self._lock.notify()
 
     @property
-    def taskname(self):
+    def taskname(self) -> str:
         """Return the name displayed on service monitors for this task."""
         return self._status_dict["task"]
 
     @taskname.setter
-    def taskname(self, value):
+    def taskname(self, value: str) -> None:
         """Set/update the name displayed on service monitors for this task."""
         with self._lock:
             self._status_dict["task"] = value
             self._lock.notify()
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         """Stop the status notification thread."""
         self._keep_running = False
 
-    def send_status(self, dictionary):
+    def send_status(self, dictionary: dict) -> None:
         try:
             self._send_status(dictionary)
         except workflows.Disconnected:
             pass
 
-    def run(self):
+    def run(self) -> None:
         """Status notification thread main loop."""
         with self._lock:
             self.send_status(self._status_dict)
