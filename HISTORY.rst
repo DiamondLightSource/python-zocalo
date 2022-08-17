@@ -4,6 +4,9 @@ History
 
 Unreleased
 ----------
+
+0.24.0 (2022-08-17)
+-------------------
 * ``zocalo.configure_rabbitmq`` cli: enable configuration of vhosts
 
 0.23.0 (2022-08-02)
