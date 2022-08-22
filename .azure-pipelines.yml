@@ -16,7 +16,7 @@ stages:
       vmImage: ubuntu-20.04
     steps:
       # Run syntax validation on a shallow clone using oldest and latest Python
-      - task: UsePythonVersion@0
+      - task: UsePythonVersion@0.206.0
         displayName: Set up python
         inputs:
           versionSpec: 3.8
@@ -24,7 +24,7 @@ stages:
       - bash: python .azure-pipelines/syntax-validation.py
         displayName: Syntax validation (3.8)
 
-      - task: UsePythonVersion@0
+      - task: UsePythonVersion@0.206.0
         displayName: Set up python
         inputs:
           versionSpec: 3.10
@@ -47,7 +47,7 @@ stages:
     pool:
       vmImage: ubuntu-20.04
     steps:
-      - task: UsePythonVersion@0
+      - task: UsePythonVersion@0.206.0
         displayName: Set up python
         inputs:
           versionSpec: 3.10
@@ -134,7 +134,7 @@ stages:
     steps:
       - checkout: none
 
-      - task: UsePythonVersion@0
+      - task: UsePythonVersion@0.206.0
         displayName: Set up python
         inputs:
           versionSpec: 3.10

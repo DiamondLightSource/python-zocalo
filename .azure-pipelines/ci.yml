@@ -1,7 +1,7 @@
 steps:
 - checkout: none
 
-- task: UsePythonVersion@0
+- task: UsePythonVersion@0.206.0
   inputs:
     versionSpec: '$(PYTHON_VERSION)'
   displayName: 'Use Python $(PYTHON_VERSION)'
