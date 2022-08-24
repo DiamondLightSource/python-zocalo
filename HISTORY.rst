@@ -4,6 +4,7 @@ History
 
 Unreleased
 ----------
+* ``zocalo.configure_rabbitmq`` cli: additional debugging output in event of rare ``IndexError``
 
 0.24.0 (2022-08-17)
 -------------------

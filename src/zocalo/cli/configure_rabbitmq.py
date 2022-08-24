@@ -442,12 +442,19 @@ def run():
         # don't remove bindings to temporary queues
         queues = api.queues()
         for b in api.bindings():
-            q = [
-                qu for qu in queues if qu.vhost == b.vhost and qu.name == b.destination
-            ][0]
-            if q.auto_delete or q.exclusive:
-                continue
-            permanent_bindings.append(b)
+            try:
+                q = [
+                    qu
+                    for qu in queues
+                    if qu.vhost == b.vhost and qu.name == b.destination
+                ][0]
+            except IndexError:
+                logger.error(f"No matching queue found binding {b}\n{queues=}")
+                raise
+            else:
+                if q.auto_delete or q.exclusive:
+                    continue
+                permanent_bindings.append(b)
         update_config(api, binding_specs, permanent_bindings)
     except requests.exceptions.HTTPError as e:
         logger.error(e)
