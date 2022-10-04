@@ -449,8 +449,7 @@ def run():
                     if qu.vhost == b.vhost and qu.name == b.destination
                 ][0]
             except IndexError:
-                logger.error(f"No matching queue found binding {b}\n{queues=}")
-                raise
+                logger.warning(f"No matching queue found binding {b}")
             else:
                 if q.auto_delete or q.exclusive:
                     continue
