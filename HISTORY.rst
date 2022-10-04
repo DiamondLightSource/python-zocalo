@@ -4,6 +4,7 @@ History
 
 Unreleased
 ----------
+* ``zocalo.configure_rabbitmq`` cli: downgrade "No matching queue found" error to warning
 
 0.24.1 (2022-08-24)
 -------------------
