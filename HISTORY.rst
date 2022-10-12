@@ -4,6 +4,7 @@ History
 
 Unreleased
 ----------
+* Add ``JSONLines`` service for appending messages to a file in jsonlines format
 
 0.24.2 (2020-10-04)
 -------------------
