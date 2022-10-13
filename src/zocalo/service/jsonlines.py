@@ -15,7 +15,7 @@ class JSONLines(CommonService):
     _service_name = "JSON Lines"
 
     # Logger name
-    _logger_name = "dlstbx.services.jsonlines"
+    _logger_name = "zocalo.service.jsonlines"
 
     def initializing(self):
 
