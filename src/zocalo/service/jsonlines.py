@@ -9,7 +9,7 @@ from workflows.services.common_service import CommonService
 
 
 class JSONLines(CommonService):
-    """A service that takes RabbitMQ messages and moves them to ActiveMQ."""
+    """Write received messages into a JSONLines file on disk"""
 
     # Human readable service name
     _service_name = "JSON Lines"
