@@ -58,7 +58,7 @@ author = "Scientific Software"
 # the built documents.
 #
 # The short X.Y version.
-version = "0.24.2"
+version = "0.25.0"
 # The full version, including alpha/beta/rc tags.
 release = version
 

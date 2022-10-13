@@ -4,9 +4,12 @@ History
 
 Unreleased
 ----------
+
+0.25.0 (2022-10-13)
+-------------------
 * Add ``JSONLines`` service for appending messages to a file in jsonlines format
 
-0.24.2 (2020-10-04)
+0.24.2 (2022-10-04)
 -------------------
 * ``zocalo.configure_rabbitmq`` cli: downgrade "No matching queue found" error to warning
 
