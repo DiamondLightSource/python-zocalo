@@ -56,6 +56,11 @@ class JSONLines(CommonService):
         with self._lock:
             self._data.setdefault(output_filename, [])
             self._data[output_filename].append((header, filtered_message))
+            n_stored_messages = sum(len(v) for v in self._data.values())
+
+        if n_stored_messages == 100:
+            self.log.info("Triggering process messages")
+            self.process_messages()
 
     def process_messages(self):
         with self._lock:
