@@ -268,27 +268,27 @@ class Dispatcher(CommonService):
                         self._transport.nack(header)
                         return
 
-                filtered_message = copy.deepcopy(message)
-                filtered_parameters = copy.deepcopy(parameters)
+            filtered_message = copy.deepcopy(message)
+            filtered_parameters = copy.deepcopy(parameters)
 
-                # Create empty recipe
-                filtered_message["recipe"] = workflows.recipe.Recipe()
+            # Create empty recipe
+            filtered_message["recipe"] = workflows.recipe.Recipe()
 
-                # Apply all specified filters in order to message and parameters
-                for name, f in self.message_filters.items():
-                    try:
-                        filtered_message, filtered_parameters = f(
-                            filtered_message, filtered_parameters
-                        )
-                    except Exception as e:
-                        self.log.error(
-                            "Rejected message due to filter (%s) error: %s",
-                            name,
-                            str(e),
-                            exc_info=True,
-                        )
-                        self._transport.nack(header)
-                        return
+            # Apply all specified filters in order to message and parameters
+            for name, f in self.message_filters.items():
+                try:
+                    filtered_message, filtered_parameters = f(
+                        filtered_message, filtered_parameters
+                    )
+                except Exception as e:
+                    self.log.error(
+                        "Rejected message due to filter (%s) error: %s",
+                        name,
+                        str(e),
+                        exc_info=True,
+                    )
+                    self._transport.nack(header)
+                    return
 
             self.log.debug("Mangled processing request:\n" + str(filtered_message))
             self.log.debug(
