@@ -4,6 +4,10 @@ History
 
 Unreleased
 ----------
+* Add dispatcher service
+
+0.25.1 (2022-10-19)
+-------------------
 * ``JSONLines`` service: trigger ``process_messages`` immediately when reaching 100 stored messages
 
 0.25.0 (2022-10-13)
