@@ -4,6 +4,9 @@ History
 
 Unreleased
 ----------
+
+0.26.0 (2022-11-04)
+-------------------
 * Add dispatcher service
 * Add support for Python 3.11
 
