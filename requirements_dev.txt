@@ -4,8 +4,8 @@ marshmallow==3.18.0
 pydantic
 pytest-cov==4.0.0
 pytest-mock
-pytest==7.1.3
+pytest==7.2.0
 requests
 requests_mock
-setuptools==65.4.1
-workflows==2.24.2
+setuptools==65.5.0
+workflows==2.25
