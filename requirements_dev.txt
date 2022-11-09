@@ -7,5 +7,5 @@ pytest-mock
 pytest==7.2.0
 requests
 requests_mock
-setuptools==65.5.0
-workflows==2.25
+setuptools==65.5.1
+workflows==2.26
