@@ -1,6 +1,6 @@
 PyYAML==6.0
 graypy==2.1.0
-marshmallow==3.18.0
+marshmallow==3.19.0
 pydantic
 pytest-cov==4.0.0
 pytest-mock
