@@ -10,7 +10,7 @@ on:
 
 jobs:
   docker:
-    # if: ${{ github.repository == 'DiamondLightSource/python-zocalo' }}
+    if: ${{ github.repository == 'DiamondLightSource/python-zocalo' }}
     runs-on: ubuntu-latest
     steps:
       -
