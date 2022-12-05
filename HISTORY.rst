@@ -4,6 +4,7 @@ History
 
 Unreleased
 ----------
+* Add Dockerfile and build-and-push-docker-image GitHub workflow
 
 0.26.0 (2022-11-04)
 -------------------
