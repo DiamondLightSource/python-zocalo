@@ -60,6 +60,30 @@ def test_with_username():
     assert zc.slurm["api_version"] == "v0.0.36"
 
 
+def test_user_token_from_external_file(tmp_path):
+    user_token = "abcdefg"
+    user_token_file = tmp_path / "slurm-user-token"
+    user_token_file.write_text(user_token)
+    configuration = f"""
+version: 1
+
+example:
+  plugin: slurm
+  url: http://example.com
+  api_version: v0.0.36
+  user_token: {user_token_file}
+
+environments:
+  live:
+    - example
+"""
+    zc = zocalo.configuration.from_string(configuration)
+    assert zc.slurm is None
+    zc.activate_environment("live")
+    assert isinstance(zc.slurm, dict)
+    assert zc.slurm["user_token"] == user_token
+
+
 def test_invalid_config():
     with pytest.raises(
         zocalo.ConfigurationError, match="Missing data for required field."
