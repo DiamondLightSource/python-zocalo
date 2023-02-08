@@ -29,6 +29,9 @@ class Error(BaseModel):
 
 
 class JobProperties(BaseModel):
+    class Config:
+        use_enum_values = True
+
     account: Optional[str] = Field(
         None, description="Charge resources used by this job to specified account."
     )
