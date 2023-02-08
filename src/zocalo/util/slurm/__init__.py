@@ -29,7 +29,7 @@ class SlurmRestApi:
     def from_zocalo_configuration(cls, zc: zocalo.configuration.Configuration):
         return cls(
             url=zc.slurm["url"],
-            version=zc.slurm["version"],
+            version=zc.slurm["api_version"],
             user_name=zc.slurm.get("user"),
             user_token=zc.slurm.get("user_token"),
         )

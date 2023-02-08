@@ -13,7 +13,7 @@ def zocalo_configuration(mocker):
         "url": "http://slurm.example.com:1234",
         "user": "foo",
         "user_token": "sometoken",
-        "version": "v0.0.36",
+        "api_version": "v0.0.36",
     }
     return zc
 
@@ -85,9 +85,9 @@ def test_get_jobs(requests_mock, slurm_api, jobs_response):
     assert slurm_api.get_jobs() == slurm.models.JobsResponse(**jobs_response)
 
 
-def test_get_job(requests_mock, slurm_api, jobs_response):
+def test_get_job_info(requests_mock, slurm_api, jobs_response):
     requests_mock.get(
         "/slurm/v0.0.36/job/129",
         json=jobs_response,
     )
-    assert slurm_api.get_jobs() == slurm.models.JobsResponse(**jobs_response)
+    assert slurm_api.get_job_info(129) == slurm.models.JobsResponse(**jobs_response)

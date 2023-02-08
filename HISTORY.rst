@@ -5,6 +5,8 @@ History
 Unreleased
 ----------
 * Add Dockerfile and build-and-push-docker-image GitHub workflow
+* Add minimal wrapper for the Slurm REST API to allow job submission
+* Add Slurm ``zocalo.configuration`` plugin
 
 0.26.0 (2022-11-04)
 -------------------
