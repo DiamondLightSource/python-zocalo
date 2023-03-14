@@ -5,6 +5,7 @@ History
 Unreleased
 ----------
 * Add Dockerfile and build-and-push-docker-image GitHub workflow
+* Add ``zocalo.pickup`` command for re-submitting messages stored in the ``zocalo.go.fallback_location`` while the message broker is unavailable
 
 0.26.0 (2022-11-04)
 -------------------
