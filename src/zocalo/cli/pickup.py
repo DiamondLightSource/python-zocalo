@@ -77,10 +77,13 @@ def run():
             finfo["headers"] = data["headers"]
         finfo["originating-host"] = finfo["headers"].get("zocalo.go.host")
         finfo["recipes"] = ",".join(finfo["message"].get("recipes", []))
+        finfo["mtime"] = f.stat().st_mtime
 
     count = 0
     file_count = len(file_info)
-    for f, finfo in file_info.items():
+    for f, finfo in dict(
+        sorted(file_info.items(), key=lambda item: item[1]["mtime"])
+    ).items():
         print(
             f"Sending {f} from host {file_info[f]['originating-host']}"
             f" with recipes {file_info[f]['recipes']}"

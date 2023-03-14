@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 import sys
+import time
+import uuid
 from unittest import mock
 
 import pytest
@@ -22,8 +24,6 @@ def mock_zocalo_configuration(tmp_path):
 
 
 def test_pickup_empty_filelist_raises_system_exit(mocker, mock_zocalo_configuration):
-    # mocked_transport = mocker.MagicMock(CommonTransport)
-    # mocker.patch.object(workflows.transport, "lookup", return_value=mocked_transport)
     mocker.patch.object(
         zocalo.configuration, "from_file", return_value=mock_zocalo_configuration
     )
@@ -46,7 +46,8 @@ def test_pickup_sends_to_processing_recipe(mocker, mock_zocalo_configuration, tm
                 "parameters": {"foo": i},
             },
         }
-        (tmp_path / f"recipe{i}").write_text(json.dumps(msg))
+        (tmp_path / str(uuid.uuid4())).write_text(json.dumps(msg))
+        time.sleep(0.1)
     with mock.patch.object(sys, "argv", ["prog", "--wait", "0", "--delay", "0"]):
         pickup.run()
     mocked_transport().send.assert_has_calls(
