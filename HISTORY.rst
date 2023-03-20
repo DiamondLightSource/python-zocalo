@@ -4,6 +4,9 @@ History
 
 Unreleased
 ----------
+
+0.28.0 (2023-03-20)
+-------------------
 * Add minimal wrapper for the Slurm REST API to allow job submission
 * Add Slurm ``zocalo.configuration`` plugin
 
