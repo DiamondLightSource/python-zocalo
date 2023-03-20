@@ -38,7 +38,7 @@ jobs:
       -
         name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        uses: docker/metadata-action@766400ca14a75010e7b2e3119aa0d5b46826e8c7
         with:
           images: |
             ghcr.io/${{ github.repository }}
@@ -48,7 +48,7 @@ jobs:
             type=semver,pattern={{version}}
       -
         name: Build and push
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           context: .
           push: true
