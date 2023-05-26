@@ -15,6 +15,6 @@ spec:
   type: library
   lifecycle: production
   owner: group:data-analysis
-dependsOn:
-  - resource:zocalo-rabbitmq
-  - component:workflows
+  dependsOn:
+    - resource:zocalo-rabbitmq
+    - component:workflows
