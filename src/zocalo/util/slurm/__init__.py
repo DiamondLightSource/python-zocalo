@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from typing import Any, Optional
+import os
+import pathlib
+from typing import Any
 
 import requests
 
@@ -14,18 +16,23 @@ class SlurmRestApi:
         self,
         url: str,
         version: str = "v0.0.36",
-        user_name: Optional[str] = None,
-        user_token: Optional[str] = None,
+        user_name: str | None = None,
+        user_token: str | pathlib.Path | None = None,
     ):
         self.url = url
         self.version = version
         self.user_name = user_name
-        self.user_token = user_token
+        if user_token and os.path.isfile(user_token):
+            with open(user_token, "r") as f:
+                self.user_token = f.read().strip()
+        else:
+            assert isinstance(user_token, str)
+            self.user_token = user_token
         self.session = requests.Session()
-        if user_name:
-            self.session.headers["X-SLURM-USER-NAME"] = user_name
-        if user_token:
-            self.session.headers["X-SLURM-USER-TOKEN"] = user_token
+        if self.user_name:
+            self.session.headers["X-SLURM-USER-NAME"] = self.user_name
+        if self.user_token:
+            self.session.headers["X-SLURM-USER-TOKEN"] = self.user_token
 
     @classmethod
     def from_zocalo_configuration(cls, zc: zocalo.configuration.Configuration):

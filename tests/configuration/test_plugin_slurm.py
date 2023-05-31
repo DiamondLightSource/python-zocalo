@@ -81,7 +81,7 @@ environments:
     assert zc.slurm is None
     zc.activate_environment("live")
     assert isinstance(zc.slurm, dict)
-    assert zc.slurm["user_token"] == user_token
+    assert zc.slurm["user_token"] == str(user_token_file)
 
 
 def test_invalid_config():

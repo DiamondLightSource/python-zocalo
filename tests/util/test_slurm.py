@@ -84,6 +84,18 @@ def test_get_slurm_api_from_zocalo_configuration(slurm_api):
     assert slurm_api.user_token == "sometoken"
 
 
+def test_get_slurm_api_user_token_external_file(tmp_path):
+    user_token_file = tmp_path / "slurm-user-token"
+    user_token_file.write_text("foobar")
+    api = slurm.SlurmRestApi(
+        url="http://slurm.example.com:1234",
+        version="v0.0.36",
+        user_name="foo",
+        user_token=user_token_file,
+    )
+    assert api.user_token == "foobar"
+
+
 def test_get_jobs(requests_mock, slurm_api, jobs_response):
     requests_mock.get(
         "/slurm/v0.0.36/jobs",
