@@ -17,13 +17,15 @@ class SlurmRestApi:
         user_name: Optional[str] = None,
         user_token: Optional[str] = None,
     ):
-        self._url = url
-        self._version = version
-        self._session = requests.Session()
+        self.url = url
+        self.version = version
+        self.user_name = user_name
+        self.user_token = user_token
+        self.session = requests.Session()
         if user_name:
-            self._session.headers["X-SLURM-USER-NAME"] = user_name
+            self.session.headers["X-SLURM-USER-NAME"] = user_name
         if user_token:
-            self._session.headers["X-SLURM-USER-TOKEN"] = user_token
+            self.session.headers["X-SLURM-USER-TOKEN"] = user_token
 
     @classmethod
     def from_zocalo_configuration(cls, zc: zocalo.configuration.Configuration):
@@ -37,8 +39,8 @@ class SlurmRestApi:
     def get(
         self, endpoint: str, params: dict[str, Any] = None, timeout: float | None = None
     ) -> requests.Response:
-        response = self._session.get(
-            f"{self._url}/{endpoint}", params=params, timeout=timeout
+        response = self.session.get(
+            f"{self.url}/{endpoint}", params=params, timeout=timeout
         )
         response.raise_for_status()
         return response
@@ -50,8 +52,8 @@ class SlurmRestApi:
         json: dict[str, Any] = None,
         timeout: float | None = None,
     ) -> requests.Response:
-        response = self._session.put(
-            f"{self._url}/{endpoint}", params=params, json=json, timeout=timeout
+        response = self.session.put(
+            f"{self.url}/{endpoint}", params=params, json=json, timeout=timeout
         )
         response.raise_for_status()
         return response
@@ -63,8 +65,8 @@ class SlurmRestApi:
         json: dict[str, Any] | None = None,
         timeout: float | None = None,
     ) -> requests.Response:
-        response = self._session.post(
-            f"{self._url}/{endpoint}", data=data, json=json, timeout=timeout
+        response = self.session.post(
+            f"{self.url}/{endpoint}", data=data, json=json, timeout=timeout
         )
         response.raise_for_status()
         return response
@@ -72,25 +74,25 @@ class SlurmRestApi:
     def delete(
         self, endpoint: str, params: dict[str, Any] = None, timeout: float | None = None
     ) -> requests.Response:
-        response = self._session.delete(
-            f"{self._url}/{endpoint}", params=params, timeout=timeout
+        response = self.session.delete(
+            f"{self.url}/{endpoint}", params=params, timeout=timeout
         )
         response.raise_for_status()
         return response
 
     def get_jobs(self) -> models.JobsResponse:
-        endpoint = f"slurm/{self._version}/jobs"
+        endpoint = f"slurm/{self.version}/jobs"
         response = self.get(endpoint)
         return models.JobsResponse(**response.json())
 
     def get_job_info(self, job_id: int) -> models.JobsResponse:
-        endpoint = f"slurm/{self._version}/job/{job_id}"
+        endpoint = f"slurm/{self.version}/job/{job_id}"
         response = self.get(endpoint)
         return models.JobsResponse(**response.json())
 
     def submit_job(
         self, job_submission: models.JobSubmission
     ) -> models.JobSubmissionResponse:
-        endpoint = f"slurm/{self._version}/job/submit"
+        endpoint = f"slurm/{self.version}/job/submit"
         response = self.post(endpoint, json=job_submission.dict(exclude_defaults=True))
         return models.JobSubmissionResponse(**response.json())

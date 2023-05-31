@@ -77,6 +77,13 @@ def jobs_response():
     }
 
 
+def test_get_slurm_api_from_zocalo_configuration(slurm_api):
+    assert slurm_api.url == "http://slurm.example.com:1234"
+    assert slurm_api.version == "v0.0.36"
+    assert slurm_api.user_name == "foo"
+    assert slurm_api.user_token == "sometoken"
+
+
 def test_get_jobs(requests_mock, slurm_api, jobs_response):
     requests_mock.get(
         "/slurm/v0.0.36/jobs",

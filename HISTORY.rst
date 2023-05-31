@@ -4,6 +4,7 @@ History
 
 Unreleased
 ----------
+* Expose ``url``, ``version``, ``user_name`` and ``user_token`` attributes on ``SlurmRestApi`` instances
 
 0.28.0 (2023-03-20)
 -------------------
