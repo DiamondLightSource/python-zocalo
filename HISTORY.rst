@@ -4,6 +4,8 @@ History
 
 Unreleased
 ----------
+* Expose ``url``, ``version``, ``user_name`` and ``user_token`` attributes on ``SlurmRestApi`` instances
+* Load ``user_token`` from external file in ``SlurmRestApi`` rather than in the ``zocalo.configuration`` Slurm plugin to allow token changes to be picked up without re-loading ``zocalo.configuration``
 
 0.28.0 (2023-03-20)
 -------------------
