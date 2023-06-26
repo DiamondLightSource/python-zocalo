@@ -4,6 +4,7 @@ import argparse
 import configparser
 import functools
 import logging
+import sys
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
@@ -457,6 +458,7 @@ def run():
         update_config(api, binding_specs, permanent_bindings)
     except requests.exceptions.HTTPError as e:
         logger.error(e)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
