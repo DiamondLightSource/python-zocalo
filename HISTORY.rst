@@ -4,6 +4,9 @@ History
 
 Unreleased
 ----------
+
+0.30.0 (2023-06-26)
+-------------------
 * ``zocalo.configure_rabbitmq``: non-zero exit code on ``HTTPError``
 
 0.29.0 (2023-06-02)
