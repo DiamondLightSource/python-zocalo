@@ -9,8 +9,16 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 import requests
+import rich.console
 import yaml
 from pydantic import BaseModel
+from rich import print
+from rich.highlighter import NullHighlighter
+from rich.json import JSON
+from rich.logging import RichHandler
+from rich.padding import Padding
+from rich.panel import Panel
+from rich.text import Text
 
 import zocalo.configuration
 from zocalo.util.rabbitmq import (
@@ -383,7 +391,17 @@ def _configure_users(api, rabbitmq_user_config_area: Path):
 
 
 def run():
-    logging.basicConfig(level=logging.INFO, format="%(message)s")
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(message)s",
+        handlers=[
+            RichHandler(
+                show_time=False,
+                highlighter=NullHighlighter(),
+                show_level=False,
+            )
+        ],
+    )
     zc = zocalo.configuration.from_file()
     zc.activate()
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
@@ -409,7 +427,6 @@ def run():
         yaml_data = yaml.safe_load(in_file)
 
     try:
-
         if args.user_config:
             _configure_users(api, args.user_config)
 
@@ -457,8 +474,26 @@ def run():
                 permanent_bindings.append(b)
         update_config(api, binding_specs, permanent_bindings)
     except requests.exceptions.HTTPError as e:
-        logger.error(e)
+
+        @rich.console.group()
+        def _error_output():
+            yield Text(str(e), style="bold red")
+            yield ""
+            yield f"The request: {e.request.url}"
+            req_text = e.request.body
+            if e.request.headers["content-type"] == "application/json":
+                req_text = JSON(e.request.body)
+            yield Padding(req_text, (0, 0, 1, 4))
+            yield "Error response:"
+            resp_text = e.response.text
+            if e.response.headers["content-type"] == "application/json":
+                resp_text = JSON(e.response.text)
+            yield Padding(resp_text, (0, 0, 1, 4))
+
+        print(Panel(_error_output()))
         sys.exit(1)
+
+    print("Update completed.")
 
 
 if __name__ == "__main__":
