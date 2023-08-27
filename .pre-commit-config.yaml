@@ -30,4 +30,7 @@ repos:
   hooks:
   - id: mypy
     files: 'src/.*\.py$'
-    additional_dependencies: [types-requests, types-pkg_resources, types-pyyaml]
+    additional_dependencies:
+    - types-requests
+    - types-pkg_resources
+    - types-pyyaml

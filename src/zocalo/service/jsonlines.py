@@ -17,6 +17,8 @@ class JSONLines(CommonService):
     # Logger name
     _logger_name = "zocalo.service.jsonlines"
 
+    _data: dict[Path, list[tuple[dict, dict]]]
+
     def initializing(self):
         self._register_idle(1, self.process_messages)
         workflows.recipe.wrap_subscribe(
@@ -29,7 +31,7 @@ class JSONLines(CommonService):
             prefetch_count=100,
         )
         self._lock = threading.Lock()
-        self._data: dict[Path, list[tuple(dict, dict)]] = {}
+        self._data = {}
 
     def receive_msg(
         self, rw: workflows.recipe.RecipeWrapper, header: dict, message: dict
