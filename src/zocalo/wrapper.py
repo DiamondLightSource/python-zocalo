@@ -10,7 +10,6 @@ import zocalo
 
 
 class BaseWrapper:
-
     _logger_name = "zocalo.wrapper"  # The logger can be accessed via self.log
 
     def __init__(self, *args, **kwargs):
@@ -60,7 +59,6 @@ class BaseWrapper:
 
 
 class DummyWrapper(BaseWrapper):
-
     _logger_name = "zocalo.wrapper.DummyWrapper"
 
     def run(self):

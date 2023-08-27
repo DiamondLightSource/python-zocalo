@@ -411,7 +411,6 @@ def run():
         yaml_data = yaml.safe_load(in_file)
 
     try:
-
         if args.user_config:
             _configure_users(api, args.user_config)
 

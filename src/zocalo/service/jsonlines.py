@@ -18,7 +18,6 @@ class JSONLines(CommonService):
     _logger_name = "zocalo.service.jsonlines"
 
     def initializing(self):
-
         self._register_idle(1, self.process_messages)
         workflows.recipe.wrap_subscribe(
             self._transport,
