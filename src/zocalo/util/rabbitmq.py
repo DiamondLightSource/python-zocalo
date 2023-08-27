@@ -759,9 +759,10 @@ class RabbitMQAPI:
         if destination_type is not None:
             endpoint = f"{endpoint}/e/{source}/{destination_type}/{destination}"
         dest_map = {"queue": "q", "exchange": "e"}
-        conv = (
-            lambda key, value: dest_map[value] if key == "destination_type" else value
-        )
+
+        def conv(key, value):
+            return dest_map[value] if key == "destination_type" else value
+
         return [
             BindingInfo(**{_r[0]: conv(_r[0], _r[1]) for _r in r.items()})
             for r in self.get(endpoint).json()
@@ -791,11 +792,10 @@ class RabbitMQAPI:
         endpoint = f"bindings/{vhost}/e/{source}/{destination_type}/{destination}"
         if properties_key is None:
             dest_map = {"queue": "q", "exchange": "e"}
-            conv = (
-                lambda key, value: dest_map[value]
-                if key == "destination_type"
-                else value
-            )
+
+            def conv(key, value):
+                return dest_map[value] if key == "destination_type" else value
+
             props = [
                 BindingInfo(
                     **{_r[0]: conv(_r[0], _r[1]) for _r in r.items()}

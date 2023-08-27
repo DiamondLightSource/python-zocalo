@@ -8,9 +8,8 @@ from unittest import mock
 
 import pytest
 import workflows.transport
-from workflows.transport.common_transport import CommonTransport
-
 import zocalo.configuration
+from workflows.transport.common_transport import CommonTransport
 from zocalo.cli import pickup
 
 
