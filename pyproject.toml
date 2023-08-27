@@ -97,3 +97,14 @@ unfixable = ["F841"]
 
 [tool.ruff.isort]
 required-imports = ["from __future__ import annotations"]
+
+[tool.mypy]
+mypy_path = "src"
+
+
+[[tool.mypy.overrides]]
+module = [
+    "graypy",
+    "graypy.handler",
+]
+ignore_missing_imports = true
