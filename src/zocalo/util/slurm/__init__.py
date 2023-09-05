@@ -44,7 +44,10 @@ class SlurmRestApi:
         )
 
     def get(
-        self, endpoint: str, params: dict[str, Any] = None, timeout: float | None = None
+        self,
+        endpoint: str,
+        params: dict[str, Any] | None = None,
+        timeout: float | None = None,
     ) -> requests.Response:
         response = self.session.get(
             f"{self.url}/{endpoint}", params=params, timeout=timeout
@@ -55,8 +58,8 @@ class SlurmRestApi:
     def put(
         self,
         endpoint: str,
-        params: dict[str, Any] = None,
-        json: dict[str, Any] = None,
+        params: dict[str, Any] | None = None,
+        json: dict[str, Any] | None = None,
         timeout: float | None = None,
     ) -> requests.Response:
         response = self.session.put(
@@ -79,7 +82,10 @@ class SlurmRestApi:
         return response
 
     def delete(
-        self, endpoint: str, params: dict[str, Any] = None, timeout: float | None = None
+        self,
+        endpoint: str,
+        params: dict[str, Any] | None = None,
+        timeout: float | None = None,
     ) -> requests.Response:
         response = self.session.delete(
             f"{self.url}/{endpoint}", params=params, timeout=timeout

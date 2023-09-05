@@ -19,9 +19,11 @@ from zocalo.util.rabbitmq import (
     PermissionSpec,
     PolicySpec,
     QueueSpec,
+    UserSpec,
+    VHostSpec,
+    hash_password,
 )
 from zocalo.util.rabbitmq import RabbitMQAPI as _RabbitMQAPI
-from zocalo.util.rabbitmq import UserSpec, VHostSpec, hash_password
 
 logger = logging.getLogger("zocalo.cli.configure_rabbitmq")
 
@@ -409,7 +411,6 @@ def run():
         yaml_data = yaml.safe_load(in_file)
 
     try:
-
         if args.user_config:
             _configure_users(api, args.user_config)
 
