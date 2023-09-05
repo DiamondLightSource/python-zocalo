@@ -6,6 +6,10 @@ Unreleased
 ----------
 * ``zocalo.configure_rabbitmq``: Show explicit error when VHost not created.
 
+0.30.1 (2023-08-24)
+-------------------
+* Fix dependency declaration for pydantic to constrain maximum version.
+
 0.30.0 (2023-06-26)
 -------------------
 * ``zocalo.configure_rabbitmq``: non-zero exit code on ``HTTPError``

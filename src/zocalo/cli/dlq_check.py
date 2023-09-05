@@ -14,7 +14,9 @@ from zocalo.util.rabbitmq import RabbitMQAPI
 #
 
 
-def check_dlq(zc: zocalo.configuration.Configuration, namespace: str = None) -> dict:
+def check_dlq(
+    zc: zocalo.configuration.Configuration, namespace: str | None = None
+) -> dict:
     """Monitor ActiveMQ queue activity."""
     jmx = JMXAPI(zc)
     if namespace:
@@ -48,7 +50,7 @@ def check_dlq(zc: zocalo.configuration.Configuration, namespace: str = None) -> 
 
 
 def check_dlq_rabbitmq(
-    zc: zocalo.configuration.Configuration, namespace: str = None
+    zc: zocalo.configuration.Configuration, namespace: str | None = None
 ) -> dict:
     rmq = RabbitMQAPI.from_zocalo_configuration(zc)
     return {

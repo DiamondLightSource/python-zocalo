@@ -1,9 +1,113 @@
 [build-system]
-requires = ["setuptools >= 40.6.0", "wheel"]
+requires = ["setuptools>=68.0"]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "zocalo"
+version = "0.30.1"
+description = "Infrastructure components for automated data processing at Diamond Light Source"
+readme = "README.rst"
+requires-python = ">=3.8"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Diamond Light Source - Data Analysis Group", email = "dataanalysis@diamond.ac.uk" },
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "PyYAML",
+    "graypy>=1.0",
+    "marshmallow",
+    "requests",
+    "pydantic<2",
+    "setuptools",
+    "workflows>=2.14",
+]
+
+[project.urls]
+Bug-Tracker = "https://github.com/DiamondLightSource/python-zocalo/issues"
+Changelog = "https://github.com/DiamondLightSource/python-zocalo/blob/main/HISTORY.rst"
+Documentation = "https://github.com/DiamondLightSource/python-zocalo"
+Download = "https://github.com/DiamondLightSource/python-zocalo/releases"
+GitHub = "https://github.com/DiamondLightSource/python-zocalo"
+
+[project.entry-points]
+"libtbx.precommit" = { zocalo = "zocalo" }
+"zocalo.wrappers" = { dummy = "zocalo.wrapper:DummyWrapper" }
+
+[project.entry-points."libtbx.dispatcher.script"]
+"zocalo.configure_rabbitmq" = "zocalo.configure_rabbitmq"
+"zocalo.dlq_check" = "zocalo.dlq_check"
+"zocalo.dlq_purge" = "zocalo.dlq_purge"
+"zocalo.dlq_reinject" = "zocalo.dlq_reinject"
+"zocalo.go" = "zocalo.go"
+"zocalo.queue_drain" = "zocalo.queue_drain"
+"zocalo.service" = "zocalo.service"
+"zocalo.shutdown" = "zocalo.shutdown"
+"zocalo.wrap" = "zocalo.wrap"
+
+[project.entry-points."workflows.services"]
+Dispatcher = "zocalo.service.dispatcher:Dispatcher"
+JSONLines = "zocalo.service.jsonlines:JSONLines"
+Mailer = "zocalo.service.mailer:Mailer"
+Schlockmeister = "zocalo.service.schlockmeister:Schlockmeister"
+
+[project.entry-points."zocalo.configuration.plugins"]
+graylog = "zocalo.configuration.plugin_graylog:Graylog"
+jmx = "zocalo.configuration.plugin_jmx:JMX"
+logging = "zocalo.configuration.plugin_logging:Logging"
+rabbitmqapi = "zocalo.configuration.plugin_rabbitmqapi:RabbitAPI"
+slurm = "zocalo.configuration.plugin_slurm:Slurm"
+smtp = "zocalo.configuration.plugin_smtp:SMTP"
+storage = "zocalo.configuration.plugin_storage:Storage"
+
+[project.scripts]
+"zocalo.configure_rabbitmq" = "zocalo.cli.configure_rabbitmq:run"
+"zocalo.dlq_check" = "zocalo.cli.dlq_check:run"
+"zocalo.dlq_purge" = "zocalo.cli.dlq_purge:run"
+"zocalo.dlq_reinject" = "zocalo.cli.dlq_reinject:run"
+"zocalo.go" = "zocalo.cli.go:run"
+"zocalo.pickup" = "zocalo.cli.pickup:run"
+"zocalo.queue_drain" = "zocalo.cli.queue_drain:run"
+"zocalo.service" = "zocalo.service:start_service"
+"zocalo.shutdown" = "zocalo.cli.shutdown:run"
+"zocalo.wrap" = "zocalo.cli.wrap:run"
+
 [tool.isort]
-profile="black"
+profile = "black"
 
 [tool.pytest.ini_options]
 required_plugins = "pytest-mock requests-mock"
+testpaths = [
+    "tests",
+]
+
+[tool.ruff]
+line-length = 88
+ignore = ["E501", "E741"]
+select = ["C4",  "E", "F", "W", "I"]
+unfixable = ["F841"]
+
+[tool.ruff.isort]
+required-imports = ["from __future__ import annotations"]
+
+[tool.mypy]
+mypy_path = "src"
+
+
+[[tool.mypy.overrides]]
+module = [
+    "graypy",
+    "graypy.handler",
+]
+ignore_missing_imports = true

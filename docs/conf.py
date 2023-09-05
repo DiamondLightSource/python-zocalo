@@ -22,9 +22,10 @@ from __future__ import annotations
 import os
 import sys
 
+import sphinx_rtd_theme  # noqa: F401 - install theme
+
 sys.path.insert(0, os.path.abspath(".."))
 
-import sphinx_rtd_theme  # noqa; F401 - install theme
 
 # -- General configuration ---------------------------------------------
 
@@ -58,7 +59,7 @@ author = "Scientific Software"
 # the built documents.
 #
 # The short X.Y version.
-version = "0.30.0"
+version = "0.30.1"
 # The full version, including alpha/beta/rc tags.
 release = version
 

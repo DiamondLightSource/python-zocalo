@@ -706,7 +706,10 @@ class RabbitMQAPI:
         return success, failure
 
     def get(
-        self, endpoint: str, params: Dict[str, Any] = None, timeout: float | None = None
+        self,
+        endpoint: str,
+        params: Dict[str, Any] | None = None,
+        timeout: float | None = None,
     ) -> requests.Response:
         return self._session.get(
             f"{self._url}/{endpoint}", params=params, timeout=timeout
@@ -715,8 +718,8 @@ class RabbitMQAPI:
     def put(
         self,
         endpoint: str,
-        params: Dict[str, Any] = None,
-        json: Dict[str, Any] = None,
+        params: Dict[str, Any] | None = None,
+        json: Dict[str, Any] | None = None,
         timeout: float | None = None,
     ) -> requests.Response:
         return self._session.put(
@@ -735,7 +738,10 @@ class RabbitMQAPI:
         )
 
     def delete(
-        self, endpoint: str, params: Dict[str, Any] = None, timeout: float | None = None
+        self,
+        endpoint: str,
+        params: Dict[str, Any] | None = None,
+        timeout: float | None = None,
     ) -> requests.Response:
         return self._session.delete(
             f"{self._url}/{endpoint}", params=params, timeout=timeout
@@ -759,9 +765,10 @@ class RabbitMQAPI:
         if destination_type is not None:
             endpoint = f"{endpoint}/e/{source}/{destination_type}/{destination}"
         dest_map = {"queue": "q", "exchange": "e"}
-        conv = (
-            lambda key, value: dest_map[value] if key == "destination_type" else value
-        )
+
+        def conv(key, value):
+            return dest_map[value] if key == "destination_type" else value
+
         return [
             BindingInfo(**{_r[0]: conv(_r[0], _r[1]) for _r in r.items()})
             for r in self.get(endpoint).json()
@@ -791,11 +798,10 @@ class RabbitMQAPI:
         endpoint = f"bindings/{vhost}/e/{source}/{destination_type}/{destination}"
         if properties_key is None:
             dest_map = {"queue": "q", "exchange": "e"}
-            conv = (
-                lambda key, value: dest_map[value]
-                if key == "destination_type"
-                else value
-            )
+
+            def conv(key, value):
+                return dest_map[value] if key == "destination_type" else value
+
             props = [
                 BindingInfo(
                     **{_r[0]: conv(_r[0], _r[1]) for _r in r.items()}
