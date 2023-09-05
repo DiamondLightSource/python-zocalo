@@ -29,7 +29,9 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
 
         # Always enable logging to console
         try:
-            from dlstbx.util.colorstreamhandler import ColorStreamHandler
+            from dlstbx.util.colorstreamhandler import (
+                ColorStreamHandler,  # type: ignore
+            )
 
             self.console = ColorStreamHandler()
         except ImportError:

@@ -4,6 +4,7 @@ import logging
 import threading
 from typing import Any, Callable
 
+import workflows.services.common_service
 import workflows.util
 
 import zocalo
