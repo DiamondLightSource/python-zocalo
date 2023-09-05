@@ -188,6 +188,9 @@ class JobProperties(BaseModel):
     partition: Optional[str] = Field(
         None, description="Request a specific partition for the resource allocation."
     )
+    prefer: Optional[str] = Field(
+        None, description="Request to preferentially use one of the selected partitions."
+    )
     priority: Optional[str] = Field(
         None, description="Request a specific job priority."
     )
