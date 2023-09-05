@@ -179,9 +179,9 @@ class Schlockmeister(CommonService):
             if self.known_queues[destination].get("subscription"):
                 continue
             real_subscriber_count = sum(
-                map(
-                    lambda k: k not in self.known_instances,
-                    self.known_queues[destination]["subscribers"],
+                (
+                    k not in self.known_instances
+                    for k in self.known_queues[destination]["subscribers"]
                 )
             )
             if real_subscriber_count:
@@ -205,9 +205,9 @@ class Schlockmeister(CommonService):
         for destination in queues:
             if self.known_queues[destination].get("subscription"):
                 real_subscriber_count = sum(
-                    map(
-                        lambda k: k not in self.known_instances,
-                        self.known_queues[destination]["subscribers"],
+                    (
+                        k not in self.known_instances
+                        for k in self.known_queues[destination]["subscribers"]
                     )
                 )
                 if not real_subscriber_count:

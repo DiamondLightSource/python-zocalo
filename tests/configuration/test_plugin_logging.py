@@ -4,7 +4,6 @@ import logging
 from unittest import mock
 
 import pytest
-
 import zocalo.configuration
 import zocalo.configuration.plugin_logging
 
