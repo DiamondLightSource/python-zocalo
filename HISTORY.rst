@@ -4,6 +4,7 @@ History
 
 Unreleased
 ----------
+* ``zocalo.configure_rabbitmq``: Show explicit error when VHost not created.
 
 0.30.0 (2023-06-26)
 -------------------
