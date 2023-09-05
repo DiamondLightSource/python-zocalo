@@ -311,7 +311,7 @@ def _read_configuration_yaml(configuration: str) -> dict:
                 f"Invalid YAML configuration: circular environment definitions for {environment_aliases}"
             )
 
-    plugin_fields = {}
+    plugin_fields: dict[str, mm.fields.Field] = {}
     for key in yaml_dict:
         if key in ConfigSchema().fields:
             continue
