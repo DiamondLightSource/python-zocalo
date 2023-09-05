@@ -478,7 +478,7 @@ def run():
     except requests.exceptions.HTTPError as e:
 
         @rich.console.group()
-        def _error_output():
+        def _error_output(e):
             yield Text(str(e), style="bold red")
             yield ""
             yield f"The request: {e.request.url}"
@@ -492,7 +492,7 @@ def run():
                 resp_text = JSON(e.response.text)
             yield Padding(resp_text, (0, 0, 1, 4))
 
-        print(Panel(_error_output()))
+        print(Panel(_error_output(e)))
         sys.exit(1)
 
     print("Update completed.")
