@@ -88,6 +88,9 @@ profile = "black"
 
 [tool.pytest.ini_options]
 required_plugins = "pytest-mock requests-mock"
+testpaths = [
+    "tests",
+]
 
 [tool.ruff]
 line-length = 88
