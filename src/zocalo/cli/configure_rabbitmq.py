@@ -458,6 +458,13 @@ def run():
                 permanent_bindings.append(b)
         update_config(api, binding_specs, permanent_bindings)
     except requests.exceptions.HTTPError as e:
+        # Specially handle the VHost error, as we used to not setup vhosts
+        try:
+            if e.response.json()["reason"] == "vhost_not_found":
+                logger.error(f"Error 404: VHost not found for url: {e.response.url}")
+                sys.exit(1)
+        except Exception:
+            raise
         logger.error(e)
         sys.exit(1)
 
