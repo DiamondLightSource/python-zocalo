@@ -4,7 +4,8 @@ History
 
 Unreleased
 ----------
-* ``zocalo.configure_rabbitmq``: Show explicit error when VHost not created.
+* Add example rabbitmq configuration and user files to ``contrib/`` (`#245 <https://github.com/DiamondLightSource/python-zocalo/pull/245>`_)
+* ``zocalo.configure_rabbitmq``: Show explicit error when VHost not created. (`#241 <https://github.com/DiamondLightSource/python-zocalo/pull/241>`_)
 
 0.30.2 (2023-09-06)
 -------------------
