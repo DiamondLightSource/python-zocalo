@@ -4,7 +4,7 @@ History
 
 Unreleased
 ----------
-* Add the slurm "prefer partition" field to ``slurm.models.JobProperties``. (`#244 <https://github.com/DiamondLightSource/python-zocalo/pull/244>`_)
+* Add the slurm "prefer" field to ``slurm.models.JobProperties``. (`#244 <https://github.com/DiamondLightSource/python-zocalo/pull/244>`_)
 
 0.30.1 (2023-08-24)
 -------------------
