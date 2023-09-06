@@ -189,7 +189,8 @@ class JobProperties(BaseModel):
         None, description="Request a specific partition for the resource allocation."
     )
     prefer: Optional[str] = Field(
-        None, description="Request to preferentially use one of the selected partitions."
+        None,
+        description="Comma delimited list of features for scheduler to prefer but not a strict requirement like a constraint. Value can be used for job submission but is only displayed for PENDING jobs.",
     )
     priority: Optional[str] = Field(
         None, description="Request a specific job priority."
