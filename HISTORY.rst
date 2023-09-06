@@ -4,7 +4,11 @@ History
 
 Unreleased
 ----------
+
+0.30.2 (2023-09-06)
+-------------------
 * Add the slurm "prefer" field to ``slurm.models.JobProperties``. (`#244 <https://github.com/DiamondLightSource/python-zocalo/pull/244>`_)
+* Switch zocalo to pyproject.toml, and update CI. (`#243 <https://github.com/DiamondLightSource/python-zocalo/pull/243>`_)
 
 0.30.1 (2023-08-24)
 -------------------
