@@ -73,7 +73,7 @@ class AssocShort(BaseModel):
 
 
 class AssocShortList(BaseModel):
-    __root__: list[AssocShort]
+    __root__: List[AssocShort]
 
 
 class BfExitFields(BaseModel):
@@ -111,7 +111,7 @@ class ControllerPing(BaseModel):
 
 
 class ControllerPingArray(BaseModel):
-    __root__: list[ControllerPing]
+    __root__: List[ControllerPing]
 
 
 class Coord(BaseModel):
@@ -120,7 +120,7 @@ class Coord(BaseModel):
 
 
 class CoordList(BaseModel):
-    __root__: list[Coord]
+    __root__: List[Coord]
 
 
 class Flag3(Enum):
@@ -140,7 +140,7 @@ class CronEntry(BaseModel):
     command: Optional[str] = None
     day_of_month: Optional[str] = None
     day_of_week: Optional[str] = None
-    flags: Optional[list[Flag3]] = None
+    flags: Optional[List[Flag3]] = None
     hour: Optional[str] = None
     line: Optional[Line] = None
     minute: Optional[str] = None
@@ -149,7 +149,7 @@ class CronEntry(BaseModel):
 
 
 class CsvString(BaseModel):
-    __root__: list[str]
+    __root__: List[str]
 
 
 class Float64NoVal(BaseModel):
@@ -171,12 +171,12 @@ class Float64NoVal(BaseModel):
     """
 
 
-class Hostlist(BaseModel):
-    __root__: list[str]
+class HostList(BaseModel):
+    __root__: List[str]
 
 
-class HostlistString(BaseModel):
-    __root__: list[str]
+class HostListString(BaseModel):
+    __root__: List[str]
 
 
 class Time(BaseModel):
@@ -194,7 +194,7 @@ class Instance(BaseModel):
 
 
 class InstanceList(BaseModel):
-    __root__: list[Instance]
+    __root__: List[Instance]
 
 
 class Running(BaseModel):
@@ -266,7 +266,7 @@ class CurrentEnum(Enum):
 
 
 class State(BaseModel):
-    current: Optional[list[CurrentEnum]] = None
+    current: Optional[List[CurrentEnum]] = None
     reason: Optional[str] = None
 
 
@@ -473,7 +473,7 @@ class Flag7(Enum):
 
 
 class Power(BaseModel):
-    flags: Optional[list[Flag7]] = None
+    flags: Optional[List[Flag7]] = None
 
 
 class ShowFlag(Enum):
@@ -487,7 +487,7 @@ class ShowFlag(Enum):
 
 
 class JobInfoGresDetail(BaseModel):
-    __root__: list[str]
+    __root__: List[str]
 
 
 class JobResNodes(BaseModel):
@@ -495,7 +495,7 @@ class JobResNodes(BaseModel):
     job node resources
     """
 
-    __root__: list
+    __root__: List
     """
     job node resources
     """
@@ -522,7 +522,7 @@ class License(BaseModel):
 
 
 class Licenses(BaseModel):
-    __root__: list[License]
+    __root__: List[License]
 
 
 class NextStateAfterRebootEnum(Enum):
@@ -613,7 +613,7 @@ class OpenapiError(BaseModel):
 
 
 class OpenapiErrors(BaseModel):
-    __root__: list[OpenapiError]
+    __root__: List[OpenapiError]
 
 
 class Client(BaseModel):
@@ -689,7 +689,7 @@ class OpenapiWarning(BaseModel):
 
 
 class OpenapiWarnings(BaseModel):
-    __root__: list[OpenapiWarning]
+    __root__: List[OpenapiWarning]
 
 
 class Accounts(BaseModel):
@@ -711,7 +711,7 @@ class Flag8(Enum):
 
 
 class Oversubscribe(BaseModel):
-    flags: Optional[list[Flag8]] = None
+    flags: Optional[List[Flag8]] = None
     jobs: Optional[int] = None
 
 
@@ -734,7 +734,7 @@ class StateEnum1(Enum):
 
 
 class Partition(BaseModel):
-    state: Optional[list[StateEnum1]] = None
+    state: Optional[List[StateEnum1]] = None
 
 
 class Priority(BaseModel):
@@ -788,7 +788,7 @@ class ModeEnum(Enum):
 
 
 class QosPreemptList(BaseModel):
-    __root__: list[str]
+    __root__: List[str]
 
 
 class QosStringIdList(BaseModel):
@@ -796,7 +796,7 @@ class QosStringIdList(BaseModel):
     List of QOS names
     """
 
-    __root__: list[str]
+    __root__: List[str]
     """
     List of QOS names
     """
@@ -845,7 +845,7 @@ class Flag10(Enum):
 
 
 class ReservationInfoCoreSpec(BaseModel):
-    __root__: list[ReservationCoreSpec]
+    __root__: List[ReservationCoreSpec]
 
 
 class Type(Enum):
@@ -891,12 +891,12 @@ class RollupStat(BaseModel):
 
 class RollupStats(BaseModel):
     """
-    list of recorded rollup statistics
+    List of recorded rollup statistics
     """
 
-    __root__: list[RollupStat]
+    __root__: List[RollupStat]
     """
-    list of recorded rollup statistics
+    List of recorded rollup statistics
     """
 
 
@@ -921,7 +921,7 @@ class SharesFloat128Tres(BaseModel):
 
 
 class SharesFloat128TresList(BaseModel):
-    __root__: list[SharesFloat128Tres]
+    __root__: List[SharesFloat128Tres]
 
 
 class StatsMsgRpcsByTypeItem(BaseModel):
@@ -956,7 +956,7 @@ class StatsMsgRpcsByType(BaseModel):
     RPCs by message type
     """
 
-    __root__: list[StatsMsgRpcsByTypeItem]
+    __root__: List[StatsMsgRpcsByTypeItem]
     """
     RPCs by message type
     """
@@ -994,7 +994,7 @@ class StatsMsgRpcsByUser(BaseModel):
     RPCs by user
     """
 
-    __root__: list[StatsMsgRpcsByUserItem]
+    __root__: List[StatsMsgRpcsByUserItem]
     """
     RPCs by user
     """
@@ -1012,7 +1012,7 @@ class StatsRpc(BaseModel):
 
 
 class StatsRpcList(BaseModel):
-    __root__: list[StatsRpc]
+    __root__: List[StatsRpc]
 
 
 class StatsUser(BaseModel):
@@ -1022,12 +1022,12 @@ class StatsUser(BaseModel):
 
 
 class StatsUserList(BaseModel):
-    __root__: list[StatsUser]
+    __root__: List[StatsUser]
 
 
 class Nodes2(BaseModel):
     count: Optional[int] = None
-    list: Optional[Hostlist] = None
+    List: Optional[HostList] = None
     range: Optional[str] = None
 
 
@@ -1083,11 +1083,11 @@ class Tasks(BaseModel):
 
 
 class StringArray(BaseModel):
-    __root__: list[str]
+    __root__: List[str]
 
 
 class StringList(BaseModel):
-    __root__: list[str]
+    __root__: List[str]
 
 
 class Tres(BaseModel):
@@ -1098,7 +1098,7 @@ class Tres(BaseModel):
 
 
 class TresList(BaseModel):
-    __root__: list[Tres]
+    __root__: List[Tres]
 
 
 class Uint16NoVal(BaseModel):
@@ -1193,7 +1193,7 @@ class StateEnum3(Enum):
 
 
 class UpdateNodeMsg(BaseModel):
-    address: Optional[HostlistString] = None
+    address: Optional[HostListString] = None
     """
     communication name
     """
@@ -1221,11 +1221,11 @@ class UpdateNodeMsg(BaseModel):
     """
     new generic resources for node
     """
-    hostname: Optional[HostlistString] = None
+    hostname: Optional[HostListString] = None
     """
     node's hostname
     """
-    name: Optional[HostlistString] = None
+    name: Optional[HostListString] = None
     """
     node to update
     """
@@ -1241,7 +1241,7 @@ class UpdateNodeMsg(BaseModel):
     """
     automatically resume DOWN or DRAINED node after this amount of seconds
     """
-    state: Optional[list[StateEnum3]] = None
+    state: Optional[List[StateEnum3]] = None
     """
     assign new node state
     """
@@ -1276,7 +1276,7 @@ class AdminlevelEnum(Enum):
 
 
 class UserShort(BaseModel):
-    adminlevel: Optional[list[AdminlevelEnum]] = None
+    adminlevel: Optional[List[AdminlevelEnum]] = None
     """
     Admin level of user.  Valid levels are None, Operator, and Admin.
     """
@@ -1299,7 +1299,7 @@ class Flag13(Enum):
 
 
 class WckeyTagStruct(BaseModel):
-    flags: list[Flag13]
+    flags: List[Flag13]
     """
     Active flags
     """
@@ -1313,13 +1313,13 @@ class Account(BaseModel):
     associations: Optional[AssocShortList] = None
     coordinators: Optional[CoordList] = None
     description: str
-    flags: Optional[list[Flag]] = None
+    flags: Optional[List[Flag]] = None
     name: str
     organization: str
 
 
 class AccountList(BaseModel):
-    __root__: list[Account]
+    __root__: List[Account]
 
 
 class Accounting(BaseModel):
@@ -1330,7 +1330,7 @@ class Accounting(BaseModel):
 
 
 class AccountingList(BaseModel):
-    __root__: list[Accounting]
+    __root__: List[Accounting]
 
 
 class AcctGatherEnergy(BaseModel):
@@ -1412,7 +1412,7 @@ class Assoc(BaseModel):
     comment for the association
     """
     default: Optional[Default] = None
-    flags: Optional[list[Flag]] = None
+    flags: Optional[List[Flag]] = None
     id: Optional[AssocShort] = None
     """
     Association ID
@@ -1436,7 +1436,7 @@ class Assoc(BaseModel):
 
 
 class AssocList(BaseModel):
-    __root__: list[Assoc]
+    __root__: List[Assoc]
 
 
 class AssocRecSet(BaseModel):
@@ -1530,7 +1530,7 @@ class AssocRecSet(BaseModel):
 class ClusterRec(BaseModel):
     associations: Optional[Associations] = None
     controller: Optional[Controller] = None
-    flags: Optional[list[Flag2]] = None
+    flags: Optional[List[Flag2]] = None
     name: Optional[str] = None
     nodes: Optional[str] = None
     rpc_version: Optional[int] = None
@@ -1539,7 +1539,7 @@ class ClusterRec(BaseModel):
 
 
 class ClusterRecList(BaseModel):
-    __root__: list[ClusterRec]
+    __root__: List[ClusterRec]
 
 
 class ExtSensorsData(BaseModel):
@@ -1586,7 +1586,7 @@ class Tres3(BaseModel):
 
 
 class JobArrayResponseArray(BaseModel):
-    __root__: list[JobArrayResponseMsgEntry]
+    __root__: List[JobArrayResponseMsgEntry]
 
 
 class Rlimits(BaseModel):
@@ -1636,7 +1636,7 @@ class JobDescMsg(BaseModel):
     account: Optional[str] = None
     account_gather_frequency: Optional[str] = None
     admin_comment: Optional[str] = None
-    allocation_node_list: Optional[str] = None
+    allocation_node_List: Optional[str] = None
     allocation_node_port: Optional[int] = None
     argv: Optional[StringArray] = None
     array: Optional[str] = None
@@ -1652,7 +1652,7 @@ class JobDescMsg(BaseModel):
     contiguous: Optional[bool] = None
     core_specification: Optional[int] = None
     cpu_binding: Optional[str] = None
-    cpu_binding_flags: Optional[list[CpuBindingFlag]] = None
+    cpu_binding_flags: Optional[List[CpuBindingFlag]] = None
     cpu_frequency: Optional[str] = None
     cpus_per_task: Optional[int] = None
     cpus_per_tres: Optional[str] = None
@@ -1666,25 +1666,25 @@ class JobDescMsg(BaseModel):
     end_time: Optional[int] = None
     environment: Optional[StringArray] = None
     excluded_nodes: Optional[CsvString] = None
-    exclusive: Optional[list[ExclusiveEnum]] = None
+    exclusive: Optional[List[ExclusiveEnum]] = None
     extra: Optional[str] = None
-    flags: Optional[list[Flag5]] = None
+    flags: Optional[List[Flag5]] = None
     group_id: Optional[str] = None
     hetjob_group: Optional[int] = None
     immediate: Optional[bool] = None
     job_id: Optional[int] = None
     kill_on_node_fail: Optional[bool] = None
     kill_warning_delay: Optional[Uint16NoVal] = None
-    kill_warning_flags: Optional[list[KillWarningFlag]] = None
+    kill_warning_flags: Optional[List[KillWarningFlag]] = None
     kill_warning_signal: Optional[str] = None
     licenses: Optional[str] = None
-    mail_type: Optional[list[MailTypeEnum]] = None
+    mail_type: Optional[List[MailTypeEnum]] = None
     mail_user: Optional[str] = None
     maximum_cpus: Optional[int] = None
     maximum_nodes: Optional[int] = None
     mcs_label: Optional[str] = None
     memory_binding: Optional[str] = None
-    memory_binding_type: Optional[list[MemoryBindingTypeEnum]] = None
+    memory_binding_type: Optional[List[MemoryBindingTypeEnum]] = None
     memory_per_cpu: Optional[Uint64NoVal] = None
     memory_per_node: Optional[Uint64NoVal] = None
     memory_per_tres: Optional[str] = None
@@ -1698,14 +1698,14 @@ class JobDescMsg(BaseModel):
     nice: Optional[int] = None
     nodes: Optional[str] = None
     ntasks_per_tres: Optional[int] = None
-    open_mode: Optional[list[OpenModeEnum]] = None
+    open_mode: Optional[List[OpenModeEnum]] = None
     overcommit: Optional[bool] = None
     oversubscribe: Optional[bool] = None
     partition: Optional[str] = None
-    power_flags: Optional[list[PowerFlag]] = None
+    power_flags: Optional[List[PowerFlag]] = None
     prefer: Optional[str] = None
     priority: Optional[Uint32NoVal] = None
-    profile: Optional[list[ProfileEnum]] = None
+    profile: Optional[List[ProfileEnum]] = None
     qos: Optional[str] = None
     reboot: Optional[bool] = None
     requeue: Optional[bool] = None
@@ -1716,7 +1716,7 @@ class JobDescMsg(BaseModel):
     rlimits: Optional[Rlimits] = None
     script: Optional[str] = None
     selinux_context: Optional[str] = None
-    shared: Optional[list[SharedEnum]] = None
+    shared: Optional[List[SharedEnum]] = None
     site_factor: Optional[int] = None
     sockets_per_node: Optional[int] = None
     spank_environment: Optional[StringArray] = None
@@ -1743,14 +1743,14 @@ class JobDescMsg(BaseModel):
     wait_all_nodes: Optional[bool] = None
     wait_for_switch: Optional[int] = None
     wckey: Optional[str] = None
-    x11: Optional[list[X11Enum]] = None
+    x11: Optional[List[X11Enum]] = None
     x11_magic_cookie: Optional[str] = None
     x11_target_host: Optional[str] = None
     x11_target_port: Optional[int] = None
 
 
 class JobDescMsgList(BaseModel):
-    __root__: list[JobDescMsg]
+    __root__: List[JobDescMsg]
 
 
 class JobRes(BaseModel):
@@ -1944,7 +1944,7 @@ class PartitionInfo(BaseModel):
 
 
 class PartitionInfoMsg(BaseModel):
-    __root__: list[PartitionInfo]
+    __root__: List[PartitionInfo]
 
 
 class PowerMgmtData(BaseModel):
@@ -1976,7 +1976,7 @@ class ProcessExitCodeVerbose(BaseModel):
     Process return code (numeric)
     """
     signal: Optional[Signal] = None
-    status: Optional[list[StatusEnum]] = None
+    status: Optional[List[StatusEnum]] = None
     """
     Status given by return code
     """
@@ -2068,13 +2068,13 @@ class Limits1(BaseModel):
 
 class Preempt(BaseModel):
     exempt_time: Optional[Uint32NoVal] = None
-    list: Optional[QosPreemptList] = None
+    List: Optional[QosPreemptList] = None
     mode: Optional[List[ModeEnum]] = None
 
 
 class Qos1(BaseModel):
     description: Optional[str] = None
-    flags: Optional[list[Flag9]] = None
+    flags: Optional[List[Flag9]] = None
     id: Optional[int] = None
     limits: Optional[Limits1] = None
     name: Optional[str] = None
@@ -2085,7 +2085,7 @@ class Qos1(BaseModel):
 
 
 class QosList(BaseModel):
-    __root__: list[Qos1]
+    __root__: List[Qos1]
 
 
 class PurgeCompleted(BaseModel):
@@ -2099,13 +2099,13 @@ class ReservationInfo(BaseModel):
     core_specializations: Optional[ReservationInfoCoreSpec] = None
     end_time: Optional[Uint64NoVal] = None
     features: Optional[str] = None
-    flags: Optional[list[Flag10]] = None
+    flags: Optional[List[Flag10]] = None
     groups: Optional[str] = None
     licenses: Optional[str] = None
     max_start_delay: Optional[int] = None
     name: Optional[str] = None
     node_count: Optional[int] = None
-    node_list: Optional[str] = None
+    node_List: Optional[str] = None
     partition: Optional[str] = None
     purge_completed: Optional[PurgeCompleted] = None
     start_time: Optional[Uint64NoVal] = None
@@ -2115,7 +2115,7 @@ class ReservationInfo(BaseModel):
 
 
 class ReservationInfoMsg(BaseModel):
-    __root__: list[ReservationInfo]
+    __root__: List[ReservationInfo]
 
 
 class SharesUint64Tres(BaseModel):
@@ -2130,7 +2130,7 @@ class SharesUint64Tres(BaseModel):
 
 
 class SharesUint64TresList(BaseModel):
-    __root__: list[SharesUint64Tres]
+    __root__: List[SharesUint64Tres]
 
 
 class StatsMsg(BaseModel):
@@ -2221,25 +2221,25 @@ class Time4(BaseModel):
 
 
 class StepTresReqMax(BaseModel):
-    __root__: list[Tres]
+    __root__: List[Tres]
 
 
 class StepTresReqMin(BaseModel):
-    __root__: list[Tres]
+    __root__: List[Tres]
 
 
 class StepTresUsageMax(BaseModel):
-    __root__: list[Tres]
+    __root__: List[Tres]
 
 
 class StepTresUsageMin(BaseModel):
-    __root__: list[Tres]
+    __root__: List[Tres]
 
 
 class UsersAddCond(BaseModel):
     accounts: Optional[StringList] = None
     """
-    CSV accounts list
+    CSV accounts List
     """
     association: Optional[AssocRecSet] = None
     """
@@ -2247,39 +2247,39 @@ class UsersAddCond(BaseModel):
     """
     clusters: Optional[StringList] = None
     """
-    CSV clusters list
+    CSV clusters List
     """
     partitions: Optional[StringList] = None
     """
-    CSV partitions list
+    CSV partitions List
     """
     users: StringList
     """
-    CSV users list
+    CSV users List
     """
     wckeys: Optional[StringList] = None
     """
-    CSV WCKeys list
+    CSV WCKeys List
     """
 
 
 class Wckey(BaseModel):
     accounting: Optional[AccountingList] = None
     cluster: str
-    flags: Optional[list[Flag12]] = None
+    flags: Optional[List[Flag12]] = None
     id: Optional[int] = None
     name: str
     user: str
 
 
 class WckeyList(BaseModel):
-    __root__: list[Wckey]
+    __root__: List[Wckey]
 
 
 class AccountsAddCond(BaseModel):
     accounts: StringList
     """
-    CSV accounts list
+    CSV accounts List
     """
     association: Optional[AssocRecSet] = None
     """
@@ -2287,7 +2287,7 @@ class AccountsAddCond(BaseModel):
     """
     clusters: Optional[StringList] = None
     """
-    CSV clusters list
+    CSV clusters List
     """
 
 
@@ -2341,7 +2341,7 @@ class AssocSharesObjWrap(BaseModel):
     normalized shares
     """
     tres: Optional[Tres2] = None
-    type: Optional[list[TypeEnum]] = None
+    type: Optional[List[TypeEnum]] = None
     """
     user or account association
     """
@@ -2398,7 +2398,7 @@ class JobInfo(BaseModel):
     eligible_time: Optional[Uint64NoVal] = None
     end_time: Optional[Uint64NoVal] = None
     excluded_nodes: Optional[str] = None
-    exclusive: Optional[list[ExclusiveEnum]] = None
+    exclusive: Optional[List[ExclusiveEnum]] = None
     exit_code: Optional[ProcessExitCodeVerbose] = None
     """
     return code returned by process
@@ -2409,7 +2409,7 @@ class JobInfo(BaseModel):
     federation_origin: Optional[str] = None
     federation_siblings_active: Optional[str] = None
     federation_siblings_viable: Optional[str] = None
-    flags: Optional[list[Flag5]] = None
+    flags: Optional[List[Flag5]] = None
     gres_detail: Optional[JobInfoGresDetail] = None
     group_id: Optional[int] = None
     group_name: Optional[str] = None
@@ -2419,10 +2419,10 @@ class JobInfo(BaseModel):
     job_id: Optional[int] = None
     job_resources: Optional[JobRes] = None
     job_size_str: Optional[CsvString] = None
-    job_state: Optional[list[JobStateEnum]] = None
+    job_state: Optional[List[JobStateEnum]] = None
     last_sched_evaluation: Optional[Uint64NoVal] = None
     licenses: Optional[str] = None
-    mail_type: Optional[list[MailTypeEnum]] = None
+    mail_type: Optional[List[MailTypeEnum]] = None
     mail_user: Optional[str] = None
     max_cpus: Optional[Uint32NoVal] = None
     max_nodes: Optional[Uint32NoVal] = None
@@ -2447,7 +2447,7 @@ class JobInfo(BaseModel):
     preemptable_time: Optional[Uint64NoVal] = None
     prefer: Optional[str] = None
     priority: Optional[Uint32NoVal] = None
-    profile: Optional[list[ProfileEnum]] = None
+    profile: Optional[List[ProfileEnum]] = None
     qos: Optional[str] = None
     reboot: Optional[bool] = None
     requeue: Optional[bool] = None
@@ -2457,8 +2457,8 @@ class JobInfo(BaseModel):
     resv_name: Optional[str] = None
     scheduled_nodes: Optional[str] = None
     selinux_context: Optional[str] = None
-    shared: Optional[list[SharedEnum]] = None
-    show_flags: Optional[list[ShowFlag]] = None
+    shared: Optional[List[SharedEnum]] = None
+    show_flags: Optional[List[ShowFlag]] = None
     sockets_per_board: Optional[int] = None
     sockets_per_node: Optional[Uint16NoVal] = None
     standard_error: Optional[str] = None
@@ -2494,7 +2494,7 @@ class JobInfo(BaseModel):
 
 
 class JobInfoMsg(BaseModel):
-    __root__: list[JobInfo]
+    __root__: List[JobInfo]
 
 
 class Node(BaseModel):
@@ -2528,7 +2528,7 @@ class Node(BaseModel):
     last_busy: Optional[Uint64NoVal] = None
     mcs_label: Optional[str] = None
     name: Optional[str] = None
-    next_state_after_reboot: Optional[list[NextStateAfterRebootEnum]] = None
+    next_state_after_reboot: Optional[List[NextStateAfterRebootEnum]] = None
     operating_system: Optional[str] = None
     owner: Optional[str] = None
     partitions: Optional[CsvString] = None
@@ -2545,7 +2545,7 @@ class Node(BaseModel):
     specialized_cores: Optional[int] = None
     specialized_cpus: Optional[str] = None
     specialized_memory: Optional[int] = None
-    state: Optional[list[StateEnum]] = None
+    state: Optional[List[StateEnum]] = None
     temporary_disk: Optional[int] = None
     threads: Optional[int] = None
     tres: Optional[str] = None
@@ -2556,7 +2556,7 @@ class Node(BaseModel):
 
 
 class Nodes(BaseModel):
-    __root__: list[Node]
+    __root__: List[Node]
 
 
 class OpenapiAccountsAddCondResp(BaseModel):
@@ -2566,7 +2566,7 @@ class OpenapiAccountsAddCondResp(BaseModel):
     """
     association_condition: Optional[AccountsAddCond] = None
     """
-    CSV list of accounts, association limits and options, CSV list of clusters
+    CSV List of accounts, association limits and options, CSV List of clusters
     """
     errors: Optional[OpenapiErrors] = None
     """
@@ -2760,7 +2760,7 @@ class OpenapiJobInfoResp(BaseModel):
     """
     jobs: JobInfoMsg
     """
-    list of jobs
+    List of jobs
     """
     last_backfill: Uint64NoVal
     """
@@ -2853,7 +2853,7 @@ class OpenapiLicensesResp(BaseModel):
     """
     licenses: Licenses
     """
-    list of licenses
+    List of licenses
     """
     meta: Optional[OpenapiMeta] = None
     """
@@ -2880,7 +2880,7 @@ class OpenapiNodesResp(BaseModel):
     """
     nodes: Nodes
     """
-    list of nodes
+    List of nodes
     """
     warnings: Optional[OpenapiWarnings] = None
     """
@@ -2903,7 +2903,7 @@ class OpenapiPartitionResp(BaseModel):
     """
     partitions: PartitionInfoMsg
     """
-    list of partitions
+    List of partitions
     """
     warnings: Optional[OpenapiWarnings] = None
     """
@@ -2926,7 +2926,7 @@ class OpenapiReservationResp(BaseModel):
     """
     reservations: ReservationInfoMsg
     """
-    list of reservations
+    List of reservations
     """
     warnings: Optional[OpenapiWarnings] = None
     """
@@ -3043,7 +3043,7 @@ class Step(BaseModel):
     kill_request_user: Optional[str] = None
     nodes: Optional[Nodes2] = None
     pid: Optional[str] = None
-    state: Optional[list[StateEnum2]] = None
+    state: Optional[List[StateEnum2]] = None
     statistics: Optional[Statistics] = None
     step: Optional[Step1] = None
     task: Optional[Task] = None
@@ -3053,26 +3053,26 @@ class Step(BaseModel):
 
 
 class StepList(BaseModel):
-    __root__: list[Step]
+    __root__: List[Step]
 
 
 class User2(BaseModel):
-    administrator_level: Optional[list[AdministratorLevelEnum]] = None
+    administrator_level: Optional[List[AdministratorLevelEnum]] = None
     associations: Optional[AssocShortList] = None
     coordinators: Optional[CoordList] = None
     default: Optional[Default1] = None
-    flags: Optional[list[Flag11]] = None
+    flags: Optional[List[Flag11]] = None
     name: str
     old_name: Optional[str] = None
     wckeys: Optional[WckeyList] = None
 
 
 class UserList(BaseModel):
-    __root__: list[User2]
+    __root__: List[User2]
 
 
 class AssocSharesObjList(BaseModel):
-    __root__: list[AssocSharesObjWrap]
+    __root__: List[AssocSharesObjWrap]
 
 
 class Job(BaseModel):
@@ -3095,7 +3095,7 @@ class Job(BaseModel):
     """
     extra: Optional[str] = None
     failed_node: Optional[str] = None
-    flags: Optional[list[Flag4]] = None
+    flags: Optional[List[Flag4]] = None
     group: Optional[str] = None
     het: Optional[Het] = None
     job_id: Optional[int] = None
@@ -3125,7 +3125,7 @@ class Job(BaseModel):
 
 
 class JobList(BaseModel):
-    __root__: list[Job]
+    __root__: List[Job]
 
 
 class OpenapiSlurmdbdConfigResp(BaseModel):
