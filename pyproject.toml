@@ -29,7 +29,7 @@ dependencies = [
     "graypy>=1.0",
     "marshmallow",
     "requests",
-    "pydantic<2",
+    "pydantic",
     "setuptools",
     "workflows>=2.14",
 ]

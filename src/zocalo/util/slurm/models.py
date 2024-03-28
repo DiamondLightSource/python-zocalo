@@ -3,7 +3,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import ConfigDict, BaseModel, Field
 
 
 class Exclusive(Enum):
@@ -29,8 +29,7 @@ class Error(BaseModel):
 
 
 class JobProperties(BaseModel):
-    class Config:
-        use_enum_values = True
+    model_config = ConfigDict(use_enum_values=True)
 
     account: Optional[str] = Field(
         None, description="Charge resources used by this job to specified account."
@@ -177,9 +176,9 @@ class JobProperties(BaseModel):
     nodes: Optional[List[int]] = Field(
         None,
         description="Request that a minimum of minnodes nodes and a maximum node count.",
-        max_items=2,
+        max_length=2,
         # min_items=1, XXX
-        min_items=2,
+        min_length=2,
     )
     open_mode: Optional[OpenMode] = Field(
         "append",
@@ -208,7 +207,7 @@ class JobProperties(BaseModel):
     signal: Optional[str] = Field(
         None,
         description="When a job is within sig_time seconds of its end time, send it the signal sig_num.",
-        regex="[B:]<sig_num>[@<sig_time>]",
+        pattern="[B:]<sig_num>[@<sig_time>]",
     )
     sockets_per_node: Optional[int] = Field(
         None,
