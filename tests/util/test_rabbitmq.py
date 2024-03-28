@@ -190,6 +190,18 @@ def test_api_binding_declare(requests_mock, rmqapi, binding_spec):
     assert history.method == "POST"
     assert history.url.endswith("/api/bindings/zocalo/e/foo/q/bar")
     assert history.json() == {
+        "routing_key": "bar",
+    }
+
+def test_api_binding_declare_with_args(requests_mock, rmqapi, binding_spec):
+    binding_spec.arguments = {"test":"123"}
+    requests_mock.post("/api/bindings/zocalo/e/foo/q/bar")
+    rmqapi.binding_declare(binding=binding_spec)
+    assert requests_mock.call_count == 1
+    history = requests_mock.request_history[0]
+    assert history.method == "POST"
+    assert history.url.endswith("/api/bindings/zocalo/e/foo/q/bar")
+    assert history.json() == {
         "arguments": binding_spec.arguments,
         "routing_key": "bar",
     }
@@ -313,7 +325,6 @@ def test_api_exchange_declare(name, requests_mock, rmqapi):
         "type": "fanout",
         "auto_delete": True,
         "durable": True,
-        "arguments": {},
     }
 
 
@@ -511,8 +522,18 @@ def test_api_add_vhost(requests_mock, rmqapi, vhost_spec):
     history = requests_mock.request_history[0]
     assert history.method == "PUT"
     assert history.url.endswith(f"/api/vhosts/{vhost_spec.name}/")
+    assert history.json() == {}
+
+def test_api_add_vhost_with_tags(requests_mock, rmqapi, vhost_spec):
+    vhost_spec.tags = ["test123"]
+    requests_mock.put(f"/api/vhosts/{vhost_spec.name}/")
+    rmqapi.add_vhost(vhost=vhost_spec)
+    assert requests_mock.call_count == 1
+    history = requests_mock.request_history[0]
+    assert history.method == "PUT"
+    assert history.url.endswith(f"/api/vhosts/{vhost_spec.name}/")
     assert history.json() == {
-        "tags": [],
+        "tags": ["test123"],
     }
 
 
