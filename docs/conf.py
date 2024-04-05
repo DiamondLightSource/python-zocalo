@@ -51,7 +51,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "Zocalo"
-copyright = "2020, Diamond Light Source"
+copyright = "2024, Diamond Light Source"
 author = "Scientific Software"
 
 # The version info for the project you're documenting, acts as replacement
@@ -59,7 +59,7 @@ author = "Scientific Software"
 # the built documents.
 #
 # The short X.Y version.
-version = "0.30.2"
+version = "0.32.0"
 # The full version, including alpha/beta/rc tags.
 release = version
 

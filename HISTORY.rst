@@ -4,7 +4,11 @@ History
 
 Unreleased
 ----------
-* ``zocalo.configure_rabbitmq``: Show explicit error when VHost not created.
+
+0.32.0 (2024-04-05)
+-------------------
+* Upgrade to Slurm REST API v0.0.40. (`#248 <https://github.com/DiamondLightSource/python-zocalo/pull/248>`_)
+* ``zocalo.configure_rabbitmq``: Show explicit error when VHost not created. (`#241 <https://github.com/DiamondLightSource/python-zocalo/pull/241>`_).
 
 0.30.2 (2023-09-06)
 -------------------
