@@ -9,14 +9,14 @@ version: 1
 example:
   plugin: slurm
   url: http://example.com
-  api_version: v0.0.36
+  api_version: v0.0.40
 
 example-with-username-and-token:
   plugin: slurm
   url: http://example.com:1234
   user: admin
   user_token: sometoken
-  api_version: v0.0.36
+  api_version: v0.0.40
 
 environments:
   live:
@@ -46,7 +46,7 @@ def test_without_username():
     assert isinstance(zc.slurm, dict)
     assert zc.slurm["url"] == "http://example.com"
     assert "user" not in zc.slurm
-    assert zc.slurm["api_version"] == "v0.0.36"
+    assert zc.slurm["api_version"] == "v0.0.40"
 
 
 def test_with_username():
@@ -56,7 +56,7 @@ def test_with_username():
     assert isinstance(zc.slurm, dict)
     assert zc.slurm["url"] == "http://example.com:1234"
     assert zc.slurm["user"] == "admin"
-    assert zc.slurm["api_version"] == "v0.0.36"
+    assert zc.slurm["api_version"] == "v0.0.40"
 
 
 def test_user_token_from_external_file(tmp_path):
@@ -69,7 +69,7 @@ version: 1
 example:
   plugin: slurm
   url: http://example.com
-  api_version: v0.0.36
+  api_version: v0.0.40
   user_token: {user_token_file}
 
 environments:

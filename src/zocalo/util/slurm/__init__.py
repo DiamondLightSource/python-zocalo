@@ -6,7 +6,7 @@ from typing import Any
 
 import requests
 
-import zocalo.configuration
+from zocalo.configuration import Configuration
 
 from . import models
 
@@ -15,7 +15,7 @@ class SlurmRestApi:
     def __init__(
         self,
         url: str,
-        version: str = "v0.0.36",
+        version: str = "v0.0.40",
         user_name: str | None = None,
         user_token: str | pathlib.Path | None = None,
     ):
@@ -35,12 +35,13 @@ class SlurmRestApi:
             self.session.headers["X-SLURM-USER-TOKEN"] = self.user_token
 
     @classmethod
-    def from_zocalo_configuration(cls, zc: zocalo.configuration.Configuration):
+    def from_zocalo_configuration(cls, zc: Configuration, cluster: str = "slurm"):
+        cluster_config = getattr(zc, cluster)
         return cls(
-            url=zc.slurm["url"],
-            version=zc.slurm["api_version"],
-            user_name=zc.slurm.get("user"),
-            user_token=zc.slurm.get("user_token"),
+            url=cluster_config["url"],
+            version=cluster_config["api_version"],
+            user_name=cluster_config.get("user"),
+            user_token=cluster_config.get("user_token"),
         )
 
     def get(
@@ -93,19 +94,21 @@ class SlurmRestApi:
         response.raise_for_status()
         return response
 
-    def get_jobs(self) -> models.JobsResponse:
+    def get_jobs(self) -> models.OpenapiJobInfoResp:
         endpoint = f"slurm/{self.version}/jobs"
         response = self.get(endpoint)
-        return models.JobsResponse(**response.json())
+        return models.OpenapiJobInfoResp(**response.json())
 
-    def get_job_info(self, job_id: int) -> models.JobsResponse:
+    def get_job_info(self, job_id: int) -> models.JobInfo:
         endpoint = f"slurm/{self.version}/job/{job_id}"
         response = self.get(endpoint)
-        return models.JobsResponse(**response.json())
+        job_info_resp = models.OpenapiJobInfoResp(**response.json())
+        jobinfo = next(iter(dict(job_info_resp.jobs).get("__root__", [])))
+        return jobinfo
 
     def submit_job(
-        self, job_submission: models.JobSubmission
-    ) -> models.JobSubmissionResponse:
+        self, job_submission: models.JobSubmitReq
+    ) -> models.JobSubmitResponseMsg:
         endpoint = f"slurm/{self.version}/job/submit"
         response = self.post(endpoint, json=job_submission.dict(exclude_defaults=True))
-        return models.JobSubmissionResponse(**response.json())
+        return models.JobSubmitResponseMsg(**response.json())

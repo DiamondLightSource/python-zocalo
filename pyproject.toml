@@ -68,6 +68,7 @@ jmx = "zocalo.configuration.plugin_jmx:JMX"
 logging = "zocalo.configuration.plugin_logging:Logging"
 rabbitmqapi = "zocalo.configuration.plugin_rabbitmqapi:RabbitAPI"
 slurm = "zocalo.configuration.plugin_slurm:Slurm"
+iris = "zocalo.configuration.plugin_slurm:Slurm"
 smtp = "zocalo.configuration.plugin_smtp:SMTP"
 storage = "zocalo.configuration.plugin_storage:Storage"
 
