@@ -4,6 +4,9 @@ import pytest
 import zocalo.configuration
 from zocalo.util import slurm
 
+# A sample (valid but not useful) JWT token
+SAMPLE_JWT_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+
 
 @pytest.fixture
 def zocalo_configuration(mocker):
@@ -11,7 +14,7 @@ def zocalo_configuration(mocker):
     zc.slurm = {
         "url": "http://slurm.example.com:1234",
         "user": "foo",
-        "user_token": "sometoken",
+        "user_token": SAMPLE_JWT_TOKEN,
         "api_version": "v0.0.40",
     }
     return zc
@@ -229,7 +232,7 @@ def test_get_slurm_api_from_zocalo_configuration(slurm_api):
     assert slurm_api.url == "http://slurm.example.com:1234"
     assert slurm_api.version == "v0.0.40"
     assert slurm_api.user_name == "foo"
-    assert slurm_api.user_token == "sometoken"
+    assert slurm_api.user_token == SAMPLE_JWT_TOKEN
 
 
 def test_get_slurm_api_user_token_external_file(tmp_path):

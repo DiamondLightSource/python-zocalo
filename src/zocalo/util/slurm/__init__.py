@@ -21,9 +21,24 @@ def validate_is_jwt(token: str) -> bool:
     header, payload, _ = token.split(".")
     try:
         # Check both header and payload are valid base64-encoded json objects
+        # Note that JWT are Base64URL, which might not have padding.
         if not (
-            isinstance(json.loads(base64.b64decode(header, validate=True)), dict)
-            and isinstance(json.loads(base64.b64decode(payload, validate=True)), dict)
+            isinstance(
+                json.loads(
+                    base64.urlsafe_b64decode(
+                        header + "=" * (4 - len(header) % 4)
+                    ).decode()
+                ),
+                dict,
+            )
+            and isinstance(
+                json.loads(
+                    base64.urlsafe_b64decode(
+                        payload + "=" * (4 - len(payload) % 4)
+                    ).decode()
+                ),
+                dict,
+            )
         ):
             return False
     except (binascii.Error, json.JSONDecodeError):
