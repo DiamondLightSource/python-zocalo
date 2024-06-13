@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import base64
+import binascii
+import json
 import os
 import pathlib
 from typing import Any
@@ -9,6 +12,24 @@ import requests
 from zocalo.configuration import Configuration
 
 from . import models
+
+
+def validate_is_jwt(token: str) -> bool:
+    """Checks that a particular string is a JWT token"""
+    if token.count(".") != 2:
+        return False
+    header, payload, _ = token.split(".")
+    try:
+        # Check both header and payload are valid base64-encoded json objects
+        if not (
+            isinstance(json.loads(base64.b64decode(header, validate=True)), dict)
+            and isinstance(json.loads(base64.b64decode(payload, validate=True)), dict)
+        ):
+            return False
+    except (binascii.Error, json.JSONDecodeError):
+        return False
+
+    return True
 
 
 class SlurmRestApi:
@@ -25,8 +46,15 @@ class SlurmRestApi:
         if user_token and os.path.isfile(user_token):
             with open(user_token, "r") as f:
                 self.user_token = f.read().strip()
+        elif isinstance(user_token, pathlib.Path):
+            # We got passed a path, but it isn't a valid one
+            raise RuntimeError(f"SLURM: API token file {user_token} does not exist")
         else:
             assert isinstance(user_token, str)
+            if not validate_is_jwt(user_token):
+                raise RuntimeError(
+                    "SLURM user_token does not appear to be a valid JWT token. Did you pass a nonexistent filename?"
+                )
             self.user_token = user_token
         self.session = requests.Session()
         if self.user_name:

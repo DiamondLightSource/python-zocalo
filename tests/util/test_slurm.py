@@ -244,6 +244,25 @@ def test_get_slurm_api_user_token_external_file(tmp_path):
     assert api.user_token == "foobar"
 
 
+def test_get_slurm_api_invalid_external_file(tmp_path):
+    """Check that passing invalid file doesn't get interpreted as a token"""
+    user_token_file = tmp_path / "bad-slurm-user-token"
+    with pytest.raises(RuntimeError):
+        slurm.SlurmRestApi(
+            url="http://slurm.example.com:1234",
+            version="v0.0.40",
+            user_name="foo",
+            user_token=user_token_file,
+        )
+    with pytest.raises(RuntimeError):
+        slurm.SlurmRestApi(
+            url="http://slurm.example.com:1234",
+            version="v0.0.40",
+            user_name="foo",
+            user_token=str(user_token_file),
+        )
+
+
 def test_get_jobs(requests_mock, slurm_api, jobs_response):
     requests_mock.get(
         "/slurm/v0.0.40/jobs",
