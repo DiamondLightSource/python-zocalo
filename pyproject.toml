@@ -60,6 +60,7 @@ GitHub = "https://github.com/DiamondLightSource/python-zocalo"
 
 [project.entry-points."workflows.services"]
 Dispatcher = "zocalo.service.dispatcher:Dispatcher"
+DLSPyMcaFitter = "zocalo.service.pymca_fitter:DLSPyMcaFitter"
 JSONLines = "zocalo.service.jsonlines:JSONLines"
 Mailer = "zocalo.service.mailer:Mailer"
 Schlockmeister = "zocalo.service.schlockmeister:Schlockmeister"
