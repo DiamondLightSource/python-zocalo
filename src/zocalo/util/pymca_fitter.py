@@ -297,7 +297,7 @@ plot '{inputFile}' every ::0::{cutoffline} using 1:2 with lines ls 1, '{inputFil
 """
 
     subprocess.run(
-        ["/usr/bin/gnuplot"],
+        ["gnuplot"],
         input=gnuplot_input,
         universal_newlines=True,
         encoding="utf8",
