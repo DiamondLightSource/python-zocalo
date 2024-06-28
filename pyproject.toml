@@ -32,8 +32,6 @@ dependencies = [
     "pydantic<2",
     "setuptools",
     "workflows>=2.14",
-    "pymca",
-    "xraylib>=4.1.4",
 ]
 
 [project.urls]
