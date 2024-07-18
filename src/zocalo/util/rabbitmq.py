@@ -12,7 +12,7 @@ import urllib.request
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import requests
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from workflows.transport import pika_transport
 
 import zocalo.configuration
@@ -404,9 +404,7 @@ class ExchangeSpec(BaseModel):
     vhost: str = Field(
         ..., description="Virtual host name with non-ASCII characters escaped as in C."
     )
-
-    class Config:
-        use_enum_values = True
+    model_config = ConfigDict(use_enum_values=True)
 
 
 class ExchangeInfo(ExchangeSpec):
@@ -456,11 +454,9 @@ class PolicySpec(BaseModel):
         alias="apply-to",
         description="Which types of object this policy should apply to.",
     )
-
-    class Config:
-        use_enum_values = True
-        validate_all = True
-        allow_population_by_field_name = True
+    model_config = ConfigDict(
+        use_enum_values=True, validate_default=True, populate_by_name=True
+    )
 
 
 class QueueState(str, enum.Enum):
@@ -617,9 +613,7 @@ class UserSpec(BaseModel):
     password_hash: str = Field(..., description="Hash of the user password.")
     hashing_algorithm: HashingAlgorithm
     tags: List[str]
-
-    class Config:
-        use_enum_values = True
+    model_config = ConfigDict(use_enum_values=True)
 
 
 def http_api_request(
