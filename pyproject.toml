@@ -111,3 +111,23 @@ mypy_path = "src"
 [[tool.mypy.overrides]]
 module = ["graypy", "graypy.handler"]
 ignore_missing_imports = true
+
+[tool.bumpversion]
+current_version = "0.32.0"
+commit = true
+tag = true
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+search = 'version = "{current_version}"'
+replace = 'version = "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = 'src/zocalo/__init__.py'
+search = '__version__ = "{current_version}"'
+replace = '__version__ = "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "docs/conf.py"
+search = 'version = "{current_version}"'
+replace = 'version = "{new_version}"'
