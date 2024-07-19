@@ -1,0 +1,164 @@
+---
+# RabbitMQ Configuration
+#
+# This is a snapshot of the active rabbitmq configuration used for the
+# zocalo deployment at Diamond.
+#
+# This file is used to declare RabbitMQ queues and their configuration.
+# Jenkins parses this file using the Python script in this directory to
+# generate and deploy the actual RabbitMQ configuration.
+#
+# Queues are grouped together in groups, within a group every queue has
+# the same settings. It is possible to optionally influence the RabbitMQ
+# queue, exchange, and bindings settings per group.
+
+# Note that no VHost is declared here - at time of writing, this is not
+# handled very gracefully and changes are applied by deleting the VHost;
+# which causes all queues, outstanding messages to be deleted.
+#
+# If you understand these risks and want to specify the vhost in this
+# file, you can specify vhost as:
+# # vhosts:
+# # - zocalo
+
+
+exchanges:
+- name: delayed
+  vhost: zocalo
+  type: x-delayed-message
+  arguments:
+    x-delayed-type: direct
+- name: results
+  vhost: zocalo
+  type: topic
+
+policies:
+- name: redelivery
+  definition:
+    delivery-limit: 5
+  vhost: zocalo
+  pattern: .*
+
+- name: ttl
+  definition:
+    delivery-limit: 5
+    message-ttl: 60000
+  vhost: zocalo
+  priority: 1
+  pattern: ^xrc.*
+
+- name: immediate
+  definition:
+    # delivery-limit: 5
+    message-ttl: 0
+  vhost: zocalo
+  priority: 1
+  pattern: per_image_analysis.ssx
+
+- name: dlq
+  definition:
+    dead-letter-exchange: ''
+  vhost: zocalo
+
+groups:
+
+# No-prefetch queues
+# These are the workhorse queues of Zocalo. Any listener will only get a
+# single message from these queues, and only get the next message after
+# acknowledging/rejecting the previous one.
+- names:
+  - archive.filelist
+  - archive.pattern
+  - cluster.submission
+  - darc.dropzone
+  - dispatcher
+  - filewatcher
+  - htcondorwatcher
+  - images
+  - index
+  - ispyb_connector
+  - ispyb_pia
+  - mailnotification
+  - mimas
+  - mimas.held
+  - nexusparser.find_related_files
+  - notify_gda
+  - per_image_analysis
+  - per_image_analysis.hdf5_select
+  - processing_recipe
+  - pymca.fitter
+  - relion.dev.stop
+  - ssx.plot
+  - transient.destination
+  - transient.transaction
+#   - transient.system_test.{guid}
+  - trigger
+  - validation
+  - bridge.test
+
+  settings:
+    queues:
+      type: quorum
+      dead-letter-routing-key-pattern: dlq.{name}
+  bindings:
+  - ''
+  - delayed
+  vhost: zocalo
+
+- names:
+  - per_image_analysis.ssx
+
+  settings:
+    queues:
+      type: quorum
+      # dead-letter-routing-key-pattern: per_image_analysis
+      # dead-letter-queue-create: false
+  bindings:
+  - ''
+  vhost: zocalo
+
+# Single active consumer queues
+# Every queue in this group only allows a single listener to read from the
+# queue at any one time. That listener gets all the messages from the queue
+# at once.
+# https://www.rabbitmq.com/consumers.html#single-active-consumer
+- names:
+  - reduce.dc_sim
+  - reduce.xray_centering
+  - statistics.cluster
+  - jsonlines
+  settings:
+    queues:
+      type: quorum
+      dead-letter-routing-key-pattern: dlq.{name}
+    single_active_consumer: true
+  bindings:
+  - ''
+  - delayed
+  vhost: zocalo
+
+# Broadcast topics
+# This is TBC. I suspect we can do something cleverer here, eg. have
+# temporary queues tied to each connection or something like that.
+- names:
+  - command
+  - transient.status
+  - transient.statistics.cluster
+  settings:
+    broadcast: true
+    queues:
+      type: quorum
+  vhost: zocalo
+
+- names:
+  - xrc.i03
+  settings:
+    queues:
+      type: quorum
+      dead-letter-queue-create: false
+  vhost: zocalo
+
+bindings:
+- source: results
+  destination: xrc.i03
+  vhost: zocalo

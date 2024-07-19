@@ -4,7 +4,8 @@ History
 
 Unreleased
 ----------
-- Switch python packaging backend to poetry.
+* Add example rabbitmq configuration and user files to ``contrib/`` (`#245 <https://github.com/DiamondLightSource/python-zocalo/pull/245>`_)
+* Switch python packaging backend to poetry.
 
 0.32.0 (2024-04-05)
 -------------------
