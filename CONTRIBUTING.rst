@@ -120,7 +120,7 @@ A reminder for the maintainers on how to deploy.
 Make sure all your changes are committed (including an entry in HISTORY.rst).
 Then run::
 
-$ bump-my-version patch # possible: major / minor / patch
+$ bump-my-version bump patch # possible: major / minor / patch
 $ git push
 $ git push --tags
 
