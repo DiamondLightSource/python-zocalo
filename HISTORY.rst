@@ -5,7 +5,12 @@ History
 Unreleased
 ----------
 * Add example rabbitmq configuration and user files to ``contrib/`` (`#245 <https://github.com/DiamondLightSource/python-zocalo/pull/245>`_)
-* ``zocalo.configure_rabbitmq``: Show explicit error when VHost not created. (`#241 <https://github.com/DiamondLightSource/python-zocalo/pull/241>`_)
+* Switch python packaging backend to poetry.
+
+0.32.0 (2024-04-05)
+-------------------
+* Upgrade to Slurm REST API v0.0.40. (`#248 <https://github.com/DiamondLightSource/python-zocalo/pull/248>`_)
+* ``zocalo.configure_rabbitmq``: Show explicit error when VHost not created. (`#241 <https://github.com/DiamondLightSource/python-zocalo/pull/241>`_).
 
 0.30.2 (2023-09-06)
 -------------------

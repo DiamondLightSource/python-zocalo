@@ -78,7 +78,7 @@ class RabbitMQAPI(_RabbitMQAPI):
 @functools.singledispatch
 def _info_to_spec(incoming, infos: list):
     cls = type(incoming)
-    return [cls(**i.dict()) for i in infos]
+    return [cls(**i.model_dump()) for i in infos]
 
 
 @functools.singledispatch
