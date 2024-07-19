@@ -281,8 +281,6 @@ def test_get_job_info(requests_mock, slurm_api, jobs_response):
     )
     assert slurm_api.get_job_info(129) == next(
         iter(
-            dict(slurm.models.OpenapiJobInfoResp(**jobs_response).jobs).get(
-                "__root__", []
-            )
+            dict(slurm.models.OpenapiJobInfoResp(**jobs_response).jobs).get("root", [])
         )
     )

@@ -772,7 +772,7 @@ class RabbitMQAPI:
         endpoint = f"bindings/{binding.vhost}/e/{binding.source}/{binding.destination_type.value}/{binding.destination}"
         response = self.post(
             endpoint,
-            json=binding.dict(
+            json=binding.model_dump(
                 exclude_defaults=True,
                 exclude={"vhost", "source", "destination", "destination_type"},
             ),
@@ -848,7 +848,7 @@ class RabbitMQAPI:
         endpoint = f"exchanges/{exchange.vhost}/{exchange.name}/"
         response = self.put(
             endpoint,
-            json=exchange.dict(exclude_defaults=True, exclude={"name", "vhost"}),
+            json=exchange.model_dump(exclude_defaults=True, exclude={"name", "vhost"}),
         )
         response.raise_for_status()
 
@@ -873,7 +873,7 @@ class RabbitMQAPI:
         endpoint = f"policies/{policy.vhost}/{policy.name}/"
         response = self.put(
             endpoint,
-            json=policy.dict(
+            json=policy.model_dump(
                 exclude_defaults=True, exclude={"name", "vhost"}, by_alias=True
             ),
         )
@@ -902,7 +902,8 @@ class RabbitMQAPI:
     def queue_declare(self, queue: QueueSpec):
         endpoint = f"queues/{queue.vhost}/{queue.name}"
         response = self.put(
-            endpoint, json=queue.dict(exclude_defaults=True, exclude={"name", "vhost"})
+            endpoint,
+            json=queue.model_dump(exclude_defaults=True, exclude={"name", "vhost"}),
         )
         response.raise_for_status()
 
@@ -942,7 +943,9 @@ class RabbitMQAPI:
 
     def set_permissions(self, permission: PermissionSpec):
         endpoint = f"permissions/{permission.vhost}/{permission.user}/"
-        submission = permission.dict(exclude_defaults=True, exclude={"vhost", "user"})
+        submission = permission.model_dump(
+            exclude_defaults=True, exclude={"vhost", "user"}
+        )
         response = self.put(endpoint, json=submission)
         response.raise_for_status()
 
@@ -953,7 +956,7 @@ class RabbitMQAPI:
 
     def user_put(self, user: UserSpec):
         endpoint = f"users/{user.name}/"
-        submission = user.dict(exclude_defaults=True, exclude={"name"})
+        submission = user.model_dump(exclude_defaults=True, exclude={"name"})
         submission["tags"] = ",".join(submission["tags"])
         response = self.put(endpoint, json=submission)
         response.raise_for_status()
@@ -976,7 +979,8 @@ class RabbitMQAPI:
     def add_vhost(self, vhost: VHostSpec):
         endpoint = f"vhosts/{vhost.name}/"
         response = self.put(
-            endpoint, json=vhost.dict(exclude_defaults=True, exclude={"name", "vhost"})
+            endpoint,
+            json=vhost.model_dump(exclude_defaults=True, exclude={"name", "vhost"}),
         )
         response.raise_for_status()
 
