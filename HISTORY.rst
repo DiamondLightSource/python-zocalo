@@ -4,6 +4,7 @@ History
 
 Unreleased
 ----------
+- Switch python packaging backend to poetry.
 
 0.32.0 (2024-04-05)
 -------------------
