@@ -2,10 +2,11 @@
 History
 =======
 
-Unreleased
-----------
+1.0.0 (2024-07-19)
+------------------
 * Add example rabbitmq configuration and user files to ``contrib/`` (`#245 <https://github.com/DiamondLightSource/python-zocalo/pull/245>`_)
 * Switch python packaging backend to poetry.
+* Update pydantic dependency to v2. This probably breaks compatibility with older versions, so major version is bumped.
 
 0.32.0 (2024-04-05)
 -------------------

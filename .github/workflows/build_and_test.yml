@@ -66,7 +66,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: release
-      url: https://pypi.org/watchdir
+      url: https://pypi.org/project/zocalo/
     permissions:
       id-token: write
     steps:
