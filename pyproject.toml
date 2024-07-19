@@ -19,7 +19,7 @@ pyyaml = "^6.0"
 graypy = "^2.0"
 marshmallow = "^3.19"
 requests = "^2.31"
-pydantic = "<2"
+pydantic = "^2"
 workflows = "^2.27"
 
 [tool.poetry.group.dev.dependencies]

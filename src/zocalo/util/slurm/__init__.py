@@ -146,12 +146,14 @@ class SlurmRestApi:
         endpoint = f"slurm/{self.version}/job/{job_id}"
         response = self.get(endpoint)
         job_info_resp = models.OpenapiJobInfoResp(**response.json())
-        jobinfo = next(iter(dict(job_info_resp.jobs).get("__root__", [])))
+        jobinfo = next(iter(dict(job_info_resp.jobs).get("root", [])))
         return jobinfo
 
     def submit_job(
         self, job_submission: models.JobSubmitReq
     ) -> models.JobSubmitResponseMsg:
         endpoint = f"slurm/{self.version}/job/submit"
-        response = self.post(endpoint, json=job_submission.dict(exclude_defaults=True))
+        response = self.post(
+            endpoint, json=job_submission.model_dump(exclude_defaults=True)
+        )
         return models.JobSubmitResponseMsg(**response.json())
