@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+
 import zocalo.configuration
 from zocalo.util import slurm
 

@@ -5,8 +5,9 @@ from datetime import datetime
 from unittest import mock
 
 import workflows.transport
-import zocalo.cli.dlq_purge as dlq_purge
 from workflows.transport.common_transport import CommonTransport
+
+import zocalo.cli.dlq_purge as dlq_purge
 
 
 def gen_header_activemq(i):

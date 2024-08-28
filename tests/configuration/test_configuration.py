@@ -7,6 +7,7 @@ import subprocess
 from unittest import mock
 
 import pytest
+
 import zocalo.configuration
 
 sample_configuration = """

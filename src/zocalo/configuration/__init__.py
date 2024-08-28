@@ -208,8 +208,7 @@ class Configuration:
         # attributes is allowed. We do this by setting a return type on __getattr__,
         # but only when in a type checking run, as to not affect the runtime class
         # behaviour.
-        def __getattr__(self, name: str) -> typing.Any:
-            ...
+        def __getattr__(self, name: str) -> typing.Any: ...
 
     def __str__(self):
         environments = len(self._environments)

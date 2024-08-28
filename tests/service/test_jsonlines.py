@@ -4,6 +4,7 @@ from unittest import mock
 
 from workflows.recipe.wrapper import RecipeWrapper
 from workflows.transport.offline_transport import OfflineTransport
+
 from zocalo.service.jsonlines import JSONLines
 
 
