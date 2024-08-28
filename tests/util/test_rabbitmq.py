@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 
 import pytest
+
 import zocalo.configuration
 import zocalo.util.rabbitmq as rabbitmq
 

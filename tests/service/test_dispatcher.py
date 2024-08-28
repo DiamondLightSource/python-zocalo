@@ -4,9 +4,10 @@ import json
 from unittest import mock
 
 import pytest
-import zocalo.configuration
 from workflows.recipe import Recipe
 from workflows.transport.offline_transport import OfflineTransport
+
+import zocalo.configuration
 from zocalo.service.dispatcher import Dispatcher
 
 

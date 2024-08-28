@@ -11,8 +11,8 @@ import json
 import logging
 import signal
 import sys
+from importlib.metadata import entry_points
 
-import pkg_resources
 import workflows.recipe.wrapper
 import workflows.services.common_service
 import workflows.transport
@@ -40,9 +40,7 @@ def run():
     zc = zocalo.configuration.from_file()
     zc.activate()
 
-    known_wrappers = {
-        e.name: e.load for e in pkg_resources.iter_entry_points("zocalo.wrappers")
-    }
+    known_wrappers = {e.name: e.load for e in entry_points(group="zocalo.wrappers")}
 
     # Set up parser
     parser = argparse.ArgumentParser(usage="zocalo.wrap [options]")

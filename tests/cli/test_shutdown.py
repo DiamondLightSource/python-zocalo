@@ -6,6 +6,7 @@ from unittest import mock
 import workflows.transport
 from workflows.transport.common_transport import CommonTransport
 from workflows.util import generate_unique_host_id
+
 from zocalo.cli.shutdown import run
 
 

@@ -186,14 +186,14 @@ class Schlockmeister(CommonService):
             )
             if real_subscriber_count:
                 self.log.debug("subscribing to %s", destination)
-                self.known_queues[destination][
-                    "subscription"
-                ] = self._transport.subscribe(
-                    destination,
-                    self.quarantine,
-                    acknowledgement=True,
-                    selector="JMSXDeliveryCount>5",
-                    disable_mangling=True,
+                self.known_queues[destination]["subscription"] = (
+                    self._transport.subscribe(
+                        destination,
+                        self.quarantine,
+                        acknowledgement=True,
+                        selector="JMSXDeliveryCount>5",
+                        disable_mangling=True,
+                    )
                 )
 
     def garbage_collect(self):

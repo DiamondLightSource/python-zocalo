@@ -8,8 +8,8 @@ import re
 import time
 import timeit
 import uuid
+from importlib.metadata import entry_points
 
-import pkg_resources
 import workflows.recipe
 from workflows.services.common_service import CommonService
 
@@ -110,9 +110,7 @@ class Dispatcher(CommonService):
         self.message_filters = {
             **{
                 f.name: f.load()
-                for f in pkg_resources.iter_entry_points(
-                    "zocalo.services.dispatcher.filters"
-                )
+                for f in entry_points(group="zocalo.services.dispatcher.filters")
             },
             "load_custom_recipe": self.filter_load_custom_recipe,
             "load_recipes_from_files": self.filter_load_recipes_from_files,
@@ -121,8 +119,8 @@ class Dispatcher(CommonService):
 
         self.ready_for_processing = {
             f.name: f.load()
-            for f in pkg_resources.iter_entry_points(
-                "zocalo.services.dispatcher.ready_for_processing"
+            for f in entry_points(
+                group="zocalo.services.dispatcher.ready_for_processing"
             )
         }
 

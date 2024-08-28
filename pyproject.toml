@@ -14,7 +14,7 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.10"
 pyyaml = "^6.0"
 graypy = "^2.0"
 marshmallow = "^3.19"
@@ -89,21 +89,20 @@ iris = "zocalo.configuration.plugin_slurm:Slurm"
 smtp = "zocalo.configuration.plugin_smtp:SMTP"
 storage = "zocalo.configuration.plugin_storage:Storage"
 
-[tool.isort]
-profile = "black"
-
 [tool.pytest.ini_options]
 required_plugins = "pytest-mock requests-mock"
 testpaths = ["tests"]
 
-[tool.ruff]
-line-length = 88
+[tool.ruff.lint]
 ignore = ["E501", "E741"]
 select = ["C4", "E", "F", "W", "I"]
 unfixable = ["F841"]
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 required-imports = ["from __future__ import annotations"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/zocalo/util/slurm/models.py" = ["W"]
 
 [tool.mypy]
 mypy_path = "src"
@@ -111,6 +110,10 @@ mypy_path = "src"
 [[tool.mypy.overrides]]
 module = ["graypy", "graypy.handler"]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["zocalo.util.slurm.models"]
+ignore_errors = true
 
 [tool.bumpversion]
 current_version = "1.0.0"

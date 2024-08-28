@@ -3,9 +3,10 @@ from __future__ import annotations
 from unittest import mock
 
 import pytest
-import zocalo.configuration
 from workflows.recipe.wrapper import RecipeWrapper
 from workflows.transport.offline_transport import OfflineTransport
+
+import zocalo.configuration
 from zocalo.service.mailer import Mailer
 
 
