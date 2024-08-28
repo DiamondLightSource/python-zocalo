@@ -13,4 +13,4 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Ruff Check
-      uses: jpetrucciani/ruff-check@33f3725e751a187bb666b7d7a7094d38a2df12db # 0.0.239
+      uses: jpetrucciani/ruff-check@96f59856544cbfba111afdf2f6985e21756b8e7e # 0.6.2
