@@ -9,9 +9,9 @@ import operator
 import os
 import pathlib
 import typing
+from importlib.metadata import entry_points
 
 import marshmallow as mm
-import pkg_resources
 import yaml
 
 import zocalo.configuration.argparse
@@ -56,7 +56,7 @@ def _check_valid_plugin_name(name: str) -> bool:
 
 _configuration_plugins = {
     e.name: e
-    for e in pkg_resources.iter_entry_points("zocalo.configuration.plugins")
+    for e in entry_points(group="zocalo.configuration.plugins")
     if _check_valid_plugin_name(e.name)
 }
 
