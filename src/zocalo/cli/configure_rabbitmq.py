@@ -464,7 +464,7 @@ def run():
                 logger.error(f"Error 404: VHost not found for url: {e.response.url}")
                 sys.exit(1)
         except Exception:
-            raise
+            raise e
         logger.error(e)
         sys.exit(1)
 
