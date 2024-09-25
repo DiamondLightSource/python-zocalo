@@ -8,6 +8,7 @@ import logging
 import pathlib
 import secrets
 import urllib
+import urllib.parse
 import urllib.request
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -18,6 +19,11 @@ from workflows.transport import pika_transport
 import zocalo.configuration
 
 logger = logging.getLogger("zocalo.util.rabbitmq")
+
+
+def _quote(arg: str) -> str:
+    """URL-quote a VHost name (which can contain /)"""
+    return urllib.parse.quote(arg, safe=[])
 
 
 class MessageStats(BaseModel):
@@ -750,7 +756,7 @@ class RabbitMQAPI:
     ) -> List[BindingInfo]:
         endpoint = "bindings"
         if vhost is not None:
-            endpoint = f"{endpoint}/{vhost}"
+            endpoint = f"{endpoint}/{_quote(vhost)}"
         _check = {source, destination, destination_type}
         if None in _check and len(_check) > 1:
             raise ValueError(
@@ -789,7 +795,9 @@ class RabbitMQAPI:
     ):
         # If properties_key is not specified then all bindings between the specified
         # source and destination are deleted
-        endpoint = f"bindings/{vhost}/e/{source}/{destination_type}/{destination}"
+        endpoint = (
+            f"bindings/{_quote(vhost)}/e/{source}/{destination_type}/{destination}"
+        )
         if properties_key is None:
             dest_map = {"queue": "q", "exchange": "e"}
 
@@ -834,11 +842,11 @@ class RabbitMQAPI:
     ) -> Union[List[ExchangeInfo], ExchangeInfo]:
         endpoint = "exchanges"
         if vhost is not None and name is not None:
-            endpoint = f"{endpoint}/{vhost}/{name}/"
+            endpoint = f"{endpoint}/{_quote(vhost)}/{name}/"
             response = self.get(endpoint)
             return ExchangeInfo(**response.json())
         elif vhost is not None:
-            endpoint = f"{endpoint}/{vhost}/"
+            endpoint = f"{endpoint}/{_quote(vhost)}/"
         elif name is not None:
             raise ValueError("name can not be set without vhost")
         response = self.get(endpoint)
@@ -853,19 +861,19 @@ class RabbitMQAPI:
         response.raise_for_status()
 
     def exchange_delete(self, vhost: str, name: str, if_unused: bool = False):
-        endpoint = f"exchanges/{vhost}/{name}"
+        endpoint = f"exchanges/{_quote(vhost)}/{name}"
         response = self.delete(endpoint, params={"if-unused": if_unused})
         response.raise_for_status()
 
     def policies(self, vhost: Optional[str] = None) -> List[PolicySpec]:
         endpoint = "policies"
         if vhost is not None:
-            endpoint = f"{endpoint}/{vhost}/"
+            endpoint = f"{endpoint}/{_quote(vhost)}/"
         response = self.get(endpoint)
         return [PolicySpec(**p) for p in response.json()]
 
     def policy(self, vhost: str, name: str) -> PolicySpec:
-        endpoint = f"policies/{vhost}/{name}/"
+        endpoint = f"policies/{_quote(vhost)}/{name}/"
         response = self.get(endpoint)
         return PolicySpec(**response.json())
 
@@ -880,7 +888,7 @@ class RabbitMQAPI:
         response.raise_for_status()
 
     def clear_policy(self, vhost: str, name: str):
-        endpoint = f"policies/{vhost}/{name}/"
+        endpoint = f"policies/{_quote(vhost)}/{name}/"
         response = self.delete(endpoint)
         response.raise_for_status()
 
@@ -889,11 +897,11 @@ class RabbitMQAPI:
     ) -> Union[List[QueueInfo], QueueInfo]:
         endpoint = "queues"
         if vhost is not None and name is not None:
-            endpoint = f"{endpoint}/{vhost}/{name}"
+            endpoint = f"{endpoint}/{_quote(vhost)}/{name}"
             response = self.get(endpoint)
             return QueueInfo(**response.json())
         elif vhost is not None:
-            endpoint = f"{endpoint}/{vhost}"
+            endpoint = f"{endpoint}/{_quote(vhost)}"
         elif name is not None:
             raise ValueError("name can not be set without vhost")
         response = self.get(endpoint)
@@ -910,7 +918,8 @@ class RabbitMQAPI:
     def queue_delete(
         self, vhost: str, name: str, if_unused: bool = False, if_empty: bool = False
     ):
-        endpoint = f"queues/{vhost}/{name}"
+        logger.debug(f"Deleting queue {_quote(vhost)}/{name}")
+        endpoint = f"queues/{_quote(vhost)}/{name}"
         response = self.delete(
             endpoint, params={"if-unused": if_unused, "if-empty": if_empty}
         )
@@ -931,7 +940,7 @@ class RabbitMQAPI:
     ) -> List[PermissionSpec] | PermissionSpec:
         endpoint = "permissions"
         if vhost is not None and user is not None:
-            endpoint = f"{endpoint}/{vhost}/{user}/"
+            endpoint = f"{endpoint}/{_quote(vhost)}/{user}/"
             response = self.get(endpoint)
             return PermissionSpec(**response.json())
         elif vhost is not None or user is not None:
@@ -950,7 +959,7 @@ class RabbitMQAPI:
         response.raise_for_status()
 
     def clear_permissions(self, vhost: str, user: str):
-        endpoint = f"permissions/{vhost}/{user}/"
+        endpoint = f"permissions/{_quote(vhost)}/{user}/"
         response = self.delete(endpoint)
         response.raise_for_status()
 
