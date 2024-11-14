@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "zocalo"
-version = "1.1.1"
+version = "1.2.0"
 description = "Infrastructure components for automated data processing at Diamond Light Source"
 authors = ["Nicholas Devenish <ndevenish@gmail.com>"]
 readme = "README.rst"
@@ -116,7 +116,7 @@ module = ["zocalo.util.slurm.models"]
 ignore_errors = true
 
 [tool.bumpversion]
-current_version = "1.1.1"
+current_version = "1.2.0"
 commit = true
 tag = true
 
