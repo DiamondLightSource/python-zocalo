@@ -20,7 +20,7 @@ graypy = "^2.0"
 marshmallow = "^3.19"
 requests = "^2.31"
 pydantic = "^2"
-workflows = "^2.27"
+workflows = ">=3.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.2"
