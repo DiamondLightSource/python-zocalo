@@ -2,6 +2,11 @@
 History
 =======
 
+Unreleased
+----------
+- Minimum supported python is now 3.11.
+- Switch python packaging backend back to setuptools. (`#263 <https://github.com/DiamondLightSource/python-zocalo/pull/263>`_)
+
 1.2.0 (2024-11-14)
 ------------------
 * Support newer versions of workflows package. (`#260 <https://github.com/DiamondLightSource/python-zocalo/pull/260>`_)

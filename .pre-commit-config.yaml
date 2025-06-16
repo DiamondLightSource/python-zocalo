@@ -1,6 +1,6 @@
 ci:
   autoupdate_schedule: quarterly
-  skip: [poetry-lock]
+  skip: [uv-lock]
 
 repos:
 # Syntax validation and some basic sanity checks
@@ -32,10 +32,10 @@ repos:
     - types-requests
     - types-pyyaml
 
-- repo: https://github.com/python-poetry/poetry
-  rev: 1.8.0
+- repo: https://github.com/astral-sh/uv-pre-commit
+  rev: 0.7.13
   hooks:
-    - id: poetry-lock
-    - id: poetry-export
-      additional_dependencies: [poetry-plugin-export]
-      args: [-o, requirements_dev.txt, --with=dev, --without-hashes]
+    - id: uv-lock
+    - id: uv-export
+      args: [--all-groups, -q, -o, requirements_dev.txt, --no-hashes, --no-emit-project]
+      files: uv.lock|pyproject.toml|.pre-commit-config.yaml
