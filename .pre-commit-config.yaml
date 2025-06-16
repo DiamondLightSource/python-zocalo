@@ -1,6 +1,6 @@
 ci:
   autoupdate_schedule: quarterly
-  skip: [poetry-lock]
+  skip: [uv-lock]
 
 repos:
 # Syntax validation and some basic sanity checks
