@@ -80,7 +80,7 @@ class Logging:
         for level, verbosity_def in enumerate(logconfig.get("verbose", [])):
             if not isinstance(verbosity_def, dict):
                 raise zocalo.ConfigurationError(
-                    f"Logging configuration error: verbosity level {level+1} definition "
+                    f"Logging configuration error: verbosity level {level + 1} definition "
                     "is not a dictionary"
                 )
             verbosity_def.setdefault("version", logconfig["version"])
@@ -89,7 +89,7 @@ class Logging:
                 verbosity_def
             ):
                 raise zocalo.ConfigurationError(
-                    f"Logging configuration error: verbosity level {level+1} definition "
+                    f"Logging configuration error: verbosity level {level + 1} definition "
                     "defines items not allowed in an incremental definition"
                 )
 

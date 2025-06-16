@@ -270,7 +270,7 @@ def test_configuration_can_specify_a_missing_resolution_file(tmp_path):
         f"""
         version: 1
         unused-plugin:
-          {tmp_path / 'missing_file'}
+          {tmp_path / "missing_file"}
         """
     )
 
@@ -320,7 +320,7 @@ def test_plugins_can_be_configured_in_an_external_file(tmp_path):
         f"""
         version: 1
         external:
-          {tmp_path / 'external.yml'}
+          {tmp_path / "external.yml"}
         environments:
           ext:
             - external
