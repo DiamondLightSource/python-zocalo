@@ -37,5 +37,5 @@ repos:
   hooks:
     - id: uv-lock
     - id: uv-export
-      args: [--all-groups, -q, -o, requirements_dev.txt, --no-hashes]
+      args: [--all-groups, -q, -o, requirements_dev.txt]
       files: uv.lock|pyproject.toml
