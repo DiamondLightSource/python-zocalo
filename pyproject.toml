@@ -1,52 +1,41 @@
-[tool.poetry]
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
 name = "zocalo"
 version = "1.2.0"
 description = "Infrastructure components for automated data processing at Diamond Light Source"
-authors = ["Nicholas Devenish <ndevenish@gmail.com>"]
+authors = [{ name = "Nicholas Devenish", email = "ndevenish@gmail.com" }]
+requires-python = ">=3.11"
 readme = "README.rst"
-classifiers = [
-    "Development Status :: 5 - Production/Stable",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: BSD License",
-    "Programming Language :: Python :: 3",
-    "Operating System :: OS Independent",
-    "Topic :: Software Development :: Libraries :: Python Modules",
+dependencies = [
+    "pyyaml",
+    "graypy",
+    "marshmallow",
+    "requests",
+    "pydantic>=2,<3",
+    "workflows>=3.0",
 ]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-pyyaml = "^6.0"
-graypy = "^2.0"
-marshmallow = "^3.19"
-requests = "^2.31"
-pydantic = "^2"
-workflows = ">=3.0"
+[dependency-groups]
+dev = [
+    "pytest>=8.2.2",
+    "pytest-mock>=3.14",
+    "pytest-cov>=5",
+    "requests-mock>=1.12",
+]
+docs = ["sphinx>=6,<7", "sphinx-rtd-theme~=1.2"]
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.2.2"
-pytest-mock = "^3.14.0"
-pytest-cov = "^5.0.0"
-requests-mock = "^1.12.1"
 
-[tool.poetry.group.docs]
-optional = true
-
-[tool.poetry.group.docs.dependencies]
-sphinx = "^6"
-sphinx-rtd-theme = "^1.2"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.urls]
+[project.urls]
 Bug-Tracker = "https://github.com/DiamondLightSource/python-zocalo/issues"
 Changelog = "https://github.com/DiamondLightSource/python-zocalo/blob/main/HISTORY.rst"
 Documentation = "https://github.com/DiamondLightSource/python-zocalo"
 Download = "https://github.com/DiamondLightSource/python-zocalo/releases"
 GitHub = "https://github.com/DiamondLightSource/python-zocalo"
 
-[tool.poetry.scripts]
+[project.scripts]
 "zocalo.configure_rabbitmq" = "zocalo.cli.configure_rabbitmq:run"
 "zocalo.dlq_check" = "zocalo.cli.dlq_check:run"
 "zocalo.dlq_purge" = "zocalo.cli.dlq_purge:run"
@@ -58,11 +47,13 @@ GitHub = "https://github.com/DiamondLightSource/python-zocalo"
 "zocalo.shutdown" = "zocalo.cli.shutdown:run"
 "zocalo.wrap" = "zocalo.cli.wrap:run"
 
-[tool.poetry.plugins]
-"libtbx.precommit" = { zocalo = "zocalo" }
-"zocalo.wrappers" = { dummy = "zocalo.wrapper:DummyWrapper" }
+[project.entry-points."libtbx.precommit"]
+zocalo = "zocalo"
 
-[tool.poetry.plugins."libtbx.dispatcher.script"]
+[project.entry-points."zocalo.wrappers"]
+dummy = "zocalo.wrapper:DummyWrapper"
+
+[project.entry-points."libtbx.dispatcher.script"]
 "zocalo.configure_rabbitmq" = "zocalo.configure_rabbitmq"
 "zocalo.dlq_check" = "zocalo.dlq_check"
 "zocalo.dlq_purge" = "zocalo.dlq_purge"
@@ -73,13 +64,13 @@ GitHub = "https://github.com/DiamondLightSource/python-zocalo"
 "zocalo.shutdown" = "zocalo.shutdown"
 "zocalo.wrap" = "zocalo.wrap"
 
-[tool.poetry.plugins."workflows.services"]
+[project.entry-points."workflows.services"]
 Dispatcher = "zocalo.service.dispatcher:Dispatcher"
 JSONLines = "zocalo.service.jsonlines:JSONLines"
 Mailer = "zocalo.service.mailer:Mailer"
 Schlockmeister = "zocalo.service.schlockmeister:Schlockmeister"
 
-[tool.poetry.plugins."zocalo.configuration.plugins"]
+[project.entry-points."zocalo.configuration.plugins"]
 graylog = "zocalo.configuration.plugin_graylog:Graylog"
 jmx = "zocalo.configuration.plugin_jmx:JMX"
 logging = "zocalo.configuration.plugin_logging:Logging"
@@ -88,6 +79,9 @@ slurm = "zocalo.configuration.plugin_slurm:Slurm"
 iris = "zocalo.configuration.plugin_slurm:Slurm"
 smtp = "zocalo.configuration.plugin_smtp:SMTP"
 storage = "zocalo.configuration.plugin_storage:Storage"
+
+[tool.uv]
+default-groups = ["dev", "docs"]
 
 [tool.pytest.ini_options]
 required_plugins = "pytest-mock requests-mock"
