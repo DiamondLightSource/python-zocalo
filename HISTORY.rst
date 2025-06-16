@@ -2,6 +2,19 @@
 History
 =======
 
+1.2.0 (2024-11-14)
+------------------
+* Support newer versions of workflows package. (`#260 <https://github.com/DiamondLightSource/python-zocalo/pull/260>`_)
+
+1.1.1 (2024-09-25)
+------------------
+* Fix error attempting to run configurator on default VHost (`#259 <https://github.com/DiamondLightSource/python-zocalo/pull/259>`_)
+
+1.1.0 (2024-08-28)
+------------------
+* Minimum supported python is now 3.10 (`#257 <https://github.com/DiamondLightSource/python-zocalo/pull/257>`_)
+* Remove deprecated usage of pkg_resources.
+
 1.0.0 (2024-07-19)
 ------------------
 * Add example rabbitmq configuration and user files to ``contrib/`` (`#245 <https://github.com/DiamondLightSource/python-zocalo/pull/245>`_)
