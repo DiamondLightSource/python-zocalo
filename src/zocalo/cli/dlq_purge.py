@@ -60,7 +60,7 @@ def run() -> None:
 
     args = parser.parse_args(["--stomp-prfx=DLQ"] + sys.argv[1:])
     if args.transport == "PikaTransport":
-        queues = ["dlq." + a for a in args.queues]
+        queues = ["dlq." + a.removeprefix("dlq.") for a in args.queues]
     else:
         queues = args.queues
     transport = workflows.transport.lookup(args.transport)()
