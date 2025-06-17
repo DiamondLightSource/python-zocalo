@@ -6,6 +6,7 @@ Unreleased
 ----------
 - Minimum supported python is now 3.11.
 - Switch python packaging backend back to setuptools. (`#263 <https://github.com/DiamondLightSource/python-zocalo/pull/263>`_)
+- ``zocalo.dlq_purge``: Show which queues DLQ messages came from, and accept queue names with prefix. (`#264 <https://github.com/DiamondLightSource/python-zocalo/pull/264>`_)
 
 1.2.0 (2024-11-14)
 ------------------
