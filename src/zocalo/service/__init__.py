@@ -51,9 +51,7 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
         # load configuration and initialize logging
         self._zc = zocalo.configuration.from_file()
         envs = self._zc.activate()
-        self.use_live_infrastructure = ("live" in envs) or (
-            "default" in envs
-        )  # deprecated
+        self.use_live_infrastructure = "live" in envs  # deprecated
         self.setup_logging()
 
         if (
