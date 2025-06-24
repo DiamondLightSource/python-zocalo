@@ -177,7 +177,7 @@ class Configuration:
                 # Environment is an alias to another environment)
                 if isinstance(self._environments[env_dict_or_alias], str):
                     raise ConfigurationError(
-                        f"Invalid YAML configuration: Aliased environment aliases another environment, which is not supported"
+                        "Invalid YAML configuration: Aliased environment aliases another environment, which is not supported"
                     )
                 environment = env_dict_or_alias
             self.activate_environment(environment)
