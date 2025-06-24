@@ -78,7 +78,7 @@ class Configuration:
 
     def __init__(self, yaml_dict: dict):
         self._activated: typing.List[str] = []
-        self._environments: typing.Dict[str, typing.List[str]] = yaml_dict.get(
+        self._environments: typing.Dict[str, str | typing.List[str]] = yaml_dict.get(
             "environments", {}
         )
         self._plugin_configurations: typing.Dict[
@@ -127,8 +127,6 @@ class Configuration:
 
     def activate_environment(self, name: str):
         """Load all plugins for a given environment."""
-        if name not in self._environments:
-            raise ValueError(f"Environment '{name}' is not defined")
         for config_name in self._environments[name]:
             logger.debug("Loading plugin configuration %s", config_name)
             if isinstance(self._plugin_configurations[config_name], pathlib.Path):
@@ -169,9 +167,19 @@ class Configuration:
             envs = zocalo.configuration.argparse.get_specified_environments(
                 arguments=self.environment_cmd_args
             )
-        if default and not envs and "default" in self._environments:
+        if default and not envs:
             envs = ["default"]
         for environment in envs:
+            if environment not in self._environments:
+                raise ValueError(f"Environment '{environment}' is not defined")
+            env_dict_or_alias = self._environments[environment]
+            if isinstance(env_dict_or_alias, str) and env_dict_or_alias not in envs:
+                # Environment is an alias to another environment)
+                if isinstance(self._environments[env_dict_or_alias], str):
+                    raise ConfigurationError(
+                        f"Invalid YAML configuration: Aliased environment aliases another environment, which is not supported"
+                    )
+                environment = env_dict_or_alias
             self.activate_environment(environment)
         return tuple(envs)
 
@@ -288,27 +296,6 @@ def _read_configuration_yaml(configuration: str) -> dict:
                 raise ConfigurationError(
                     f"Invalid YAML configuration: Environment {environment} contains group {group} which is not a string or a list"
                 )
-    # Resolve environment aliases
-    environment_aliases = {
-        environment
-        for environment in yaml_dict["environments"]
-        if isinstance(yaml_dict["environments"][environment], str)
-    }
-    while environment_aliases:
-        for environment in environment_aliases:
-            aliased_env = yaml_dict["environments"][environment]
-            if isinstance(yaml_dict["environments"][aliased_env], str):
-                # This environment links to an alias. Skip for now.
-                continue
-            yaml_dict["environments"][environment] = yaml_dict["environments"][
-                aliased_env
-            ]
-            environment_aliases.remove(environment)
-            break
-        else:
-            raise ConfigurationError(
-                f"Invalid YAML configuration: circular environment definitions for {environment_aliases}"
-            )
 
     plugin_fields: dict[str, mm.fields.Field] = {}
     for key in yaml_dict:
