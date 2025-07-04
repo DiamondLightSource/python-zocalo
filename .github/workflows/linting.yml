@@ -10,7 +10,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Ruff Check
       uses: jpetrucciani/ruff-check@96f59856544cbfba111afdf2f6985e21756b8e7e # 0.6.2
