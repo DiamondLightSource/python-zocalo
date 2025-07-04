@@ -6,7 +6,7 @@ import logging
 
 __author__ = "Diamond Light Source - Data Analysis Group"
 __email__ = "dataanalysis@diamond.ac.uk"
-__version__ = "1.2.0"
+__version__ = "1.3.0"
 
 logging.getLogger("zocalo").addHandler(logging.NullHandler())
 
