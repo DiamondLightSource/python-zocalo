@@ -5,3 +5,7 @@ updates:
     open-pull-requests-limit: 0
     schedule:
       interval: "quarterly"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: quarterly
