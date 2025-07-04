@@ -9,7 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: 3.13
       - name: Install dependencies
@@ -39,7 +39,7 @@ jobs:
           path: dist
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
@@ -47,7 +47,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install dist/*.whl -r requirements_dev.txt pytest-md pytest-emoji
       - name: Run pytest
-        uses: pavelzw/pytest-action@b09a85cd1831cbaae76125fcae4a1e4b137ef026 # v2.1.3
+        uses: pavelzw/pytest-action@510c5e90c360a185039bea56ce8b3e7e51a16507 # v2.2.0
         with:
           click-to-expand: false
           emoji: true
@@ -57,7 +57,7 @@ jobs:
           custom-pytest: "PYTHONDEVMODE=1 pytest"
           report-title: "Test Report"
       - name: Upload Coverage to Codecov
-        uses: codecov/codecov-action@eaaf4bedf32dbdc6b720b63067d99c4d77d6047d # v3.1.4
+        uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # v5.4.3
 
   pypi-publish:
     name: Upload release to PyPI
