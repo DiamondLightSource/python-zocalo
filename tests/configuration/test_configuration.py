@@ -215,12 +215,20 @@ def test_activate_additional_environments():
     assert "part-2" in str(zc)
 
 
-def test_activate_default_environment():
+def test_activate_default_environment_from_config_file():
     zc = zocalo.configuration.from_string(sample_configuration)
     e = zc.activate([])
     assert e == ("default",)
     assert zc.active_environments == ("default",)
     assert "default" in str(zc)
+
+
+def test_activate_default_environment_from_environment_variable():
+    with mock.patch.dict(os.environ, {"ZOCALO_DEFAULT_ENV": "partial"}):
+        zc = zocalo.configuration.from_string(sample_configuration)
+        e = zc.activate([])
+        assert e == ("partial",)
+        assert zc.active_environments == ("partial",)
 
 
 def test_activate_call_honours_default_flag():

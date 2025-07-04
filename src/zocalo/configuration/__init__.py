@@ -169,8 +169,11 @@ class Configuration:
             envs = zocalo.configuration.argparse.get_specified_environments(
                 arguments=self.environment_cmd_args
             )
-        if default and not envs and "default" in self._environments:
-            envs = ["default"]
+        if default and not envs:
+            if os.environ.get("ZOCALO_DEFAULT_ENV"):
+                envs = [os.environ["ZOCALO_DEFAULT_ENV"]]
+            elif "default" in self._environments:
+                envs = ["default"]
         for environment in envs:
             self.activate_environment(environment)
         return tuple(envs)
