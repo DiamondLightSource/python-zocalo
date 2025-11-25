@@ -386,6 +386,8 @@ def _configure_users(api, rabbitmq_user_config_area: Path):
 
 def run():
     logging.basicConfig(level=logging.INFO, format="%(message)s")
+    handler = logging.getLogger().handlers[0]
+
     zc = zocalo.configuration.from_file()
     zc.activate()
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
@@ -404,6 +406,10 @@ def run():
     )
     zc.add_command_line_options(parser)
     args = parser.parse_args()
+
+    # Zocalo config can remove the handler, hiding errors
+    if handler not in logging.getLogger().handlers:
+        logging.getLogger().addHandler(handler)
 
     api = RabbitMQAPI.from_zocalo_configuration(zc)
 
