@@ -2,6 +2,10 @@
 History
 =======
 
+Unreleased
+----------
+- Fixed blank output from ``zocalo.configure_rabbitmq`` when zocalo logging is configured. (`#286 <https://github.com/DiamondLightSource/python-zocalo/pull/286>`)
+
 1.3.0 (2025-07-04)
 ------------------
 - Minimum supported python is now 3.11.
