@@ -11,20 +11,22 @@ import uuid
 from importlib.metadata import entry_points
 
 import workflows.recipe
-from workflows.services.common_service import CommonService
 from opentelemetry import trace
+from workflows.services.common_service import CommonService
+
 
 # Helper method to get dcid. Used for injecting it into current span
 def _extract_dcid(params: dict) -> int | None:
     if not isinstance(params, dict):
         return None
-    
+
     if dcid := params.get("ispyb_dcid"):
         return dcid
     if dcid := params.get("dcid"):
         return dcid
 
     return None
+
 
 class Dispatcher(CommonService):
     """
@@ -217,8 +219,7 @@ class Dispatcher(CommonService):
         recipe_id = parameters.get("guid") or str(uuid.uuid4())
         parameters["guid"] = recipe_id
 
-
-         # Extract DCID and set on trace span if OpenTelemetry is available
+        # Extract DCID and set on trace span if OpenTelemetry is available
         if trace is not None:
             try:
                 span = trace.get_current_span()
