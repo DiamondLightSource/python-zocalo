@@ -1,6 +1,6 @@
 ci:
   autoupdate_schedule: quarterly
-  skip: [uv-lock]
+  skip: [uv-lock, uv-export]
 
 repos:
 # Syntax validation and some basic sanity checks
