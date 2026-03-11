@@ -220,16 +220,15 @@ class Dispatcher(CommonService):
         parameters["guid"] = recipe_id
 
         # Extract DCID and set on trace span if OpenTelemetry is available
-        if trace is not None:
-            try:
-                span = trace.get_current_span()
-                if span and span.is_recording():
-                    dcid = _extract_dcid(parameters)
-                    if dcid:
-                        span.set_attribute("dcid", dcid)
-                        self.log.debug(f"Set DCID {dcid} on trace span")
-            except Exception as e:
-                self.log.warning(f"Failed to set DCID on trace span: {e}")
+        try:
+            span = trace.get_current_span()
+            if span and span.is_recording():
+                dcid = _extract_dcid(parameters)
+                if dcid:
+                    span.set_attribute("dcid", dcid)
+                    self.log.debug(f"Set DCID {dcid} on trace span")
+        except Exception as e:
+            self.log.warning(f"Failed to set DCID on trace span: {e}")
 
         if rw:
             # If we received a recipe wrapper then we already have a recipe_ID
