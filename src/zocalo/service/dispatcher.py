@@ -15,11 +15,9 @@ from opentelemetry import trace
 from workflows.services.common_service import CommonService
 
 
-
 def _extract_dcid(params: dict) -> int | None:
     """Helper method to get dcid. Used for injecting it into current span"""
     return params.get("ispyb_dcid") or params.get("dcid")
-
 
 
 class Dispatcher(CommonService):
@@ -220,7 +218,7 @@ class Dispatcher(CommonService):
             if dcid:
                 span.set_attribute("dcid", dcid)
                 self.log.debug(f"Set DCID {dcid} on trace span")
-        
+
         if rw:
             # If we received a recipe wrapper then we already have a recipe_ID
             # attached to logs. Make a note of the downstream recipe ID so that
