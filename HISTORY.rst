@@ -2,9 +2,11 @@
 History
 =======
 
-Unreleased
-----------
-- Fixed blank output from ``zocalo.configure_rabbitmq`` when zocalo logging is configured. (`#286 <https://github.com/DiamondLightSource/python-zocalo/pull/286>`)
+1.4.0 (2026-03-13)
+------------------
+- Fixed blank output from ``zocalo.configure_rabbitmq`` when zocalo logging is configured. (`#286 <https://github.com/DiamondLightSource/python-zocalo/pull/286>`_)
+- Added OpenTelemetry support: Dispatcher will now append DCID to the current trace. (`#295 <https://github.com/DiamondLightSource/python-zocalo/pull/295>`_)
+
 
 1.3.0 (2025-07-04)
 ------------------
