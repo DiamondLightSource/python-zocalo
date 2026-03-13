@@ -11,7 +11,13 @@ import uuid
 from importlib.metadata import entry_points
 
 import workflows.recipe
+from opentelemetry import trace
 from workflows.services.common_service import CommonService
+
+
+def _extract_dcid(params: dict) -> int | None:
+    """Helper method to get dcid. Used for injecting it into current span"""
+    return params.get("ispyb_dcid") or params.get("dcid")
 
 
 class Dispatcher(CommonService):
@@ -204,6 +210,14 @@ class Dispatcher(CommonService):
         # be used to determine unique file paths.
         recipe_id = parameters.get("guid") or str(uuid.uuid4())
         parameters["guid"] = recipe_id
+
+        # Extract DCID and set on trace span if OpenTelemetry is available
+        span = trace.get_current_span()
+        if span.is_recording():
+            dcid = _extract_dcid(parameters)
+            if dcid:
+                span.set_attribute("dcid", dcid)
+                self.log.debug(f"Set DCID {dcid} on trace span")
 
         if rw:
             # If we received a recipe wrapper then we already have a recipe_ID

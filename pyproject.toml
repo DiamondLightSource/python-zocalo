@@ -16,6 +16,7 @@ dependencies = [
     "requests",
     "pydantic>=2,<3",
     "workflows>=3.0",
+    "opentelemetry-api"
 ]
 
 [dependency-groups]
