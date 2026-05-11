@@ -264,8 +264,14 @@ Overview
   ``zc.activate([...])``, Zocalo loads each referenced plugin in order. The
   plugin's ``activate()`` is called and its return value is exposed on the
   configuration object as ``zc.<plugin_name>``. See the loader in
-  [modules/python-zocalo/src/zocalo/configuration/__init__.py](modules/python-zocalo/src/zocalo/configuration/__init__.py:57).
+  `src/zocalo/configuration/__init__.py:57 <https://github.com/DiamondLightSource/python-zocalo/blob/main/src/zocalo/configuration/__init__.py#L57>`_.
 
+
+.. image:: final2-creating-plugin.svg
+  :alt: Zocalo Plugin
+  :align: center
+  
+  
 Minimal plugin skeleton
 -----------------------
 
