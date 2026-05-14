@@ -243,7 +243,126 @@ tbd.
 Writing your own plugins
 ========================
 
-tbd.
+Zocalo discovers configuration plugins via Python entry points and loads them
+when an environment is activated. A plugin typically does three things:
+
+- Validate its configuration
+- Perform a one-time setup when activated
+- Return a useful object that becomes available on the configuration handle
+  (``zc.<plugin_name>``)
+
+Overview
+--------
+
+- Discovery: Plugins are discovered from the ``zocalo.configuration.plugins``
+  entry-point group declared in the pyproject.toml of the python-workflows and python-zocalo distributions.
+  The entry-point name is the plugin name you reference in
+  configuration.yaml (the value of ``plugin:``).
+- Naming: Plugin names must be valid Python identifiers and must not collide
+  with reserved names (``activated``, ``environments``, ``plugin_configurations``).
+- Activation: When you call ``zc.activate_environment("env")`` or
+  ``zc.activate([...])``, Zocalo loads each referenced plugin in order. The
+  plugin's ``activate()`` is called and its return value is exposed on the
+  configuration object as ``zc.<plugin_name>``. See the loader in
+  `src/zocalo/configuration/__init__.py:57 <https://github.com/DiamondLightSource/python-zocalo/blob/main/src/zocalo/configuration/__init__.py#L57>`_.
+
+
+.. image:: final2-creating-plugin.svg
+  :alt: Zocalo Plugin
+  :align: center
+  
+  
+Minimal plugin skeleton
+-----------------------
+
+Define a class named after your plugin in a module importable by
+the entry point defined in the pyproject.toml. Provide a nested ``Schema`` that extends
+``zocalo.configuration.PluginSchema`` to validate configuration values in configuration.yaml, and implement a
+static ``activate()`` method. Zocalo will pass the parsed plugin configuration
+dictionary as ``configuration`` and, if requested, the full configuration object
+as ``config_object``.
+
+.. code-block:: python
+
+   from marshmallow import fields
+   from zocalo.configuration import PluginSchema
+
+   class MyPlugin:
+       class Schema(PluginSchema):
+           host = fields.Str(required=True)
+           port = fields.Int(load_default=4318)
+           timeout = fields.Int(load_default=10)
+
+       @staticmethod
+       def activate(configuration, config_object=None):
+           # Do setup using validated config
+           # Optionally interact with other plugin state via config_object
+           # Return a value that will be exposed as zc.myplugin
+           return {"endpoint": f"{configuration['host']}:{configuration['port']}"}
+
+
+Schema validation
+-----------------
+
+If your class defines an inner ``Schema`` subclass of ``PluginSchema`` using
+Marshmallow fields, Zocalo validates plugin configuration at parse time. Invalid
+configs raise ``zocalo.ConfigurationError``.
+
+Registering your plugin
+-----------------------
+
+Add an entry to your package metadata so Zocalo can discover it. For example in
+``pyproject.toml``:
+
+.. code-block:: toml
+
+   [project.entry-points."zocalo.configuration.plugins"]
+   myplugin = "yourpackage.module:MyPlugin"
+
+Then reference it in the configuration.yaml using the entry-point name:
+
+.. code-block:: yaml
+
+   my-setup:
+     plugin: myplugin
+     host: example.com
+     port: 4318
+
+Return values and access
+------------------------
+
+Whatever your plugin returns from ``activate()`` is attached to the configuration
+as an attribute named after the plugin. For ``plugin: logging`` this shows up as
+``zc.logging`` (see
+[modules/python-zocalo/src/zocalo/configuration/plugin_logging.py](modules/python-zocalo/src/zocalo/configuration/plugin_logging.py)).
+Return a simple dictionary or a richer helper object.
+
+Example: Distributed tracing plugin
+-----------------------------------
+
+As a real example, a site plugin can enable distributed tracing via
+OpenTelemetry. A minimal configuration might look like:
+
+.. code-block:: yaml
+
+   tracing:
+     plugin: opentelemetry
+     host: otel.tracing.diamond.ac.uk
+     port: 4318
+     timeout: 10
+
+When this plugin activates Zocalo can initialise an OpenTelemetry TracerProvider and
+exporter pointing at the endpoint configured by the plugin. Once tracing is enabled, Zocalo
+services can enrich spans with useful attributes; for example the dispatcher
+adds a ``dcid`` attribute to the current span when available (see
+[modules/python-zocalo/src/zocalo/service/dispatcher.py](modules/python-zocalo/src/zocalo/service/dispatcher.py)).
+
+Tips and patterns
+-----------------
+
+- Prefer small, focused plugins that each set up one concern (e.g. logging,
+  storage, tracing), and compose them via environments to control activation
+  order.
 
 .. _Python Logging Configuration Schema: https://docs.python.org/3/library/logging.config.html#dictionary-schema-details
 .. _Python entry points: https://amir.rachum.com/blog/2017/07/28/python-entry-points/
