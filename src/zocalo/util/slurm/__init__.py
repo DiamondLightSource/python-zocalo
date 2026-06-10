@@ -51,7 +51,7 @@ class SlurmRestApi:
     def __init__(
         self,
         url: str,
-        version: str = "v0.0.40",
+        version: str = "v0.0.44",
         user_name: str | None = None,
         user_token: str | pathlib.Path | None = None,
     ):
@@ -151,9 +151,9 @@ class SlurmRestApi:
 
     def submit_job(
         self, job_submission: models.JobSubmitReq
-    ) -> models.JobSubmitResponseMsg:
+    ) -> models.OpenapiJobSubmitResponse:
         endpoint = f"slurm/{self.version}/job/submit"
         response = self.post(
             endpoint, json=job_submission.model_dump(exclude_defaults=True)
         )
-        return models.JobSubmitResponseMsg(**response.json())
+        return models.OpenapiJobSubmitResponse(**response.json())
