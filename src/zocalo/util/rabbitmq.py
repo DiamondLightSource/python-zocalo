@@ -83,7 +83,7 @@ class ConnectionInfo(BaseModel):
     """TCP/IP connection statistics."""
 
     pid: int | None = Field(
-        ..., description="Id of the Erlang process associated with the connection."
+        None, description="Id of the Erlang process associated with the connection."
     )
     name: str = Field(..., description="Readable name for the connection.")
     port: int = Field(..., description="Server port.")
