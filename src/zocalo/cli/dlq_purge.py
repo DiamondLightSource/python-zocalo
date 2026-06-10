@@ -13,11 +13,13 @@ import queue
 import re
 import sys
 import time
+from collections.abc import Mapping
 from datetime import datetime
 from functools import partial
-from typing import Literal
+from typing import Any, Literal
 
 import workflows
+import workflows.transport
 
 import zocalo.configuration
 from zocalo.util.rabbitmq import RabbitMQAPI
@@ -70,7 +72,7 @@ def run() -> None:
     idlequeue: queue.Queue[Literal["start", "done"] | tuple[str, str]] = queue.Queue()
 
     def receive_dlq_message(
-        header: dict, message: dict, *, queue_name: str, rabbitmq=False
+        header: Mapping[str, Any], message: Any, *, queue_name: str, rabbitmq=False
     ) -> None:
         idlequeue.put_nowait("start")
         if rabbitmq:

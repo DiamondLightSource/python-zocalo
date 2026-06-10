@@ -4,6 +4,7 @@ import logging
 import sys
 
 import workflows.contrib.start_service
+import workflows.transport
 
 import zocalo.configuration.argparse
 import zocalo.util
@@ -29,8 +30,8 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
 
         # Always enable logging to console
         try:
-            from dlstbx.util.colorstreamhandler import (
-                ColorStreamHandler,  # type: ignore
+            from dlstbx.util.colorstreamhandler import (  # pyright: ignore[reportMissingImports]
+                ColorStreamHandler,
             )
 
             self.console = ColorStreamHandler()
@@ -65,7 +66,7 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
                 "zocalo.default_transport"
             ]
 
-    def on_parser_preparation(self, parser):
+    def on_parser_preparation(self, parser):  # pyright: ignore[reportIncompatibleMethodOverride]
         parser.add_option(
             "-v",
             "--verbose",
@@ -99,7 +100,7 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
         self._zc.add_command_line_options(parser)
         self.log.debug("Launching %r", sys.argv)
 
-    def on_parsing(self, options, args):
+    def on_parsing(self, options, args):  # pyright: ignore[reportIncompatibleMethodOverride]
         if options.verbose:
             self.console.setLevel(logging.DEBUG)
             if self._zc.logging:
@@ -112,14 +113,14 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
                 logging.getLogger("workflows").setLevel(logging.DEBUG)
         self.options = options
 
-    def before_frontend_construction(self, kwargs):
+    def before_frontend_construction(self, kwargs):  # pyright: ignore[reportIncompatibleMethodOverride]
         kwargs["verbose_service"] = True
         kwargs["environment"] = kwargs.get("environment", {})
         kwargs["environment"]["live"] = self.use_live_infrastructure
         kwargs["environment"]["config"] = self._zc
         return kwargs
 
-    def on_frontend_preparation(self, frontend):
+    def on_frontend_preparation(self, frontend):  # pyright: ignore[reportIncompatibleMethodOverride]
         if self.options.service_restart:
             frontend.restart_service = True
 

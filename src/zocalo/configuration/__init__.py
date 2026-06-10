@@ -21,6 +21,9 @@ logger = logging.getLogger("zocalo.configuration")
 
 
 class ConfigSchema(mm.Schema):
+    class Meta(mm.Schema.Meta):
+        pass
+
     version = mm.fields.Int(required=True)
     environments = mm.fields.Dict(
         keys=mm.fields.Str(),
@@ -61,8 +64,8 @@ _configuration_plugins = {
 }
 
 
-@functools.lru_cache(maxsize=None)
-def _load_plugin(name: str):
+@functools.cache
+def _load_plugin(name: str) -> typing.Any | typing.Literal[False]:
     if name not in _configuration_plugins:
         logger.warning(f"Zocalo configuration plugin '{name}' missing")
         return False
@@ -77,27 +80,23 @@ class Configuration:
     )
 
     def __init__(self, yaml_dict: dict):
-        self._activated: typing.List[str] = []
-        self._environments: typing.Dict[str, typing.List[str]] = yaml_dict.get(
-            "environments", {}
-        )
-        self._plugin_configurations: typing.Dict[
-            str, typing.Union[pathlib.Path, typing.Dict[str, typing.Any]]
-        ] = {
+        self._activated: list[str] = []
+        self._environments: dict[str, list[str]] = yaml_dict.get("environments", {})
+        self._plugin_configurations: dict[str, pathlib.Path | dict[str, typing.Any]] = {
             name: config
             for name, config in yaml_dict.items()
             if name not in ConfigSchema().fields
         }
         for name in _configuration_plugins:
             setattr(self, "_" + name, None)
-        self.environment_cmd_args: typing.Tuple[str, ...] = ("-e", "--environment")
+        self.environment_cmd_args: tuple[str, ...] = ("-e", "--environment")
 
     @property
-    def environments(self) -> typing.FrozenSet[str]:
+    def environments(self) -> frozenset[str]:
         return frozenset(self._environments)
 
     @property
-    def active_environments(self) -> typing.Tuple[str, ...]:
+    def active_environments(self) -> tuple[str, ...]:
         return tuple(self._activated)
 
     def _resolve(self, plugin_configuration: str):
@@ -134,7 +133,8 @@ class Configuration:
             if isinstance(self._plugin_configurations[config_name], pathlib.Path):
                 self._resolve(config_name)
             configuration = self._plugin_configurations[config_name]
-            plugin = _load_plugin(configuration["plugin"])  # type: ignore
+            assert not isinstance(configuration, pathlib.Path)
+            plugin = _load_plugin(configuration["plugin"])
             if plugin:
                 plugin_parameters = inspect.signature(plugin.activate).parameters
                 arguments = {"configuration": configuration, "config_object": self}
@@ -152,10 +152,10 @@ class Configuration:
 
     def activate(
         self,
-        envs: typing.Optional[typing.Iterable[str]] = None,
+        envs: typing.Iterable[str] | None = None,
         *,
         default: bool = True,
-    ) -> typing.Tuple[str, ...]:
+    ) -> tuple[str, ...]:
         """
         Activate a list of environments in order.
 
@@ -239,14 +239,17 @@ class Configuration:
     __repr__ = __str__
 
 
-for _plugin in _configuration_plugins:
-    if hasattr(Configuration, _plugin):
-        logger.warning(
-            f"Zocalo configuration plugin '{_plugin}' is not a valid plugin name"
-        )
-    else:
-        setattr(Configuration, _plugin, property(operator.attrgetter("_" + _plugin)))
-del _plugin
+def _install_plugin_properties() -> None:
+    for plugin in _configuration_plugins:
+        if hasattr(Configuration, plugin):
+            logger.warning(
+                f"Zocalo configuration plugin '{plugin}' is not a valid plugin name"
+            )
+        else:
+            setattr(Configuration, plugin, property(operator.attrgetter("_" + plugin)))
+
+
+_install_plugin_properties()
 
 
 def _read_configuration_yaml(configuration: str) -> dict:
@@ -332,7 +335,7 @@ def _read_configuration_yaml(configuration: str) -> dict:
                 )
 
     class _ConfigSchema(ConfigSchema):
-        class Meta:
+        class Meta(ConfigSchema.Meta):
             include = plugin_fields
 
     schema = _ConfigSchema()
@@ -344,10 +347,10 @@ def _read_configuration_yaml(configuration: str) -> dict:
     return yaml_dict
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def _merge_configuration(
-    configuration: typing.Optional[str],
-    file_: typing.Optional[pathlib.Path],
+    configuration: str | None,
+    file_: pathlib.Path | None,
     context: pathlib.Path,
 ) -> dict:
     # Parse a passed YAML string or specified YAML file
@@ -380,8 +383,8 @@ def _merge_configuration(
     # Recursively identify and merge external files (DFS)
     if parsed.get("include"):
         for include_file in parsed["include"]:
+            file_reference = context.joinpath(include_file).resolve()
             try:
-                file_reference = context.joinpath(include_file).resolve()
                 include = _read_configuration_yaml(file_reference.read_text())
                 assert include
             except (ConfigurationError, yaml.MarkedYAMLError) as e:

@@ -39,12 +39,12 @@ class Dispatcher(CommonService):
         for recipefile in message.get("recipes", []):
             try:
                 with open(
-                    os.path.join(self.recipe_basepath, recipefile + ".json"), "r"
+                    os.path.join(self.recipe_basepath, recipefile + ".json")
                 ) as rcp:
                     named_recipe = workflows.recipe.Recipe(recipe=rcp.read())
             except ValueError:
                 raise ValueError(f"Error reading recipe {recipefile}")
-            except IOError as e:
+            except OSError as e:
                 if e.errno == errno.ENOENT:
                     raise ValueError(
                         f"Message references non-existing recipe {recipefile}. Recipe path is {self.recipe_basepath}",
@@ -131,7 +131,7 @@ class Dispatcher(CommonService):
         }
 
         workflows.recipe.wrap_subscribe(
-            self._transport,
+            self.transport,
             "processing_recipe",
             self.process,
             acknowledgement=True,
@@ -140,6 +140,7 @@ class Dispatcher(CommonService):
         )
 
     def record_to_logbook(self, guid, header, original_message, message, recipewrap):
+        assert self._logbook is not None
         basepath = os.path.join(self._logbook, time.strftime("%Y-%m"))
         clean_guid = re.sub(r"[^a-z0-9A-Z\-]+", "", guid, re.UNICODE)
         if not clean_guid or len(clean_guid) < 3:
@@ -202,7 +203,7 @@ class Dispatcher(CommonService):
             self.log.error(
                 "Dispatcher rejected malformed message: parameters not given as dictionary"
             )
-            self._transport.nack(header)
+            self.transport.nack(header)
             return
 
         # Unless 'guid' is already defined then generate a unique recipe IDs for
@@ -246,23 +247,23 @@ class Dispatcher(CommonService):
                         )
                     if parameters["dispatcher_expiration"] > time.time():
                         # Wait for 2 seconds
-                        txn = self._transport.transaction_begin(
+                        txn = self.transport.transaction_begin(
                             subscription_id=header["subscription"]
                         )
-                        self._transport.ack(header, transaction=txn)
-                        self._transport.send(
+                        self.transport.ack(header, transaction=txn)
+                        self.transport.send(
                             "processing_recipe", message, transaction=txn, delay=2
                         )
                         self.log.info("Message not yet ready for processing")
-                        self._transport.transaction_commit(txn)
+                        self.transport.transaction_commit(txn)
                         return
                     elif parameters.get("dispatcher_error_queue"):
                         # Drop message into error queue
-                        txn = self._transport.transaction_begin(
+                        txn = self.transport.transaction_begin(
                             subscription_id=header["subscription"]
                         )
-                        self._transport.ack(header, transaction=txn)
-                        self._transport.send(
+                        self.transport.ack(header, transaction=txn)
+                        self.transport.send(
                             parameters["dispatcher_error_queue"],
                             message,
                             transaction=txn,
@@ -270,14 +271,14 @@ class Dispatcher(CommonService):
                         self.log.info(
                             "Message rejected to specified error queue as still not ready for processing"
                         )
-                        self._transport.transaction_commit(txn)
+                        self.transport.transaction_commit(txn)
                         return
                     else:
                         # Unhandled error, send message to DLQ
                         self.log.error(
                             "Message rejected as still not ready for processing",
                         )
-                        self._transport.nack(header)
+                        self.transport.nack(header)
                         return
 
             filtered_message = copy.deepcopy(message)
@@ -299,7 +300,7 @@ class Dispatcher(CommonService):
                         str(e),
                         exc_info=True,
                     )
-                    self._transport.nack(header)
+                    self.transport.nack(header)
                     return
 
             self.log.debug("Mangled processing request:\n" + str(filtered_message))
@@ -308,13 +309,13 @@ class Dispatcher(CommonService):
             )
 
             # Conditionally acknowledge receipt of the message
-            txn = self._transport.transaction_begin(
+            txn = self.transport.transaction_begin(
                 subscription_id=header["subscription"]
             )
-            self._transport.ack(header, transaction=txn)
+            self.transport.ack(header, transaction=txn)
 
             rw = workflows.recipe.RecipeWrapper(
-                recipe=filtered_message["recipe"], transport=self._transport
+                recipe=filtered_message["recipe"], transport=self.transport
             )
             rw.environment = {
                 "ID": recipe_id
@@ -324,11 +325,15 @@ class Dispatcher(CommonService):
             # Write information to logbook if applicable
             if self._logbook:
                 self.record_to_logbook(
-                    recipe_id, header, original_message, filtered_message, rw
+                    recipe_id,
+                    header,
+                    original_message,  # type: ignore[reportPossiblyUnboundVariable]
+                    filtered_message,
+                    rw,
                 )
 
             # Commit transaction
-            self._transport.transaction_commit(txn)
+            self.transport.transaction_commit(txn)
             self.log.info(
                 "Processed incoming message in %.4f seconds",
                 timeit.default_timer() - start_time,

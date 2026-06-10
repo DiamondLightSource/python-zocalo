@@ -40,7 +40,7 @@ class Mailer(CommonService):
             )
 
         workflows.recipe.wrap_subscribe(
-            self._transport,
+            self.transport,
             "mailnotification",
             self.receive_msg,
             acknowledgement=True,
@@ -73,7 +73,7 @@ class Mailer(CommonService):
                 or not message.get("content")
             ):
                 self.log.warning("Rejected invalid simple message")
-                self._transport.nack(header)
+                self.transport.nack(header)
                 return
 
             parameters = message["parameters"]
@@ -82,22 +82,26 @@ class Mailer(CommonService):
         recipients = parameters.get("recipients", parameters.get("recipient"))
         if not recipients:
             self.log.warning("No recipients set for message")
-            self._transport.nack(header)
+            self.transport.nack(header)
             return
         if isinstance(recipients, dict):
             if "select" not in recipients:
                 self.log.warning(
                     "Recipients dictionary must have key 'select' to select relevant group"
                 )
-                self._transport.nack(header)
+                self.transport.nack(header)
                 return
             selected_recipients = self.listify(recipients.get(recipients["select"], []))
+
             if recipients.get("all"):
-                all_recipients = self.listify(recipients["all"])
-            recipients = sorted(set(selected_recipients) | set(all_recipients))
+                recipients = sorted(
+                    set(selected_recipients) | set(self.listify(recipients["all"]))
+                )
+            else:
+                recipients = sorted(set(selected_recipients))
             if not recipients:
                 self.log.warning("No selected recipients for message")
-                self._transport.nack(header)
+                self.transport.nack(header)
                 return
         else:
             recipients = self.listify(recipients)
@@ -110,7 +114,7 @@ class Mailer(CommonService):
 
         if not content:
             self.log.warning("Message has no content")
-            self._transport.nack(header)
+            self.transport.nack(header)
             return
         if isinstance(content, list):
             content = "".join(content)
@@ -128,7 +132,7 @@ class Mailer(CommonService):
         # Accept message before sending mail. While this means we do not guarantee
         # message delivery it also means if the service crashes after delivery we
         # will not re-deliver the message inifinitely many times.
-        self._transport.ack(header)
+        self.transport.ack(header)
 
         try:
             msg = email.message.EmailMessage()

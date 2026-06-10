@@ -10,7 +10,7 @@ import secrets
 import urllib
 import urllib.parse
 import urllib.request
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, overload
 
 import requests
 from pydantic import BaseModel, ConfigDict, Field
@@ -27,44 +27,42 @@ def _quote(arg: str) -> str:
 
 
 class MessageStats(BaseModel):
-    publish: Optional[int] = Field(None, description="Count of messages published.")
+    publish: int | None = Field(None, description="Count of messages published.")
 
-    publish_in: Optional[int] = Field(
+    publish_in: int | None = Field(
         None,
         description='Count of messages published "in" to an exchange, i.e. not taking account of routing.',
     )
-    publish_out: Optional[int] = Field(
+    publish_out: int | None = Field(
         None,
         description='Count of messages published "out" of an exchange, i.e. taking account of routing.',
     )
-    confirm: Optional[int] = Field(None, description="Count of messages confirmed.")
-    deliver: Optional[int] = Field(
+    confirm: int | None = Field(None, description="Count of messages confirmed.")
+    deliver: int | None = Field(
         None,
         description="Count of messages delivered in acknowledgement mode to consumers.",
     )
-    deliver_no_ack: Optional[int] = Field(
+    deliver_no_ack: int | None = Field(
         None,
         description="Count of messages delivered in no-acknowledgement mode to consumers.",
     )
-    get: Optional[int] = Field(
+    get: int | None = Field(
         None,
         description="Count of messages delivered in acknowledgement mode in response to basic.get.",
     )
-    get_no_ack: Optional[int] = Field(
+    get_no_ack: int | None = Field(
         None,
         description="Count of messages delivered in no-acknowledgement mode in response to basic.get.",
     )
-    deliver_get: Optional[int] = Field(
-        None, description="Sum of all four of the above."
-    )
-    redeliver: Optional[int] = Field(
+    deliver_get: int | None = Field(None, description="Sum of all four of the above.")
+    redeliver: int | None = Field(
         None,
         description="Count of subset of messages in deliver_get which had the redelivered flag set.",
     )
-    drop_unroutable: Optional[int] = Field(
+    drop_unroutable: int | None = Field(
         None, description="Count of messages dropped as unroutable."
     )
-    return_unroutable: Optional[int] = Field(
+    return_unroutable: int | None = Field(
         None, description="Count of messages returned to the publisher as unroutable."
     )
 
@@ -84,8 +82,8 @@ class ConnectionState(enum.Enum):
 class ConnectionInfo(BaseModel):
     """TCP/IP connection statistics."""
 
-    pid: Optional[int] = Field(
-        int, description="Id of the Erlang process associated with the connection."
+    pid: int | None = Field(
+        ..., description="Id of the Erlang process associated with the connection."
     )
     name: str = Field(..., description="Readable name for the connection.")
     port: int = Field(..., description="Server port.")
@@ -102,23 +100,21 @@ class ConnectionInfo(BaseModel):
         ...,
         description="Boolean indicating whether the connection is secured with SSL.",
     )
-    ssl_protocol: Optional[str] = Field(
-        None, description='SSL protocol (e.g. "tlsv1").'
-    )
-    ssl_key_exchange: Optional[str] = Field(
+    ssl_protocol: str | None = Field(None, description='SSL protocol (e.g. "tlsv1").')
+    ssl_key_exchange: str | None = Field(
         None, description='SSL key exchange algorithm (e.g. "rsa").'
     )
-    ssl_cipher: Optional[str] = Field(
+    ssl_cipher: str | None = Field(
         None, description='SSL cipher algorithm (e.g. "aes_256_cbc").'
     )
-    ssl_hash: Optional[str] = Field(None, description='SSL hash function (e.g. "sha").')
-    peer_cert_subject: Optional[str] = Field(
+    ssl_hash: str | None = Field(None, description='SSL hash function (e.g. "sha").')
+    peer_cert_subject: str | None = Field(
         None, description="The subject of the peer's SSL certificate, in RFC4514 form."
     )
-    peer_cert_issuer: Optional[str] = Field(
+    peer_cert_issuer: str | None = Field(
         None, description="The issuer of the peer's SSL certificate, in RFC4514 form."
     )
-    peer_cert_validity: Optional[str] = Field(
+    peer_cert_validity: str | None = Field(
         None, description="The period for which the peer's SSL certificate is valid."
     )
     state: ConnectionState
@@ -134,12 +130,12 @@ class ConnectionInfo(BaseModel):
     vhost: str = Field(
         ..., description="Virtual host name with non-ASCII characters escaped as in C."
     )
-    timeout: Optional[int] = Field(
+    timeout: int | None = Field(
         None,
         description="Connection timeout / negotiated heartbeat interval, in seconds.",
     )
     frame_max: int = Field(..., description="Maximum frame size (bytes).")
-    channel_max: Optional[int] = Field(
+    channel_max: int | None = Field(
         None, description="Maximum number of channels on this connection."
     )
     # client_properties
@@ -165,7 +161,7 @@ class VHostSpec(BaseModel):
         description="The name of the virtual host entry.",
     )
     description: str = ""
-    tags: List[str] = Field(default_factory=list)
+    tags: list[str] = Field(default_factory=list)
     tracing: bool = False
 
 
@@ -217,113 +213,113 @@ class NodeInfo(BaseModel):
     # applications	List of all Erlang applications running on the node.
     # auth_mechanisms	List of all SASL authentication mechanisms installed on the node.
     # cluster_links	A list of the other nodes in the cluster. For each node, there are details of the TCP connection used to connect to it and statistics on data that has been transferred.
-    config_files: Optional[List[pathlib.Path]] = Field(
+    config_files: list[pathlib.Path] | None = Field(
         None, description="List of config files read by the node."
     )
     # contexts	List of all HTTP listeners on the node.
-    db_dir: Optional[pathlib.Path] = Field(
+    db_dir: pathlib.Path | None = Field(
         None, description="Location of the persistent storage used by the node."
     )
     disk_free: int = Field(..., description="Disk free space in bytes.")
     disk_free_alarm: bool = Field(
         ..., description="Whether the disk alarm has gone off."
     )
-    disk_free_limit: Optional[int] = Field(
+    disk_free_limit: int | None = Field(
         None, description="Point at which the disk alarm will go off."
     )
-    enabled_plugins: Optional[List[str]] = Field(
+    enabled_plugins: list[str] | None = Field(
         None,
         description="List of plugins which are both explicitly enabled and running.",
     )
     # exchange_types	Exchange types available on the node.
     fd_total: int = Field(..., description="File descriptors available.")
     fd_used: int = Field(..., description="Used file descriptors.")
-    io_read_avg_time: Optional[int] = Field(
+    io_read_avg_time: int | None = Field(
         None,
         ge=0,
         description="Average wall time (milliseconds) for each disk read operation in the last statistics interval.",
     )
-    io_read_bytes: Optional[int] = Field(
+    io_read_bytes: int | None = Field(
         None, description="Total number of bytes read from disk by the persister."
     )
-    io_read_count: Optional[int] = Field(
+    io_read_count: int | None = Field(
         None, description="Total number of read operations by the persister."
     )
-    io_reopen_count: Optional[int] = Field(
+    io_reopen_count: int | None = Field(
         None,
         description="Total number of times the persister has needed to recycle file handles between queues. In an ideal world this number will be zero; if the number is large, performance might be improved by increasing the number of file handles available to RabbitMQ.",
     )
-    io_seek_avg_time: Optional[int] = Field(
+    io_seek_avg_time: int | None = Field(
         None,
         description="Average wall time (milliseconds) for each seek operation in the last statistics interval.",
     )
-    io_seek_count: Optional[int] = Field(
+    io_seek_count: int | None = Field(
         None, description="Total number of seek operations by the persister."
     )
-    io_sync_avg_time: Optional[int] = Field(
+    io_sync_avg_time: int | None = Field(
         None,
         description="Average wall time (milliseconds) for each fsync() operation in the last statistics interval.",
     )
-    io_sync_count: Optional[int] = Field(
+    io_sync_count: int | None = Field(
         None, description="Total number of fsync() operations by the persister."
     )
-    io_write_avg_time: Optional[int] = Field(
+    io_write_avg_time: int | None = Field(
         None,
         description="Average wall time (milliseconds) for each disk write operation in the last statistics interval.",
     )
-    io_write_bytes: Optional[int] = Field(
+    io_write_bytes: int | None = Field(
         None, description="Total number of bytes written to disk by the persister."
     )
-    io_write_count: Optional[int] = Field(
+    io_write_count: int | None = Field(
         None, description="Total number of write operations by the persister."
     )
-    log_files: Optional[List[pathlib.Path]] = Field(
+    log_files: list[pathlib.Path] | None = Field(
         None,
         description='List of log files used by the node. If the node also sends messages to stdout, "<stdout>" is also reported in the list.',
     )
     mem_used: int = Field(..., description="Memory used in bytes.")
     mem_alarm: bool = Field(..., description="Whether the memory alarm has gone off.")
-    mem_limit: Optional[int] = Field(
+    mem_limit: int | None = Field(
         None, description="Point at which the memory alarm will go off."
     )
-    mnesia_disk_tx_count: Optional[int] = Field(
+    mnesia_disk_tx_count: int | None = Field(
         None,
         description="Number of Mnesia transactions which have been performed that required writes to disk. (e.g. creating a durable queue). Only transactions which originated on this node are included.",
     )
-    mnesia_ram_tx_count: Optional[int] = Field(
+    mnesia_ram_tx_count: int | None = Field(
         None,
         description="Number of Mnesia transactions which have been performed that did not require writes to disk. (e.g. creating a transient queue). Only transactions which originated on this node are included.",
     )
-    msg_store_read_count: Optional[int] = Field(
+    msg_store_read_count: int | None = Field(
         None,
         description="Number of messages which have been read from the message store.",
     )
-    msg_store_write_count: Optional[int] = Field(
+    msg_store_write_count: int | None = Field(
         None,
         description="Number of messages which have been written to the message store.",
     )
     name: str = Field(..., description="Node name.")
-    net_ticktime: Optional[int] = Field(
+    net_ticktime: int | None = Field(
         None, description="Current kernel net_ticktime setting for the node."
     )
-    os_pid: Optional[int] = Field(
+    os_pid: int | None = Field(
         None,
         description="Process identifier for the Operating System under which this node is running.",
     )
     # partitions	List of network partitions this node is seeing.
     proc_total: int = Field(..., description="Maximum number of Erlang processes.")
     proc_used: int = Field(..., description="Number of Erlang processes in use.")
-    processors: Optional[int] = Field(
+    processors: int | None = Field(
         None, description="Number of cores detected and usable by Erlang."
     )
-    queue_index_journal_write_count: Optional[int] = Field(
+    queue_index_journal_write_count: int | None = Field(
         None,
         description="Number of records written to the queue index journal. Each record represents a message being published to a queue, being delivered from a queue, and being acknowledged in a queue.",
     )
-    queue_index_read_count: Optional[int] = Field(
+    queue_index_read_count: int | None = Field(
         None, description="Number of records read from the queue index."
     )
-    queue_index_write_count: Optional[int] = Field(
+    queue_index_write_count: int | None = Field(
         None, description="Number of records written to the queue index."
     )
     # rates_mode: 'none', 'basic' or 'detailed'.
@@ -335,12 +331,12 @@ class NodeInfo(BaseModel):
         description="Boolean for whether this node is up. Obviously if this is false, most other stats will be missing.",
     )
     # sasl_log_file	Location of sasl log file.
-    sockets_total: Optional[int] = Field(
+    sockets_total: int | None = Field(
         None, description="File descriptors available for use as sockets."
     )
     sockets_used: int = Field(..., description="File descriptors used as sockets.")
-    type: Optional[NodeType] = None
-    uptime: Optional[int] = Field(
+    type: NodeType | None = None
+    uptime: int | None = Field(
         None, description="Time since the Erlang VM started, in milliseconds."
     )
     # memory	Detailed memory use statistics. Only appears if ?memory=true is appended to the URL.
@@ -367,7 +363,7 @@ class BindingSpec(BaseModel):
         ..., description="Virtual host name with non-ASCII characters escaped as in C."
     )
     routing_key: str = Field("", description="Routing key attached to binding")
-    arguments: Optional[dict] = Field(
+    arguments: dict | None = Field(
         default_factory=dict, description="Binding arguments"
     )
 
@@ -393,18 +389,18 @@ class ExchangeSpec(BaseModel):
         description="The name of the exchange with non-ASCII characters escaped as in C.",
     )
     type: ExchangeType = Field(..., description="The exchange type")
-    durable: Optional[bool] = Field(
+    durable: bool | None = Field(
         False, description="Whether or not the exchange survives server restarts."
     )
-    auto_delete: Optional[bool] = Field(
+    auto_delete: bool | None = Field(
         False,
         description="Whether the exchange will be deleted automatically when no longer used.",
     )
-    internal: Optional[bool] = Field(
+    internal: bool | None = Field(
         False,
         description="Whether the exchange is internal, i.e. cannot be directly published to by a client.",
     )
-    arguments: Optional[Dict[str, Any]] = Field(
+    arguments: dict[str, Any] | None = Field(
         default_factory=dict, description="Exchange arguments."
     )
     vhost: str = Field(
@@ -414,15 +410,15 @@ class ExchangeSpec(BaseModel):
 
 
 class ExchangeInfo(ExchangeSpec):
-    policy: Optional[str] = Field(
+    policy: str | None = Field(
         None, description="Policy name for applying to the exchange."
     )
-    message_stats: Optional[MessageStats] = None
-    incoming: Optional[dict] = Field(
+    message_stats: MessageStats | None = None
+    incoming: dict | None = Field(
         None,
         description="Detailed message stats (see section above) for publishes from channels into this exchange.",
     )
-    outgoing: Optional[dict] = Field(
+    outgoing: dict | None = Field(
         None,
         description="Detailed message stats for publishes from this exchange into queues.",
     )
@@ -447,7 +443,7 @@ class PolicySpec(BaseModel):
         ...,
         description="The regular expression, which when matches on a given resources causes the policy to apply.",
     )
-    definition: Dict[str, Any] = Field(
+    definition: dict[str, Any] = Field(
         ...,
         description="A set of key/value pairs (think a JSON document) that will be injected into the map of optional arguments of the matching queues and exchanges.",
     )
@@ -478,14 +474,14 @@ class QueueSpec(BaseModel):
         ...,
         description="The name of the queue with non-ASCII characters escaped as in C.",
     )
-    durable: Optional[bool] = Field(
+    durable: bool | None = Field(
         False, description="Whether or not the queue survives server restarts."
     )
-    auto_delete: Optional[bool] = Field(
+    auto_delete: bool | None = Field(
         False,
         description="Whether the queue will be deleted automatically when no longer used.",
     )
-    arguments: Optional[Dict[str, Any]] = Field(
+    arguments: dict[str, Any] | None = Field(
         default_factory=dict, description="Queue arguments."
     )
     vhost: str = Field(
@@ -494,13 +490,9 @@ class QueueSpec(BaseModel):
 
 
 class QueueInfo(QueueSpec):
-    policy: Optional[str] = Field(
-        None, description="Effective policy name for the queue."
-    )
-    pid: Optional[int] = Field(
-        None, description="Erlang process identifier of the queue."
-    )
-    owner_pid: Optional[int] = Field(
+    policy: str | None = Field(None, description="Effective policy name for the queue.")
+    pid: int | None = Field(None, description="Erlang process identifier of the queue.")
+    owner_pid: int | None = Field(
         None,
         description="Id of the Erlang process of the connection which is the exclusive owner of the queue. Empty if the queue is non-exclusive.",
     )
@@ -508,93 +500,93 @@ class QueueInfo(QueueSpec):
         ...,
         description="True if queue is exclusive (i.e. has owner_pid), false otherwise.",
     )
-    exclusive_consumer_pid: Optional[int] = Field(
+    exclusive_consumer_pid: int | None = Field(
         None,
         description="Id of the Erlang process representing the channel of the exclusive consumer subscribed to this queue. Empty if there is no exclusive consumer.",
     )
-    exclusive_consumer_tag: Optional[str] = Field(
+    exclusive_consumer_tag: str | None = Field(
         None,
         description="Consumer tag of the exclusive consumer subscribed to this queue. Empty if there is no exclusive consumer.",
     )
-    messages_ready: Optional[int] = Field(
+    messages_ready: int | None = Field(
         None, description="Number of messages ready to be delivered to clients."
     )
-    messages_unacknowledged: Optional[int] = Field(
+    messages_unacknowledged: int | None = Field(
         None,
         description="Number of messages delivered to clients but not yet acknowledged.",
     )
-    messages: Optional[int] = Field(
+    messages: int | None = Field(
         None, description="Sum of ready and unacknowledged messages (queue depth)."
     )
-    messages_ready_ram: Optional[int] = Field(
+    messages_ready_ram: int | None = Field(
         None,
         description="Number of messages from messages_ready which are resident in ram.",
     )
-    messages_unacknowledged_ram: Optional[int] = Field(
+    messages_unacknowledged_ram: int | None = Field(
         None,
         description="Number of messages from messages_unacknowledged which are resident in ram.",
     )
-    messages_ram: Optional[int] = Field(
+    messages_ram: int | None = Field(
         None, description="Total number of messages which are resident in ram."
     )
-    messages_persistent: Optional[int] = Field(
+    messages_persistent: int | None = Field(
         None,
         description="Total number of persistent messages in the queue (will always be 0 for transient queues).",
     )
-    message_bytes: Optional[int] = Field(
+    message_bytes: int | None = Field(
         None,
         description="Sum of the size of all message bodies in the queue. This does not include the message properties (including headers) or any overhead.",
     )
-    message_bytes_ready: Optional[int] = Field(
+    message_bytes_ready: int | None = Field(
         None,
         description="Like message_bytes but counting only those messages ready to be delivered to clients.",
     )
-    message_bytes_unacknowledged: Optional[int] = Field(
+    message_bytes_unacknowledged: int | None = Field(
         None,
         description="Like message_bytes but counting only those messages delivered to clients but not yet acknowledged.",
     )
-    message_bytes_ram: Optional[int] = Field(
+    message_bytes_ram: int | None = Field(
         None,
         description="Like message_bytes but counting only those messages which are currently held in RAM.",
     )
-    message_bytes_persistent: Optional[int] = Field(
+    message_bytes_persistent: int | None = Field(
         None,
         description="Like message_bytes but counting only those messages which are persistent.",
     )
-    head_message_timestamp: Optional[datetime.datetime] = Field(
+    head_message_timestamp: datetime.datetime | None = Field(
         None,
         description="The timestamp property of the first message in the queue, if present. Timestamps of messages only appear when they are in the paged-in state.",
     )
-    disk_reads: Optional[int] = Field(
+    disk_reads: int | None = Field(
         None,
         description="Total number of times messages have been read from disk by this queue since it started.",
     )
-    disk_writes: Optional[int] = Field(
+    disk_writes: int | None = Field(
         None,
         description="Total number of times messages have been written to disk by this queue since it started.",
     )
-    consumers: Optional[int] = Field(None, description="Number of consumers.")
-    consumer_utilisation: Optional[float] = Field(
+    consumers: int | None = Field(None, description="Number of consumers.")
+    consumer_utilisation: float | None = Field(
         None,
         ge=0,
         le=1,
         description="Fraction of the time (between 0.0 and 1.0) that the queue is able to immediately deliver messages to consumers. This can be less than 1.0 if consumers are limited by network congestion or prefetch count.",
     )
-    memory: Optional[int] = Field(
+    memory: int | None = Field(
         None,
         description="Bytes of memory allocated by the runtime for the queue, including stack, heap and internal structures.",
     )
-    state: Optional[QueueState] = None
-    message_stats: Optional[MessageStats] = None
-    incoming: Optional[dict] = Field(
+    state: QueueState | None = None
+    message_stats: MessageStats | None = None
+    incoming: dict | None = Field(
         None,
         description="Detailed message stats (see section above) for publishes from exchanges into this queue.",
     )
-    deliveries: Optional[dict] = Field(
+    deliveries: dict | None = Field(
         None,
         description="Detailed message stats for deliveries from this queue into channels.",
     )
-    consumer_details: Optional[List[Any]] = Field(
+    consumer_details: list[Any] | None = Field(
         None,
         description="List of consumers on this channel, with some details on each.",
     )
@@ -618,7 +610,7 @@ class UserSpec(BaseModel):
     name: str = Field(..., description="Username")
     password_hash: str = Field(..., description="Hash of the user password.")
     hashing_algorithm: HashingAlgorithm
-    tags: List[str]
+    tags: list[str]
     model_config = ConfigDict(use_enum_values=True)
 
 
@@ -681,7 +673,7 @@ class RabbitMQAPI:
         return instance
 
     @property
-    def health_checks(self) -> Tuple[Dict[str, Any], Dict[str, str]]:
+    def health_checks(self) -> tuple[dict[str, Any], dict[str, str]]:
         # https://rawcdn.githack.com/rabbitmq/rabbitmq-server/v3.9.7/deps/rabbitmq_management/priv/www/api/index.html
         HEALTH_CHECKS = {
             "health/checks/alarms",
@@ -708,7 +700,7 @@ class RabbitMQAPI:
     def get(
         self,
         endpoint: str,
-        params: Dict[str, Any] | None = None,
+        params: dict[str, Any] | None = None,
         timeout: float | None = None,
     ) -> requests.Response:
         return self._session.get(
@@ -718,8 +710,8 @@ class RabbitMQAPI:
     def put(
         self,
         endpoint: str,
-        params: Dict[str, Any] | None = None,
-        json: Dict[str, Any] | None = None,
+        params: dict[str, Any] | None = None,
+        json: dict[str, Any] | None = None,
         timeout: float | None = None,
     ) -> requests.Response:
         return self._session.put(
@@ -729,8 +721,8 @@ class RabbitMQAPI:
     def post(
         self,
         endpoint: str,
-        data: Optional[Dict[str, Any]] = None,
-        json: Optional[Dict[str, Any]] = None,
+        data: dict[str, Any] | None = None,
+        json: dict[str, Any] | None = None,
         timeout: float | None = None,
     ) -> requests.Response:
         return self._session.post(
@@ -740,7 +732,7 @@ class RabbitMQAPI:
     def delete(
         self,
         endpoint: str,
-        params: Dict[str, Any] | None = None,
+        params: dict[str, Any] | None = None,
         timeout: float | None = None,
     ) -> requests.Response:
         return self._session.delete(
@@ -749,11 +741,11 @@ class RabbitMQAPI:
 
     def bindings(
         self,
-        vhost: Optional[str] = None,
-        source: Optional[str] = None,
-        destination: Optional[str] = None,
-        destination_type: Optional[str] = None,
-    ) -> List[BindingInfo]:
+        vhost: str | None = None,
+        source: str | None = None,
+        destination: str | None = None,
+        destination_type: str | None = None,
+    ) -> list[BindingInfo]:
         endpoint = "bindings"
         if vhost is not None:
             endpoint = f"{endpoint}/{_quote(vhost)}"
@@ -770,7 +762,7 @@ class RabbitMQAPI:
             return dest_map[value] if key == "destination_type" else value
 
         return [
-            BindingInfo(**{_r[0]: conv(_r[0], _r[1]) for _r in r.items()})
+            BindingInfo.model_validate({_r[0]: conv(_r[0], _r[1]) for _r in r.items()})
             for r in self.get(endpoint).json()
         ]
 
@@ -791,7 +783,7 @@ class RabbitMQAPI:
         source: str,
         destination: str,
         destination_type: str,
-        properties_key: Optional[str] = None,
+        properties_key: str | None = None,
     ):
         # If properties_key is not specified then all bindings between the specified
         # source and destination are deleted
@@ -805,8 +797,8 @@ class RabbitMQAPI:
                 return dest_map[value] if key == "destination_type" else value
 
             props = [
-                BindingInfo(
-                    **{_r[0]: conv(_r[0], _r[1]) for _r in r.items()}
+                BindingInfo.model_validate(
+                    {_r[0]: conv(_r[0], _r[1]) for _r in r.items()}
                 ).properties_key
                 for r in self.get(endpoint).json()
             ]
@@ -817,8 +809,8 @@ class RabbitMQAPI:
             response.raise_for_status()
 
     def connections(
-        self, name: Optional[str] = None
-    ) -> Union[List[ConnectionInfo], ConnectionInfo]:
+        self, name: str | None = None
+    ) -> list[ConnectionInfo] | ConnectionInfo:
         endpoint = "connections"
         if name is not None:
             endpoint = f"{endpoint}/{name}/"
@@ -827,7 +819,7 @@ class RabbitMQAPI:
         response = self.get(endpoint)
         return [ConnectionInfo(**qi) for qi in response.json()]
 
-    def nodes(self, name: Optional[str] = None) -> Union[List[NodeInfo], NodeInfo]:
+    def nodes(self, name: str | None = None) -> list[NodeInfo] | NodeInfo:
         # https://www.rabbitmq.com/monitoring.html#node-metrics
         endpoint = "nodes"
         if name is not None:
@@ -837,9 +829,17 @@ class RabbitMQAPI:
         response = self.get(endpoint)
         return [NodeInfo(**qi) for qi in response.json()]
 
+    @overload
+    def exchanges(self, vhost: str, name: str) -> ExchangeInfo: ...
+
+    @overload
     def exchanges(
-        self, vhost: Optional[str] = None, name: Optional[str] = None
-    ) -> Union[List[ExchangeInfo], ExchangeInfo]:
+        self, vhost: str | None = None, name: None = None
+    ) -> list[ExchangeInfo]: ...
+
+    def exchanges(
+        self, vhost: str | None = None, name: str | None = None
+    ) -> list[ExchangeInfo] | ExchangeInfo:
         endpoint = "exchanges"
         if vhost is not None and name is not None:
             endpoint = f"{endpoint}/{_quote(vhost)}/{name}/"
@@ -865,7 +865,7 @@ class RabbitMQAPI:
         response = self.delete(endpoint, params={"if-unused": if_unused})
         response.raise_for_status()
 
-    def policies(self, vhost: Optional[str] = None) -> List[PolicySpec]:
+    def policies(self, vhost: str | None = None) -> list[PolicySpec]:
         endpoint = "policies"
         if vhost is not None:
             endpoint = f"{endpoint}/{_quote(vhost)}/"
@@ -892,9 +892,17 @@ class RabbitMQAPI:
         response = self.delete(endpoint)
         response.raise_for_status()
 
+    @overload
+    def queues(self, vhost: str, name: str) -> QueueInfo: ...
+
+    @overload
     def queues(
-        self, vhost: Optional[str] = None, name: Optional[str] = None
-    ) -> Union[List[QueueInfo], QueueInfo]:
+        self, vhost: str | None = None, name: None = None
+    ) -> list[QueueInfo]: ...
+
+    def queues(
+        self, vhost: str | None = None, name: str | None = None
+    ) -> list[QueueInfo] | QueueInfo:
         endpoint = "queues"
         if vhost is not None and name is not None:
             endpoint = f"{endpoint}/{_quote(vhost)}/{name}"
@@ -925,7 +933,7 @@ class RabbitMQAPI:
         )
         response.raise_for_status()
 
-    def users(self) -> List[UserSpec]:
+    def users(self) -> list[UserSpec]:
         endpoint = "users"
         response = self.get(endpoint)
         return [UserSpec(**user) for user in response.json()]
@@ -935,9 +943,17 @@ class RabbitMQAPI:
         response = self.get(endpoint).json()
         return UserSpec(**response)
 
+    @overload
+    def permissions(self, vhost: str, user: str) -> PermissionSpec: ...
+
+    @overload
     def permissions(
-        self, vhost: Optional[str] = None, user: Optional[str] = None
-    ) -> List[PermissionSpec] | PermissionSpec:
+        self, vhost: None = None, user: None = None
+    ) -> list[PermissionSpec]: ...
+
+    def permissions(
+        self, vhost: str | None = None, user: str | None = None
+    ) -> list[PermissionSpec] | PermissionSpec:
         endpoint = "permissions"
         if vhost is not None and user is not None:
             endpoint = f"{endpoint}/{_quote(vhost)}/{user}/"
@@ -975,7 +991,7 @@ class RabbitMQAPI:
         response = self.delete(endpoint)
         response.raise_for_status()
 
-    def vhosts(self) -> List[VHostSpec]:
+    def vhosts(self) -> list[VHostSpec]:
         endpoint = "vhosts"
         response = self.get(endpoint)
         return [VHostSpec(**user) for user in response.json()]
@@ -999,7 +1015,7 @@ class RabbitMQAPI:
         response.raise_for_status()
 
 
-def hash_password(passwd: str, salt: Optional[str] = None) -> str:
+def hash_password(passwd: str, salt: str | None = None) -> str:
     if salt:
         # extract salt from an existing password hash
         salt_bytes = base64.b64decode(salt)[:4]
