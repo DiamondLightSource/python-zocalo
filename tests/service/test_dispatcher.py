@@ -17,6 +17,7 @@ def mock_zocalo_configuration(tmp_path):
     mock_zc.storage = {
         "zocalo.recipe_directory": tmp_path,
     }
+    mock_zc._opentelemetry = None
     return mock_zc
 
 
