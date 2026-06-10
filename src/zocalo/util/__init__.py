@@ -4,12 +4,11 @@ import json
 import os
 import subprocess
 from pathlib import Path
-from typing import Dict, Optional
 
 import zocalo
 
 
-def extended_status_dictionary() -> Dict[str, str]:
+def extended_status_dictionary() -> dict[str, str]:
     """Returns a dictionary of extra fields that can be appended to log
     messages to provide further relevant contextual information."""
     extended_status = {"zocalo": zocalo.__version__}
@@ -41,7 +40,7 @@ def extended_status_dictionary() -> Dict[str, str]:
     return extended_status
 
 
-def get_kubernetes_pod_information() -> Optional[Dict[str, str]]:
+def get_kubernetes_pod_information() -> dict[str, str] | None:
     """Detects if instance is running inside a Kubernetes pod, and, if so,
     obtains pod information via the Kubernetes API."""
 

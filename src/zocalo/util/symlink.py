@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import pathlib
-from typing import Union
 
 
 def create_parent_symlink(
-    destination_path: Union[str, pathlib.Path],
+    destination_path: str | pathlib.Path,
     symlink_name: str,
     *,
     levels: int = 2,

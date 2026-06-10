@@ -5,6 +5,7 @@ History
 1.6.0 (Unreleased)
 -----------------
 - Fix error running tests with Workflows 3.7 installed. (`#308 <https://github.com/DiamondLightSource/python-zocalo/pull/308>`_)
+- Clean typing errors when linting with the pyright linter. (`#307 <https://github.com/DiamondLightSource/python-zocalo/pull/307>`_)
 
 1.5.0 (2026-06-10)
 ------------------

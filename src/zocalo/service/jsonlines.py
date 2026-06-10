@@ -22,7 +22,7 @@ class JSONLines(CommonService):
     def initializing(self):
         self._register_idle(1, self.process_messages)
         workflows.recipe.wrap_subscribe(
-            self._transport,
+            self.transport,
             "jsonlines",
             self.receive_msg,
             acknowledgement=True,
@@ -36,6 +36,7 @@ class JSONLines(CommonService):
     def receive_msg(
         self, rw: workflows.recipe.RecipeWrapper, header: dict, message: dict
     ):
+        assert rw.recipe_step
         output_filename = rw.recipe_step["parameters"]["output_filename"]
         if not output_filename:
             self.log.error("Received message contains no output_filename")

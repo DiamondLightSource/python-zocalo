@@ -5,8 +5,9 @@ import configparser
 import functools
 import logging
 import sys
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import requests
 import yaml
@@ -15,7 +16,9 @@ from pydantic import BaseModel
 import zocalo.configuration
 from zocalo.util.rabbitmq import (
     BindingSpec,
+    DestinationType,
     ExchangeSpec,
+    ExchangeType,
     PermissionSpec,
     PolicySpec,
     QueueSpec,
@@ -76,7 +79,7 @@ class RabbitMQAPI(_RabbitMQAPI):
 
 
 @functools.singledispatch
-def _info_to_spec(incoming, infos: list):
+def _info_to_spec(incoming, infos: Sequence):
     cls = type(incoming)
     return [cls(**i.model_dump()) for i in infos]
 
@@ -101,17 +104,17 @@ def _(comp: BindingSpec) -> bool:
 
 
 def update_config(
-    api: RabbitMQAPI, incoming: List[BaseModel], current: List[BaseModel]
+    api: RabbitMQAPI, incoming: Sequence[BaseModel], current: Sequence[BaseModel]
 ):
     cls = type(incoming[0])
     current = _info_to_spec(incoming[0], current)
     for cc in current:
         if cc in incoming:
             if hasattr(cc, "name"):
-                logger.debug(f"{cls.__name__} {cc.name} already exists")
+                logger.debug(f"{cls.__name__} {cc.name} already exists")  # type: ignore
             elif hasattr(cc, "source"):
                 logger.debug(
-                    f"{cls.__name__} {cc.source or 'default'}->{cc.destination} already exists"
+                    f"{cls.__name__} {cc.source or 'default'}->{cc.destination} already exists"  # type: ignore
                 )
         else:
             if _skip(cc):
@@ -124,7 +127,7 @@ def update_config(
             api.create_component(ic)
 
 
-def get_vhost_specs(vhosts: dict) -> List[VHostSpec]:
+def get_vhost_specs(vhosts: dict) -> list[VHostSpec]:
     vhost_specs = []
     for vhost in vhosts:
         vhost_specs.append(
@@ -138,14 +141,14 @@ def get_vhost_specs(vhosts: dict) -> List[VHostSpec]:
     return vhost_specs
 
 
-def get_permission_specs(permissions: dict) -> List[PermissionSpec]:
+def get_permission_specs(permissions: dict) -> list[PermissionSpec]:
     permission_specs = []
     for permission in permissions:
         permission_specs.append(PermissionSpec(**permission))
     return permission_specs
 
 
-def get_binding_specs(bindings: dict) -> List[BindingSpec]:
+def get_binding_specs(bindings: dict) -> list[BindingSpec]:
     binding_specs = []
     for binding in bindings:
         binding_specs.append(
@@ -161,7 +164,7 @@ def get_binding_specs(bindings: dict) -> List[BindingSpec]:
     return binding_specs
 
 
-def get_binding_specs_for_group(group: dict) -> List[BindingSpec]:
+def get_binding_specs_for_group(group: dict) -> list[BindingSpec]:
     sources = group.get("bindings", [""])
     vhost = group.get("vhost", "/")
     return [
@@ -169,17 +172,16 @@ def get_binding_specs_for_group(group: dict) -> List[BindingSpec]:
             vhost=vhost,
             source=source,
             destination=name,
-            destination_type="q",
+            destination_type=DestinationType.QUEUE,
             routing_key=name,
             arguments={},
-            properties_key=name,
         )
         for source in sources
         for name in group["names"]
     ]
 
 
-def get_queue_specs(group: dict) -> List[QueueSpec]:
+def get_queue_specs(group: dict) -> list[QueueSpec]:
     queue_settings = group.get("settings", {}).get("queues", {})
     qtype = queue_settings.get("type", "classic")
     dlq_pattern = queue_settings.get("dead-letter-routing-key-pattern")
@@ -235,7 +237,7 @@ def get_queue_specs(group: dict) -> List[QueueSpec]:
     return qspecs
 
 
-def get_exchange_specs(exchanges: dict) -> List[ExchangeSpec]:
+def get_exchange_specs(exchanges: dict) -> list[ExchangeSpec]:
     return [
         ExchangeSpec(
             **exchange,
@@ -244,7 +246,7 @@ def get_exchange_specs(exchanges: dict) -> List[ExchangeSpec]:
     ]
 
 
-def get_exchange_specs_for_group(group: dict) -> List[ExchangeSpec]:
+def get_exchange_specs_for_group(group: dict) -> list[ExchangeSpec]:
     vhost = group.get("vhost", "/")
     if group.get("settings", {}).get("broadcast"):
         etype = "fanout"
@@ -257,18 +259,19 @@ def get_exchange_specs_for_group(group: dict) -> List[ExchangeSpec]:
             auto_delete=False,
             durable=True,
             name=name,
-            type=etype,
+            type=ExchangeType(etype),
             vhost=vhost,
+            internal=False,
         )
         for name in group["names"]
     ]
 
 
-def _configure_policies(api, policies: List[Dict[str, Any]]):
+def _configure_policies(api, policies: list[dict[str, Any]]):
     existing_policies = {
         (policy.vhost, policy.name): policy for policy in api.policies()
     }
-    known_policies: set[Tuple[str, str]] = set()
+    known_policies: set[tuple[str, str]] = set()
 
     for policy in policies:
         policy_id = (policy["vhost"], policy["name"])
@@ -282,7 +285,7 @@ def _configure_policies(api, policies: List[Dict[str, Any]]):
             pattern=policy.get("pattern", "^amq."),
             definition=policy.get("definition", {}),
             priority=policy.get("priority", 0),
-            apply_to=policy.get("apply-to", "queues"),
+            apply_to=policy.get("apply-to", "queues"),  # type: ignore[reportCallIssue]
         )
 
         if policy_id in existing_policies:
@@ -298,9 +301,9 @@ def _configure_policies(api, policies: List[Dict[str, Any]]):
         api.clear_policy(vhost=policy_id[0], name=policy_id[1])
 
 
-def _configure_queues(api, queues: List[QueueSpec]):
+def _configure_queues(api, queues: list[QueueSpec]):
     existing_queues = {(q.vhost, q.name): q for q in api.queues()}
-    known_queues: set[Tuple[str, str]] = set()
+    known_queues: set[tuple[str, str]] = set()
 
     for queue_spec in queues:
         queue_id = (queue_spec.vhost, queue_spec.name)
@@ -336,7 +339,7 @@ def _configure_queues(api, queues: List[QueueSpec]):
 def _configure_users(api, rabbitmq_user_config_area: Path):
     existing_users = {user.name: user for user in api.users()}
 
-    planned_users: Dict[str, Path] = {}
+    planned_users: dict[str, Path] = {}
     for config_file in rabbitmq_user_config_area.glob("**/*.ini"):
         try:
             config = configparser.ConfigParser()
@@ -374,7 +377,7 @@ def _configure_users(api, rabbitmq_user_config_area: Path):
             UserSpec(
                 name=username,
                 password_hash=hashed_password,
-                hashing_algorithm="rabbit_password_hashing_sha256",
+                hashing_algorithm="rabbit_password_hashing_sha256",  # type: ignore[reportArgumentType]
                 tags=tags,
             )
         )

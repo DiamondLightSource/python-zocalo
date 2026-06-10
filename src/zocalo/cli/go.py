@@ -128,7 +128,7 @@ def run():
         message_serialized = (
             json.dumps({"headers": headers, "message": message}, indent=2) + "\n"
         )
-
+        assert dropfile_fallback is not False
         fallback = dropfile_fallback / str(uuid.uuid4())
         if args.dryrun:
             print("Not storing message in %s (running with --dry-run)" % fallback)

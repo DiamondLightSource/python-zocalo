@@ -147,6 +147,7 @@ def run() -> None:
             header = dlqmsg["header"]
             header["dlq-reinjected"] = "True"
             exchange = header.get("x-death", [{}])[0].get("exchange")
+            destination = header.get("x-death", [{}])[0].get("queue")
             if exchange:
                 rmqapi = RabbitMQAPI.from_zocalo_configuration(zc)
                 exchange_info = rmqapi.get("queues").json()

@@ -59,7 +59,7 @@ class SlurmRestApi:
         self.version = version
         self.user_name = user_name
         if user_token and os.path.isfile(user_token):
-            with open(user_token, "r") as f:
+            with open(user_token) as f:
                 self.user_token = f.read().strip()
         elif isinstance(user_token, pathlib.Path):
             # We got passed a path, but it isn't a valid one

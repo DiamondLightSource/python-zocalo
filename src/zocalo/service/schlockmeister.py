@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import collections
 import uuid
-from typing import Any, Dict, Set, Tuple
+from typing import Any
 
 from workflows.services.common_service import CommonService
 
@@ -36,9 +36,9 @@ class Schlockmeister(CommonService):
     # Logger name
     _logger_name = "zocalo.service.schlockmeister"
 
-    known_queues: Dict[str, dict] = {}
-    known_consumers: Dict[Tuple[Any, Any, Any], str] = {}
-    known_instances: Set[str] = set()
+    known_queues: dict[str, dict] = {}
+    known_consumers: dict[tuple[Any, Any, Any], str] = {}
+    known_instances: set[str] = set()
 
     def initializing(self):
         """
@@ -56,12 +56,12 @@ class Schlockmeister(CommonService):
         # Listen to a specific queue in the namespace. There will be no messages
         # in that queue. It only acts as a marker to identify service instances.
         self._markerqueue = "transient.schlockmeister." + self.uuid
-        self._transport.subscribe(self._markerqueue, self.ignore, disable_mangling=True)
+        self.transport.subscribe(self._markerqueue, self.ignore, disable_mangling=True)
 
         # Look through list of all subscriptions to identify the subscription that
         # was just set up. From this we can infer the relevant namespace.
         self._namespace = None
-        self._subid_watch_global = self._transport.subscribe_broadcast(
+        self._subid_watch_global = self.transport.subscribe_broadcast(
             "ActiveMQ.Advisory.Consumer.Queue.>",
             self.watch_global,
             ignore_namespace=True,
@@ -97,12 +97,12 @@ class Schlockmeister(CommonService):
             self.log.info("Identified namespace as '%s'", self._namespace)
 
             # With the namespace now identified, can drop the global subscription watch and look only at relevant queues
-            self._transport.unsubscribe(self._subid_watch_global)
+            self.transport.unsubscribe(self._subid_watch_global)
 
             # Disable fallback function. Enable garbage collection instead.
             self._register_idle(15, self.garbage_collect)
 
-            self._transport.subscribe_broadcast(
+            self.transport.subscribe_broadcast(
                 "ActiveMQ.Advisory.Consumer.Queue.%s>" % self._namespace,
                 self.watch_local,
                 ignore_namespace=True,
@@ -179,15 +179,13 @@ class Schlockmeister(CommonService):
             if self.known_queues[destination].get("subscription"):
                 continue
             real_subscriber_count = sum(
-                (
-                    k not in self.known_instances
-                    for k in self.known_queues[destination]["subscribers"]
-                )
+                k not in self.known_instances
+                for k in self.known_queues[destination]["subscribers"]
             )
             if real_subscriber_count:
                 self.log.debug("subscribing to %s", destination)
                 self.known_queues[destination]["subscription"] = (
-                    self._transport.subscribe(
+                    self.transport.subscribe(
                         destination,
                         self.quarantine,
                         acknowledgement=True,
@@ -205,14 +203,12 @@ class Schlockmeister(CommonService):
         for destination in queues:
             if self.known_queues[destination].get("subscription"):
                 real_subscriber_count = sum(
-                    (
-                        k not in self.known_instances
-                        for k in self.known_queues[destination]["subscribers"]
-                    )
+                    k not in self.known_instances
+                    for k in self.known_queues[destination]["subscribers"]
                 )
                 if not real_subscriber_count:
                     self.log.debug("unsubscribing from %s", destination)
-                    self._transport.unsubscribe(
+                    self.transport.unsubscribe(
                         self.known_queues[destination]["subscription"]
                     )
                     del self.known_queues[destination]["subscription"]
@@ -240,4 +236,4 @@ class Schlockmeister(CommonService):
         )
 
         # The actual quarantining magic happens on the broker
-        self._transport.nack(header)
+        self.transport.nack(header)

@@ -127,6 +127,7 @@ def run(args=None):
                 print(f"Recipe ID:    {message['environment']['ID']}")
                 r = workflows.recipe.wrapper.RecipeWrapper(message=message)
                 if target_queue == ".":
+                    assert r.recipe_step
                     target_queue = r.recipe_step["queue"]
                     print(f"Target Queue: {target_queue}")
                 additional_info_function = show_additional_info.get(target_queue)

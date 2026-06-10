@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import logging
 import threading
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any, Mapping, NotRequired, TypedDict, cast
 
 import workflows.services.common_service
 import workflows.util
@@ -62,6 +63,8 @@ class BaseWrapper:
 class DummyWrapper(BaseWrapper):
     _logger_name = "zocalo.wrapper.DummyWrapper"
 
+    status_thread: StatusNotifications
+
     def run(self):
         self.log.info("This is a dummy wrapper that simply waits for twenty seconds.")
         import time
@@ -72,8 +75,17 @@ class DummyWrapper(BaseWrapper):
         return True
 
 
+class StatusDict(TypedDict):
+    host: str
+    task: str
+    workflows: str
+    zocalo: str
+    status: NotRequired[int]
+    statustext: NotRequired[str]
+
+
 class StatusNotifications(threading.Thread):
-    def __init__(self, send_function: Callable[[dict], None], taskname: str):
+    def __init__(self, send_function: Callable[[Mapping], None], taskname: str):
         """Construct and start a StatusNotifications thread object.
 
         Once started, this will repeatedly re-broadcast the cached
@@ -87,7 +99,7 @@ class StatusNotifications(threading.Thread):
         self.daemon = True
         self._send_status = send_function
         self._lock = threading.Condition(threading.Lock())
-        self._status_dict = {
+        self._status_dict: StatusDict = {
             "host": workflows.util.generate_unique_host_id(),
             "task": taskname,
             "workflows": workflows.version(),
@@ -102,7 +114,7 @@ class StatusNotifications(threading.Thread):
         Add an additional static field to status notifications.
         """
         with self._lock:
-            self._status_dict[field] = value
+            cast(dict[str, Any], self._status_dict)[field] = value
 
     def set_status(self, status: workflows.services.common_service.Status) -> None:
         with self._lock:
@@ -128,7 +140,7 @@ class StatusNotifications(threading.Thread):
         """Stop the status notification thread."""
         self._keep_running = False
 
-    def send_status(self, dictionary: dict) -> None:
+    def send_status(self, dictionary: Mapping) -> None:
         try:
             self._send_status(dictionary)
         except workflows.Disconnected:

@@ -124,7 +124,7 @@ def run():
                 message=json.load(fh), transport=transport
             )
         instance.set_recipe_wrapper(recwrap)
-
+        assert recwrap.recipe_step
         if recwrap.recipe_step.get("wrapper", {}).get("task_information"):
             # If the recipe contains an extra task_information field then add this to the status display
             st.taskname += (
