@@ -2,6 +2,10 @@ version = 1
 revision = 2
 requires-python = ">=3.12"
 
+[options]
+exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for backwards compatibility when using relative exclude-newer values.
+exclude-newer-span = "P7D"
+
 [[package]]
 name = "alabaster"
 version = "0.7.16"
@@ -814,7 +818,7 @@ wheels = [
 
 [[package]]
 name = "zocalo"
-version = "1.4.0"
+version = "1.5.0"
 source = { editable = "." }
 dependencies = [
     { name = "graypy" },
