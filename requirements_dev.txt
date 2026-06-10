@@ -40,6 +40,8 @@ markupsafe==3.0.2
     # via jinja2
 marshmallow==3.23.1
     # via zocalo
+nodeenv==1.10.0
+    # via pyright
 opentelemetry-api==1.40.0
     # via zocalo
 packaging==24.2
@@ -57,6 +59,7 @@ pydantic-core==2.46.4
     # via pydantic
 pygments==2.18.0
     # via sphinx
+pyright==1.1.410
 pytest==8.3.3
     # via
     #   pytest-cov
@@ -103,9 +106,14 @@ typing-extensions==4.15.0
     #   opentelemetry-api
     #   pydantic
     #   pydantic-core
+<<<<<<< HEAD
     #   typing-inspection
 typing-inspection==0.4.2
     # via pydantic
+||||||| parent of 043b21b (Add pyright)
+=======
+    #   pyright
+>>>>>>> 043b21b (Add pyright)
 urllib3==2.2.3
     # via requests
 websocket-client==1.8.0
