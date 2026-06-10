@@ -14,7 +14,7 @@ dependencies = [
     "graypy",
     "marshmallow",
     "requests",
-    "pydantic>=2,<3",
+    "pydantic~=2.13",
     "workflows>=3.0",
     "opentelemetry-api"
 ]
