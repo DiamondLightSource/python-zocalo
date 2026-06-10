@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 from marshmallow import fields
 
 from zocalo.configuration import PluginSchema
@@ -13,6 +15,6 @@ class RabbitAPI:
         vhost = fields.Str()
 
     @staticmethod
-    def activate(configuration):
+    def activate(configuration: dict[str, Any]) -> dict[str, Any]:
         configuration.setdefault("vhost", "/")
         return configuration

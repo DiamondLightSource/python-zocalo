@@ -23,7 +23,7 @@ import zocalo.util
 import zocalo.wrapper
 
 
-def _enable_faulthandler():
+def _enable_faulthandler() -> None:
     """Display a traceback on crashing with non-Python errors, such as
     segmentation faults, and when the process is signalled with SIGUSR2
     (not available on Windows)"""
@@ -36,7 +36,7 @@ def _enable_faulthandler():
         pass
 
 
-def run():
+def run() -> None:
     zc = zocalo.configuration.from_file()
     zc.activate()
 

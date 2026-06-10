@@ -34,7 +34,7 @@ def check_dlq(
         return {}
     assert result["status"] == 200, result
 
-    def extract_queue_name(namestring):
+    def extract_queue_name(namestring: str) -> str | None:
         namestringdict = {
             component.split("=")[0]: component.split("=", 1)[1]
             for component in namestring.split(",")

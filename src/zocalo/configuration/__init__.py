@@ -99,7 +99,7 @@ class Configuration:
     def active_environments(self) -> tuple[str, ...]:
         return tuple(self._activated)
 
-    def _resolve(self, plugin_configuration: str):
+    def _resolve(self, plugin_configuration: str) -> None:
         try:
             configuration = self._plugin_configurations[
                 plugin_configuration
@@ -124,7 +124,7 @@ class Configuration:
             )
         self._plugin_configurations[plugin_configuration] = yaml_dict
 
-    def activate_environment(self, name: str):
+    def activate_environment(self, name: str) -> None:
         """Load all plugins for a given environment."""
         if name not in self._environments:
             raise ValueError(f"Environment '{name}' is not defined")
@@ -178,7 +178,7 @@ class Configuration:
             self.activate_environment(environment)
         return tuple(envs)
 
-    def add_command_line_options(self, parser):
+    def add_command_line_options(self, parser: typing.Any) -> None:
         """function to inject command line parameters"""
         if "add_argument" in dir(parser):
             parser.add_argument(
@@ -422,7 +422,7 @@ def _merge_configuration(
     return parsed
 
 
-def from_file(config_file=None) -> Configuration:
+def from_file(config_file: str | os.PathLike | None = None) -> Configuration:
     if not config_file:
         config_file = os.environ.get("ZOCALO_CONFIG")
     if not config_file:

@@ -5,7 +5,7 @@ import binascii
 import json
 import os
 import pathlib
-from typing import Any
+from typing import Any, Self
 
 import requests
 
@@ -78,7 +78,9 @@ class SlurmRestApi:
             self.session.headers["X-SLURM-USER-TOKEN"] = self.user_token
 
     @classmethod
-    def from_zocalo_configuration(cls, zc: Configuration, cluster: str = "slurm"):
+    def from_zocalo_configuration(
+        cls, zc: Configuration, cluster: str = "slurm"
+    ) -> Self:
         cluster_config = getattr(zc, cluster)
         return cls(
             url=cluster_config["url"],

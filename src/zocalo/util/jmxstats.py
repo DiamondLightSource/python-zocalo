@@ -15,6 +15,8 @@ from __future__ import annotations
 import base64
 import json
 import urllib.request
+from collections.abc import Callable
+from typing import Any
 
 import zocalo.configuration
 
@@ -22,20 +24,20 @@ import zocalo.configuration
 class JMXAPIPath:
     """A recursing helper object that encodes a JMX bean path."""
 
-    def __init__(self, path, callback):
+    def __init__(self, path: str, callback: Callable[..., Any]) -> None:
         self.path = path
         self.callback = callback
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.path
 
-    def __getattribute__(self, attribute):
+    def __getattribute__(self, attribute: str) -> Any:
         try:
             return object.__getattribute__(self, attribute)
         except AttributeError:
             return JMXAPIPath(self.path + "." + attribute, self.callback)
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
         return self.callback(self.path, *args, **kwargs)
 
 
@@ -60,20 +62,22 @@ class JMXAPI:
             ).decode()
         )
 
-    def __getattribute__(self, attribute):
+    def __getattribute__(self, attribute: str) -> Any:
         try:
             return object.__getattribute__(self, attribute)
         except AttributeError:
             return JMXAPIPath(attribute, self._call)
 
-    def _call(self, path, attribute=None, *args, **kwargs):
+    def _call(
+        self, path: str, attribute: str | None = None, *args: Any, **kwargs: str
+    ) -> Any:
         params = ",".join(key + "=" + value for key, value in kwargs.items())
         url = path + ":" + params
         if attribute:
             url = url + "/" + attribute
         return self._get(url)
 
-    def _get(self, url):
+    def _get(self, url: str) -> Any:
         complete_url = self.url + url
         req = urllib.request.Request(
             complete_url, headers={"Accept": "application/json"}

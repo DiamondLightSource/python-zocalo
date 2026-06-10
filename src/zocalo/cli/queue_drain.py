@@ -10,7 +10,9 @@ import argparse
 import queue
 import sys
 import time
+from collections.abc import Mapping
 from datetime import datetime
+from typing import Any
 
 import workflows.recipe.wrapper
 import workflows.transport
@@ -18,7 +20,7 @@ import workflows.transport
 import zocalo.configuration
 
 
-def show_cluster_info(step):
+def show_cluster_info(step: dict[str, Any]) -> None:
     try:
         print("Beamline " + step["parameters"]["cluster_project"].upper())
     except Exception:
@@ -32,7 +34,7 @@ def show_cluster_info(step):
 show_additional_info = {"cluster.submission": show_cluster_info}
 
 
-def run(args=None):
+def run(argv: list[str] | None = None) -> None:
     # Load configuration
     zc = zocalo.configuration.from_file()
     zc.activate()
@@ -66,14 +68,14 @@ def run(args=None):
     )
     zc.add_command_line_options(parser)
     workflows.transport.add_command_line_options(parser, transport_argument=True)
-    args = parser.parse_args(args)
+    args = parser.parse_args(argv)
 
     transport = workflows.transport.lookup(args.transport)()
     transport.connect()
 
-    messages = queue.Queue()
+    messages: queue.Queue[tuple[Mapping[str, Any], Any]] = queue.Queue()
 
-    def receive_message(header, message):
+    def receive_message(header: Mapping[str, Any], message: Any) -> None:
         messages.put((header, message))
 
     print(f"Reading messages from {args.SOURCE}")
@@ -101,7 +103,7 @@ def run(args=None):
         }
     )
     drain_start = time.time()
-    idle_time = 0
+    idle_time = 0.0
     try:
         while True:
             try:
@@ -132,6 +134,7 @@ def run(args=None):
                     print(f"Target Queue: {target_queue}")
                 additional_info_function = show_additional_info.get(target_queue)
                 if additional_info_function:
+                    assert r.recipe_step
                     additional_info_function(r.recipe_step)
             except Exception:
                 pass

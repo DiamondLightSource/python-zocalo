@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import socket
 import warnings
+from typing import Any
 
 import graypy.handler
 from marshmallow import fields, validate
@@ -17,7 +18,7 @@ class _PythonLevelToSyslogConverter:
     """
 
     @staticmethod
-    def get(level, _):
+    def get(level: int, _: object) -> int:
         if level < 20:
             return 7  # DEBUG
         elif level < 25:
@@ -45,7 +46,7 @@ class Graylog:
         port = fields.Int(required=True)
 
     @staticmethod
-    def activate(configuration):
+    def activate(configuration: dict[str, Any]) -> logging.Handler:
         warnings.warn(
             "The Graylog configuration plugin will soon be deprecated."
             " It will be replaced by the more powerful logging plugin.",

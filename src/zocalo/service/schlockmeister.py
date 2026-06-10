@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import collections
 import uuid
+from collections.abc import Mapping
 from typing import Any
 
 from workflows.services.common_service import CommonService
@@ -40,7 +41,7 @@ class Schlockmeister(CommonService):
     known_consumers: dict[tuple[Any, Any, Any], str] = {}
     known_instances: set[str] = set()
 
-    def initializing(self):
+    def initializing(self) -> None:
         """
         Subscribe to all queues. Received messages must be acknowledged.
         Only receive messages that have been delivered 5 times in the past.
@@ -71,17 +72,17 @@ class Schlockmeister(CommonService):
         self._register_idle(90, self._namespace_determination_failure)
 
     @staticmethod
-    def ignore(header, message):
+    def ignore(header: Mapping[str, Any], message: Any) -> None:
         """Ignore any messages on this subscription."""
 
-    def _namespace_determination_failure(self):
+    def _namespace_determination_failure(self) -> None:
         """Report namespace determination failure."""
         self.log.error(
             "Could not determine namespace within allocated time. Shutting down."
         )
         self._shutdown()
 
-    def watch_global(self, header, message):
+    def watch_global(self, header: Mapping[str, Any], message: Any) -> None:
         """
         Received information on one existing queue subscription.
         Try to identify the relevant transport namespace.
@@ -108,7 +109,7 @@ class Schlockmeister(CommonService):
                 ignore_namespace=True,
             )
 
-    def watch_local(self, header, message):
+    def watch_local(self, header: Mapping[str, Any], message: Any) -> None:
         """Keep track of queue consumers to identify active queues and topics."""
         if not isinstance(message, dict):
             return
@@ -173,7 +174,7 @@ class Schlockmeister(CommonService):
             self.log.warning("Received unknown message type\n%s", str(message))
         self.update_subscriptions()
 
-    def update_subscriptions(self):
+    def update_subscriptions(self) -> None:
         """Subscribe to any new queues with real subscribers."""
         for destination in self.known_queues:
             if self.known_queues[destination].get("subscription"):
@@ -194,7 +195,7 @@ class Schlockmeister(CommonService):
                     )
                 )
 
-    def garbage_collect(self):
+    def garbage_collect(self) -> None:
         """
         Delayed unsubscribe from lists that are without other subscribers.
         Clean up list of known queues.
@@ -224,7 +225,7 @@ class Schlockmeister(CommonService):
                     len(self.known_instances) - 1,
                 )
 
-    def quarantine(self, header, message):
+    def quarantine(self, header: Mapping[str, Any], message: Any) -> None:
         """Quarantine this message."""
 
         self.log.warning(

@@ -2,21 +2,25 @@ from __future__ import annotations
 
 import argparse
 from collections.abc import Iterable
+from typing import Any
 
 __all__ = ["get_specified_environments"]
 
 
 class _EnvParser(argparse.ArgumentParser):
-    def __init__(self, *args, add_help=False, **kwargs):
-        super().__init__(*args, add_help=add_help, **kwargs)
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        kwargs.setdefault("add_help", False)
+        super().__init__(*args, **kwargs)
 
-    def error(self, *args, **kwargs):  # type: ignore[IncompatibleMethodOverride]
+    def error(self, *args: Any, **kwargs: Any) -> None:  # type: ignore[override]
         # don't exit on error
         return None
 
 
 def get_specified_environments(
-    argv=None, *, arguments: Iterable[str] = ("-e", "--environment")
+    argv: list[str] | None = None,
+    *,
+    arguments: Iterable[str] = ("-e", "--environment"),
 ) -> list[str]:
     """Extract a list of all environments putatively specified on the command line.
     Returns an empty list if there are any parsing issues or there are no specified

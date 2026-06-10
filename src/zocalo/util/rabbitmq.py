@@ -10,7 +10,7 @@ import secrets
 import urllib
 import urllib.parse
 import urllib.request
-from typing import Any, overload
+from typing import Any, Self, overload
 
 import requests
 from pydantic import BaseModel, ConfigDict, Field
@@ -653,7 +653,7 @@ class RabbitMQAPI:
         self._session.auth = (user, password)
 
     @classmethod
-    def from_zocalo_configuration(cls, zc: zocalo.configuration.Configuration):
+    def from_zocalo_configuration(cls, zc: zocalo.configuration.Configuration) -> Self:
         instance = None
         base_url = zc.rabbitmqapi["base_url"]
         for url in base_url.split(","):
@@ -758,7 +758,7 @@ class RabbitMQAPI:
             endpoint = f"{endpoint}/e/{source}/{destination_type}/{destination}"
         dest_map = {"queue": "q", "exchange": "e"}
 
-        def conv(key, value):
+        def conv(key: str, value: Any) -> Any:
             return dest_map[value] if key == "destination_type" else value
 
         return [
@@ -766,7 +766,7 @@ class RabbitMQAPI:
             for r in self.get(endpoint).json()
         ]
 
-    def binding_declare(self, binding: BindingSpec):
+    def binding_declare(self, binding: BindingSpec) -> None:
         endpoint = f"bindings/{binding.vhost}/e/{binding.source}/{binding.destination_type.value}/{binding.destination}"
         response = self.post(
             endpoint,
@@ -784,7 +784,7 @@ class RabbitMQAPI:
         destination: str,
         destination_type: str,
         properties_key: str | None = None,
-    ):
+    ) -> None:
         # If properties_key is not specified then all bindings between the specified
         # source and destination are deleted
         endpoint = (
@@ -793,7 +793,7 @@ class RabbitMQAPI:
         if properties_key is None:
             dest_map = {"queue": "q", "exchange": "e"}
 
-            def conv(key, value):
+            def conv(key: str, value: Any) -> Any:
                 return dest_map[value] if key == "destination_type" else value
 
             props = [
@@ -852,7 +852,7 @@ class RabbitMQAPI:
         response = self.get(endpoint)
         return [ExchangeInfo(**qi) for qi in response.json()]
 
-    def exchange_declare(self, exchange: ExchangeSpec):
+    def exchange_declare(self, exchange: ExchangeSpec) -> None:
         endpoint = f"exchanges/{exchange.vhost}/{exchange.name}/"
         response = self.put(
             endpoint,
@@ -860,7 +860,7 @@ class RabbitMQAPI:
         )
         response.raise_for_status()
 
-    def exchange_delete(self, vhost: str, name: str, if_unused: bool = False):
+    def exchange_delete(self, vhost: str, name: str, if_unused: bool = False) -> None:
         endpoint = f"exchanges/{_quote(vhost)}/{name}"
         response = self.delete(endpoint, params={"if-unused": if_unused})
         response.raise_for_status()
@@ -877,7 +877,7 @@ class RabbitMQAPI:
         response = self.get(endpoint)
         return PolicySpec(**response.json())
 
-    def set_policy(self, policy: PolicySpec):
+    def set_policy(self, policy: PolicySpec) -> None:
         endpoint = f"policies/{policy.vhost}/{policy.name}/"
         response = self.put(
             endpoint,
@@ -887,7 +887,7 @@ class RabbitMQAPI:
         )
         response.raise_for_status()
 
-    def clear_policy(self, vhost: str, name: str):
+    def clear_policy(self, vhost: str, name: str) -> None:
         endpoint = f"policies/{_quote(vhost)}/{name}/"
         response = self.delete(endpoint)
         response.raise_for_status()
@@ -915,7 +915,7 @@ class RabbitMQAPI:
         response = self.get(endpoint)
         return [QueueInfo(**qi) for qi in response.json()]
 
-    def queue_declare(self, queue: QueueSpec):
+    def queue_declare(self, queue: QueueSpec) -> None:
         endpoint = f"queues/{queue.vhost}/{queue.name}"
         response = self.put(
             endpoint,
@@ -925,7 +925,7 @@ class RabbitMQAPI:
 
     def queue_delete(
         self, vhost: str, name: str, if_unused: bool = False, if_empty: bool = False
-    ):
+    ) -> None:
         logger.debug(f"Deleting queue {_quote(vhost)}/{name}")
         endpoint = f"queues/{_quote(vhost)}/{name}"
         response = self.delete(
@@ -966,7 +966,7 @@ class RabbitMQAPI:
         response = self.get(endpoint)
         return [PermissionSpec(**ps) for ps in response.json()]
 
-    def set_permissions(self, permission: PermissionSpec):
+    def set_permissions(self, permission: PermissionSpec) -> None:
         endpoint = f"permissions/{permission.vhost}/{permission.user}/"
         submission = permission.model_dump(
             exclude_defaults=True, exclude={"vhost", "user"}
@@ -974,19 +974,19 @@ class RabbitMQAPI:
         response = self.put(endpoint, json=submission)
         response.raise_for_status()
 
-    def clear_permissions(self, vhost: str, user: str):
+    def clear_permissions(self, vhost: str, user: str) -> None:
         endpoint = f"permissions/{_quote(vhost)}/{user}/"
         response = self.delete(endpoint)
         response.raise_for_status()
 
-    def user_put(self, user: UserSpec):
+    def user_put(self, user: UserSpec) -> None:
         endpoint = f"users/{user.name}/"
         submission = user.model_dump(exclude_defaults=True, exclude={"name"})
         submission["tags"] = ",".join(submission["tags"])
         response = self.put(endpoint, json=submission)
         response.raise_for_status()
 
-    def user_delete(self, name: str):
+    def user_delete(self, name: str) -> None:
         endpoint = f"users/{name}/"
         response = self.delete(endpoint)
         response.raise_for_status()
@@ -1001,7 +1001,7 @@ class RabbitMQAPI:
         response = self.get(endpoint).json()
         return VHostSpec(**response)
 
-    def add_vhost(self, vhost: VHostSpec):
+    def add_vhost(self, vhost: VHostSpec) -> None:
         endpoint = f"vhosts/{vhost.name}/"
         response = self.put(
             endpoint,
@@ -1009,7 +1009,7 @@ class RabbitMQAPI:
         )
         response.raise_for_status()
 
-    def delete_vhost(self, name: str):
+    def delete_vhost(self, name: str) -> None:
         endpoint = f"vhosts/{name}/"
         response = self.delete(endpoint)
         response.raise_for_status()

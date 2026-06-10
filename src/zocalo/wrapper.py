@@ -3,60 +3,67 @@ from __future__ import annotations
 import logging
 import threading
 from collections.abc import Callable
-from typing import Any, Mapping, NotRequired, TypedDict, cast
+from typing import TYPE_CHECKING, Any, Mapping, NotRequired, TypedDict, cast
 
 import workflows.services.common_service
 import workflows.util
 
 import zocalo
 
+if TYPE_CHECKING:
+    import workflows.recipe.wrapper
+
+    import zocalo.configuration
+
 
 class BaseWrapper:
     _logger_name = "zocalo.wrapper"  # The logger can be accessed via self.log
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         self._environment = kwargs.get("environment", {})
-        self.__log_extra = {}
+        self.__log_extra: dict[str, Any] = {}
         logger = logging.getLogger(self._logger_name)
         self.log = logging.LoggerAdapter(logger, extra=self.__log_extra)
 
-    def set_recipe_wrapper(self, recwrap):
+    def set_recipe_wrapper(
+        self, recwrap: workflows.recipe.wrapper.RecipeWrapper
+    ) -> None:
         self.recwrap = recwrap
         self.__log_extra["recipe_ID"] = recwrap.environment["ID"]
 
-    def prepare(self, payload=""):
+    def prepare(self, payload: Any = "") -> None:
         if getattr(self, "recwrap", None):
             self.recwrap.send_to("starting", payload)
 
-    def update(self, payload=""):
+    def update(self, payload: Any = "") -> None:
         if getattr(self, "recwrap", None):
             self.recwrap.send_to("updates", payload)
 
-    def done(self, payload=""):
+    def done(self, payload: Any = "") -> None:
         if getattr(self, "recwrap", None):
             self.recwrap.send_to("completed", payload)
 
-    def success(self, payload=""):
+    def success(self, payload: Any = "") -> None:
         if getattr(self, "recwrap", None):
             self.recwrap.send_to("success", payload)
 
-    def failure(self, payload=""):
+    def failure(self, payload: Any = "") -> None:
         if getattr(self, "recwrap", None):
             self.recwrap.send_to("failure", str(payload))
 
-    def run(self):
+    def run(self) -> bool:
         raise NotImplementedError()
 
-    def record_result_individual_file(self, payload=""):
+    def record_result_individual_file(self, payload: Any = "") -> None:
         if getattr(self, "recwrap", None):
             self.recwrap.send_to("result-individual-file", payload)
 
-    def record_result_all_files(self, payload=""):
+    def record_result_all_files(self, payload: Any = "") -> None:
         if getattr(self, "recwrap", None):
             self.recwrap.send_to("result-all-files", payload)
 
     @property
-    def config(self):
+    def config(self) -> zocalo.configuration.Configuration | None:
         return self._environment.get("config")
 
 
@@ -65,7 +72,7 @@ class DummyWrapper(BaseWrapper):
 
     status_thread: StatusNotifications
 
-    def run(self):
+    def run(self) -> bool:
         self.log.info("This is a dummy wrapper that simply waits for twenty seconds.")
         import time
 
