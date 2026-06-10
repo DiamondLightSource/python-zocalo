@@ -32,20 +32,20 @@ logger = logging.getLogger("zocalo.cli.configure_rabbitmq")
 
 
 class RabbitMQAPI(_RabbitMQAPI):
-    @functools.singledispatchmethod  # type: ignore
-    def create_component(self, component: BaseModel):
+    @functools.singledispatchmethod
+    def create_component(self, component: BaseModel) -> None:
         raise NotImplementedError(f"Component {component} not recognised")
 
-    @functools.singledispatchmethod  # type: ignore
-    def delete_component(self, component: BaseModel):
+    @functools.singledispatchmethod
+    def delete_component(self, component: BaseModel) -> None:
         raise NotImplementedError(f"Component {component} not recognised")
 
-    @create_component.register  # type: ignore
-    def _(self, binding: BindingSpec):
+    @create_component.register
+    def _(self, binding: BindingSpec) -> None:
         self.binding_declare(binding)
 
-    @delete_component.register  # type: ignore
-    def _(self, binding: BindingSpec):
+    @delete_component.register
+    def _(self, binding: BindingSpec) -> None:
         self.bindings_delete(
             vhost=binding.vhost,
             source=binding.source,
@@ -53,28 +53,28 @@ class RabbitMQAPI(_RabbitMQAPI):
             destination_type=binding.destination_type.value,
         )
 
-    @create_component.register  # type: ignore
-    def _(self, exchange: ExchangeSpec):
+    @create_component.register
+    def _(self, exchange: ExchangeSpec) -> None:
         self.exchange_declare(exchange)
 
-    @delete_component.register  # type: ignore
-    def _(self, exchange: ExchangeSpec, **kwargs):
+    @delete_component.register
+    def _(self, exchange: ExchangeSpec, **kwargs: Any) -> None:
         self.exchange_delete(vhost=exchange.vhost, name=exchange.name, **kwargs)
 
-    @create_component.register  # type: ignore
-    def _(self, vhost: VHostSpec):
+    @create_component.register
+    def _(self, vhost: VHostSpec) -> None:
         self.add_vhost(vhost)
 
-    @delete_component.register  # type: ignore
-    def _(self, vhost: VHostSpec):
+    @delete_component.register
+    def _(self, vhost: VHostSpec) -> None:
         self.delete_vhost(name=vhost.name)
 
-    @create_component.register  # type: ignore
-    def _(self, permissions: PermissionSpec):
+    @create_component.register
+    def _(self, permissions: PermissionSpec) -> None:
         self.set_permissions(permissions)
 
-    @delete_component.register  # type: ignore
-    def _(self, permissions: PermissionSpec):
+    @delete_component.register
+    def _(self, permissions: PermissionSpec) -> None:
         self.clear_permissions(vhost=permissions.vhost, user=permissions.user)
 
 
