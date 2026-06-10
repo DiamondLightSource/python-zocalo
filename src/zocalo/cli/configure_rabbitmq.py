@@ -79,24 +79,24 @@ class RabbitMQAPI(_RabbitMQAPI):
 
 
 @functools.singledispatch
-def _info_to_spec(incoming, infos: Sequence):
+def _info_to_spec(incoming: BaseModel, infos: Sequence[BaseModel]) -> list[BaseModel]:
     cls = type(incoming)
     return [cls(**i.model_dump()) for i in infos]
 
 
 @functools.singledispatch
-def _skip(comp) -> bool:
+def _skip(comp: BaseModel) -> bool:
     return False
 
 
-@_skip.register  # type: ignore
+@_skip.register
 def _(comp: ExchangeSpec) -> bool:
     if comp.name == "" or "amq." in comp.name:
         return True
     return False
 
 
-@_skip.register  # type: ignore
+@_skip.register
 def _(comp: BindingSpec) -> bool:
     if comp.source == "" or "amq." in comp.source:
         return True
@@ -105,7 +105,7 @@ def _(comp: BindingSpec) -> bool:
 
 def update_config(
     api: RabbitMQAPI, incoming: Sequence[BaseModel], current: Sequence[BaseModel]
-):
+) -> None:
     cls = type(incoming[0])
     current = _info_to_spec(incoming[0], current)
     for cc in current:
@@ -267,7 +267,7 @@ def get_exchange_specs_for_group(group: dict) -> list[ExchangeSpec]:
     ]
 
 
-def _configure_policies(api, policies: list[dict[str, Any]]):
+def _configure_policies(api: RabbitMQAPI, policies: list[dict[str, Any]]) -> None:
     existing_policies = {
         (policy.vhost, policy.name): policy for policy in api.policies()
     }
@@ -301,7 +301,7 @@ def _configure_policies(api, policies: list[dict[str, Any]]):
         api.clear_policy(vhost=policy_id[0], name=policy_id[1])
 
 
-def _configure_queues(api, queues: list[QueueSpec]):
+def _configure_queues(api: RabbitMQAPI, queues: list[QueueSpec]) -> None:
     existing_queues = {(q.vhost, q.name): q for q in api.queues()}
     known_queues: set[tuple[str, str]] = set()
 
@@ -336,7 +336,7 @@ def _configure_queues(api, queues: list[QueueSpec]):
         api.queue_delete(vhost=queue_id[0], name=queue_id[1])
 
 
-def _configure_users(api, rabbitmq_user_config_area: Path):
+def _configure_users(api: RabbitMQAPI, rabbitmq_user_config_area: Path) -> None:
     existing_users = {user.name: user for user in api.users()}
 
     planned_users: dict[str, Path] = {}
@@ -387,7 +387,7 @@ def _configure_users(api, rabbitmq_user_config_area: Path):
         api.user_delete(name=user)
 
 
-def run():
+def run() -> None:
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     handler = logging.getLogger().handlers[0]
 
