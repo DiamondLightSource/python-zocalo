@@ -7,7 +7,7 @@ name = "zocalo"
 version = "1.4.0"
 description = "Infrastructure components for automated data processing at Diamond Light Source"
 authors = [{ name = "Nicholas Devenish", email = "ndevenish@gmail.com" }]
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 readme = "README.rst"
 dependencies = [
     "pyyaml",
@@ -15,7 +15,7 @@ dependencies = [
     "marshmallow",
     "requests",
     "pydantic~=2.13",
-    "workflows>=3.0",
+    "workflows>=3.7",
     "opentelemetry-api"
 ]
 
