@@ -111,19 +111,35 @@ def jobs_response():
                 "het_job_offset": {"infinite": False, "number": 0, "set": True},
                 "job_id": 6080221,
                 "job_resources": {
-                    "allocated_cores": 1,
-                    "allocated_cpus": 0,
-                    "allocated_hosts": 1,
-                    "allocated_nodes": [
-                        {
-                            "cpus_used": 0,
-                            "memory_allocated": 9000,
-                            "memory_used": 0,
-                            "nodename": "cma2-02",
-                            "sockets": {"0": {"cores": {"8": "allocated"}}},
-                        }
-                    ],
-                    "nodes": "cma2-02",
+                    "select_type": ["CORE"],
+                    "cpus": 1,
+                    "threads_per_core": {
+                        "set": True,
+                        "infinite": False,
+                        "number": 1,
+                    },
+                    "nodes": {
+                        "count": 1,
+                        "select_type": ["ONE_ROW"],
+                        "list": "cma2-02",
+                        "whole": False,
+                        "allocation": [
+                            {
+                                "index": 0,
+                                "name": "cma2-02",
+                                "cpus": {"count": 1, "used": 0},
+                                "memory": {"used": 0, "allocated": 9000},
+                                "sockets": [
+                                    {
+                                        "index": 0,
+                                        "cores": [
+                                            {"index": 8, "status": ["ALLOCATED"]}
+                                        ],
+                                    }
+                                ],
+                            }
+                        ],
+                    },
                 },
                 "job_size_str": [],
                 "job_state": ["RUNNING"],
