@@ -2,9 +2,12 @@
 History
 =======
 
+1.6.0 (Unreleased)
+-----------------
+- Fix error running tests with Workflows 3.7 installed (`#307 <https://github.com/DiamondLightSource/python-zocalo/pull/307>`_)
+
 1.5.0 (2026-06-10)
 ------------------
-
 - Add docs for writing your own plugin (`#305 <https://github.com/DiamondLightSource/python-zocalo/pull/305>`_)
 - Update SLURM API to v0.0.44 (`#306 <https://github.com/DiamondLightSource/python-zocalo/pull/306>`_)
 
