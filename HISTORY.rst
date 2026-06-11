@@ -2,8 +2,8 @@
 History
 =======
 
-1.6.0 (Unreleased)
------------------
+1.6.0 (2026-06-11)
+------------------
 - Fix error running tests with Workflows 3.7 installed. (`#308 <https://github.com/DiamondLightSource/python-zocalo/pull/308>`_)
 - Clean typing errors when linting with the pyright linter. (`#307 <https://github.com/DiamondLightSource/python-zocalo/pull/307>`_)
 - Provide a basic set of type annotations for all objects. (`#309 <https://github.com/DiamondLightSource/python-zocalo/pull/309>`_)
