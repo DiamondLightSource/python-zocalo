@@ -16,7 +16,7 @@ import workflows.transport
 import zocalo.configuration
 
 
-def run(args=None):
+def run(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser()
 
     # Load configuration
@@ -43,7 +43,7 @@ def run(args=None):
     )
     zc.add_command_line_options(parser)
     workflows.transport.add_command_line_options(parser, transport_argument=True)
-    args = parser.parse_args(args)
+    args = parser.parse_args(argv)
 
     if not args.services and not len(args.HOSTS):
         print("Need to specify one or more services to shut down.")

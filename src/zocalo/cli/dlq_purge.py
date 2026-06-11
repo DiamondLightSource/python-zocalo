@@ -72,7 +72,11 @@ def run() -> None:
     idlequeue: queue.Queue[Literal["start", "done"] | tuple[str, str]] = queue.Queue()
 
     def receive_dlq_message(
-        header: Mapping[str, Any], message: Any, *, queue_name: str, rabbitmq=False
+        header: Mapping[str, Any],
+        message: Any,
+        *,
+        queue_name: str,
+        rabbitmq: bool = False,
     ) -> None:
         idlequeue.put_nowait("start")
         if rabbitmq:

@@ -104,7 +104,7 @@ def _monkeypatch_graypy() -> None:
 
     class PythonLevelToSyslogConverter:
         @staticmethod
-        def get(level, _):
+        def get(level: int, _: object) -> int:
             if level < 20:
                 return 7  # DEBUG
             elif level < 25:

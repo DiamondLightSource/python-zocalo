@@ -13,6 +13,7 @@ import socket
 import sys
 import uuid
 from pprint import pprint
+from typing import Any, Literal
 
 import workflows.recipe
 import workflows.transport
@@ -22,7 +23,7 @@ import zocalo.configuration.argparse
 # Example: zocalo.go -r example-xia2 527189
 
 
-def run():
+def run() -> None:
     zc = zocalo.configuration.from_file()
     zc.activate()
 
@@ -119,12 +120,15 @@ def run():
     workflows.transport.add_command_line_options(parser, transport_argument=True)
     args = parser.parse_args()
 
+    dropfile_fallback: pathlib.Path | Literal[False]
     if zc.storage and zc.storage.get("zocalo.go.fallback_location"):
         dropfile_fallback = pathlib.Path(zc.storage["zocalo.go.fallback_location"])
     else:
         dropfile_fallback = False
 
-    def write_message_to_dropfile(message, headers):
+    def write_message_to_dropfile(
+        message: dict[str, Any], headers: dict[str, str]
+    ) -> None:
         message_serialized = (
             json.dumps({"headers": headers, "message": message}, indent=2) + "\n"
         )
@@ -136,7 +140,7 @@ def run():
         fallback.write_text(message_serialized)
         print("Message successfully stored in %s" % fallback)
 
-    def send_or_defer(message):
+    def send_or_defer(message: dict[str, Any]) -> None:
         headers = {
             "zocalo.go.user": getpass.getuser(),
             "zocalo.go.host": socket.gethostname(),

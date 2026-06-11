@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import sys
+from typing import Any
 
 import workflows.contrib.start_service
 import workflows.transport
@@ -10,7 +11,7 @@ import zocalo.configuration.argparse
 import zocalo.util
 
 
-def start_service():
+def start_service() -> None:
     ServiceStarter().run(
         program_name="zocalo.service",
         version=zocalo.__version__,
@@ -23,7 +24,7 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
 
     __frontendref = None
 
-    def setup_logging(self):
+    def setup_logging(self) -> None:
         """Initialize common logging framework. Everything is logged to central
         graylog server. Depending on setting messages of DEBUG or INFO and higher
         go to console."""
@@ -66,7 +67,7 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
                 "zocalo.default_transport"
             ]
 
-    def on_parser_preparation(self, parser):  # pyright: ignore[reportIncompatibleMethodOverride]
+    def on_parser_preparation(self, parser: Any) -> None:  # pyright: ignore[reportIncompatibleMethodOverride]
         parser.add_option(
             "-v",
             "--verbose",
@@ -100,7 +101,7 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
         self._zc.add_command_line_options(parser)
         self.log.debug("Launching %r", sys.argv)
 
-    def on_parsing(self, options, args):  # pyright: ignore[reportIncompatibleMethodOverride]
+    def on_parsing(self, options: Any, args: Any) -> None:  # pyright: ignore[reportIncompatibleMethodOverride]
         if options.verbose:
             self.console.setLevel(logging.DEBUG)
             if self._zc.logging:
@@ -113,14 +114,14 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
                 logging.getLogger("workflows").setLevel(logging.DEBUG)
         self.options = options
 
-    def before_frontend_construction(self, kwargs):  # pyright: ignore[reportIncompatibleMethodOverride]
+    def before_frontend_construction(self, kwargs: dict[str, Any]) -> dict[str, Any]:  # pyright: ignore[reportIncompatibleMethodOverride]
         kwargs["verbose_service"] = True
         kwargs["environment"] = kwargs.get("environment", {})
         kwargs["environment"]["live"] = self.use_live_infrastructure
         kwargs["environment"]["config"] = self._zc
         return kwargs
 
-    def on_frontend_preparation(self, frontend):  # pyright: ignore[reportIncompatibleMethodOverride]
+    def on_frontend_preparation(self, frontend: Any) -> None:  # pyright: ignore[reportIncompatibleMethodOverride]
         if self.options.service_restart:
             frontend.restart_service = True
 
@@ -130,7 +131,7 @@ class ServiceStarter(workflows.contrib.start_service.ServiceStarter):
 
         original_status_function = frontend.get_status
 
-        def extend_status_wrapper():
+        def extend_status_wrapper() -> dict[str, Any]:
             status = original_status_function()
             status.update(extended_status)
             return status

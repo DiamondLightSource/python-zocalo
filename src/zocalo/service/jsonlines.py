@@ -19,7 +19,7 @@ class JSONLines(CommonService):
 
     _data: dict[Path, list[tuple[dict, dict]]]
 
-    def initializing(self):
+    def initializing(self) -> None:
         self._register_idle(1, self.process_messages)
         workflows.recipe.wrap_subscribe(
             self.transport,
@@ -35,7 +35,7 @@ class JSONLines(CommonService):
 
     def receive_msg(
         self, rw: workflows.recipe.RecipeWrapper, header: dict, message: dict
-    ):
+    ) -> None:
         assert rw.recipe_step
         output_filename = rw.recipe_step["parameters"]["output_filename"]
         if not output_filename:
@@ -64,7 +64,7 @@ class JSONLines(CommonService):
             self.log.info("Triggering process messages")
             self.process_messages()
 
-    def process_messages(self):
+    def process_messages(self) -> None:
         with self._lock:
             for output_filename in list(self._data):
                 grouped_data = self._data[output_filename]

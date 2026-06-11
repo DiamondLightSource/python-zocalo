@@ -3,6 +3,7 @@ from __future__ import annotations
 import email.message
 import pprint
 import smtplib
+from typing import Any
 
 import workflows.recipe
 from workflows.services.common_service import CommonService
@@ -14,7 +15,7 @@ class _SafeDict(dict):
     """A dictionary that returns undefined keys as {keyname}.
     This can be used to selectively replace variables in datastructures."""
 
-    def __missing__(self, key):
+    def __missing__(self, key: str) -> str:
         return "{" + key + "}"
 
 
@@ -27,7 +28,7 @@ class Mailer(CommonService):
     # Logger name
     _logger_name = "zocalo.services.mailer"
 
-    def initializing(self):
+    def initializing(self) -> None:
         """Subscribe to the Mail notification queue.
         Received messages must be acknowledged."""
         self.log.debug("Mail notifications starting")
@@ -49,7 +50,7 @@ class Mailer(CommonService):
         )
 
     @staticmethod
-    def listify(recipients):
+    def listify(recipients: Any) -> list:
         if isinstance(recipients, list):
             return recipients
         elif isinstance(recipients, tuple):
@@ -57,12 +58,15 @@ class Mailer(CommonService):
         else:
             return [recipients]
 
-    def receive_msg(self, rw, header, message):
+    def receive_msg(
+        self, rw: workflows.recipe.RecipeWrapper | None, header: dict, message: Any
+    ) -> None:
         """Do some mail notification."""
 
         self.log.info(f"{message=}")
 
         if rw:
+            assert rw.recipe_step
             parameters = rw.recipe_step["parameters"]
             content = None
         else:

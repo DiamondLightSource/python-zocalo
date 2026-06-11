@@ -9,6 +9,7 @@ import time
 import timeit
 import uuid
 from importlib.metadata import entry_points
+from typing import Any, TextIO
 
 import workflows.recipe
 from opentelemetry import trace
@@ -34,7 +35,9 @@ class Dispatcher(CommonService):
     # Logger name
     _logger_name = "zocalo.service.dispatcher"
 
-    def filter_load_recipes_from_files(self, message, parameters):
+    def filter_load_recipes_from_files(
+        self, message: dict[str, Any], parameters: dict[str, Any]
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
         """Load named recipes from central location and merge them into the recipe object"""
         for recipefile in message.get("recipes", []):
             try:
@@ -57,7 +60,9 @@ class Dispatcher(CommonService):
             message["recipe"] = message["recipe"].merge(named_recipe)
         return message, parameters
 
-    def filter_load_custom_recipe(self, message, parameters):
+    def filter_load_custom_recipe(
+        self, message: dict[str, Any], parameters: dict[str, Any]
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
         """Load a custom recipe from a message and merge them into the recipe object"""
         if message.get("custom_recipe"):
             try:
@@ -81,13 +86,15 @@ class Dispatcher(CommonService):
             message["recipe"] = message["recipe"].merge(custom_recipe)
         return message, parameters
 
-    def filter_apply_parameters(self, message, parameters):
+    def filter_apply_parameters(
+        self, message: dict[str, Any], parameters: dict[str, Any]
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
         """Fill in any placeholders in the recipe of the form {name} using the
         parameters data structure"""
         message["recipe"].apply_parameters(parameters)
         return message, parameters
 
-    def initializing(self):
+    def initializing(self) -> None:
         """Subscribe to the processing_recipe queue. Received messages must be acknowledged."""
         self.log.info("Dispatcher starting")
         self.recipe_basepath = self._environment["config"].storage.get(
@@ -139,7 +146,14 @@ class Dispatcher(CommonService):
             allow_non_recipe_messages=True,
         )
 
-    def record_to_logbook(self, guid, header, original_message, message, recipewrap):
+    def record_to_logbook(
+        self,
+        guid: str,
+        header: dict[str, Any],
+        original_message: dict[str, Any],
+        message: dict[str, Any],
+        recipewrap: workflows.recipe.RecipeWrapper,
+    ) -> None:
         assert self._logbook is not None
         basepath = os.path.join(self._logbook, time.strftime("%Y-%m"))
         clean_guid = re.sub(r"[^a-z0-9A-Z\-]+", "", guid, re.UNICODE)
@@ -153,8 +167,8 @@ class Dispatcher(CommonService):
         except OSError:
             pass  # Ignore if exists
 
-        def neat_json_to_file(obj, fh, **kwargs):
-            def _fix(item):
+        def neat_json_to_file(obj: Any, fh: TextIO, **kwargs: Any) -> None:
+            def _fix(item: Any) -> Any:
                 if isinstance(item, list):
                     return [_fix(i) for i in item]
                 if isinstance(item, dict):
@@ -191,7 +205,12 @@ class Dispatcher(CommonService):
         except Exception:
             self.log.warning("Could not write message to logbook", exc_info=True)
 
-    def process(self, rw, header, message):
+    def process(
+        self,
+        rw: workflows.recipe.RecipeWrapper | None,
+        header: dict,
+        message: Any,
+    ) -> None:
         """Process an incoming processing request."""
         # Time execution
         start_time = timeit.default_timer()

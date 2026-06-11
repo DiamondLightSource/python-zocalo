@@ -5,13 +5,14 @@ import json
 import pathlib
 import sys
 import time
+from typing import Any
 
 import workflows.transport
 
 import zocalo.configuration
 
 
-def run():
+def run() -> None:
     zc = zocalo.configuration.from_file()
     zc.activate()
     dropdir = pathlib.Path(zc.storage["zocalo.go.fallback_location"])
@@ -68,7 +69,7 @@ def run():
     transport = workflows.transport.lookup(args.transport)()
     transport.connect()
 
-    file_info = {f: {} for f in files}
+    file_info: dict[pathlib.Path, dict[str, Any]] = {f: {} for f in files}
 
     for f, finfo in file_info.items():
         with f.open() as fh:
