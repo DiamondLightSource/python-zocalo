@@ -57,7 +57,7 @@ jobs:
           custom-pytest: "PYTHONDEVMODE=1 pytest"
           report-title: "Test Report"
       - name: Upload Coverage to Codecov
-        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
+        uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # v5.5.5
 
   pypi-publish:
     name: Upload release to PyPI
