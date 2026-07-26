@@ -82,7 +82,7 @@ pydantic==2.13.4
     # via zocalo
 pydantic-core==2.46.4
     # via pydantic
-pygments==2.18.0
+pygments==2.20.0
     # via sphinx
 pyright==1.1.410
 pytest==8.3.3
