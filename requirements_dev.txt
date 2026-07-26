@@ -85,7 +85,7 @@ pydantic-core==2.46.4
 pygments==2.18.0
     # via sphinx
 pyright==1.1.410
-pytest==8.3.3
+pytest==9.0.3
     # via
     #   pytest-cov
     #   pytest-mock
