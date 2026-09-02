@@ -28,7 +28,7 @@ googleapis-common-protos==1.75.0
     # via opentelemetry-exporter-otlp-proto-http
 graypy==2.1.0
     # via zocalo
-idna==3.10
+idna==3.15
     # via requests
 imagesize==1.4.1
     # via sphinx
