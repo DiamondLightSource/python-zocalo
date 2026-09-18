@@ -95,6 +95,7 @@ groups:
   - trigger
   - validation
   - bridge.test
+  - workflows.submission
 
   settings:
     queues:
