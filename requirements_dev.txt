@@ -44,7 +44,7 @@ marshmallow==3.23.1
     # via zocalo
 nodeenv==1.10.0
     # via pyright
-opentelemetry-api==1.40.0
+opentelemetry-api==1.45.1
     # via
     #   opentelemetry-exporter-otlp-proto-http
     #   opentelemetry-sdk
