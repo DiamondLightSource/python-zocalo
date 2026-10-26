@@ -3,9 +3,18 @@ from __future__ import annotations
 import json
 import threading
 from pathlib import Path
+from typing import Annotated, Any
 
+import pydantic
 import workflows.recipe
+from workflows.recipe.typed import NonEmpty, typed_handler
 from workflows.services.common_service import CommonService
+
+
+class JSONLinesParameters(pydantic.BaseModel):
+    output_filename: Annotated[Path, NonEmpty]
+    include: set[str] = set()
+    exclude: set[str] = set()
 
 
 class JSONLines(CommonService):
@@ -21,38 +30,32 @@ class JSONLines(CommonService):
 
     def initializing(self) -> None:
         self._register_idle(1, self.process_messages)
-        workflows.recipe.wrap_subscribe(
-            self.transport,
+        self.subscribe(
             "jsonlines",
             self.receive_msg,
-            acknowledgement=True,
             exclusive=True,
-            log_extender=self.extend_log,
             prefetch_count=100,
         )
         self._lock = threading.Lock()
         self._data = {}
 
+    @typed_handler
     def receive_msg(
-        self, rw: workflows.recipe.RecipeWrapper, header: dict, message: dict
+        self,
+        rw: workflows.recipe.RecipeWrapper,
+        header: dict,
+        message: dict[str, Any],
+        parameters: JSONLinesParameters,
     ) -> None:
-        assert rw.recipe_step
-        output_filename = rw.recipe_step["parameters"]["output_filename"]
-        if not output_filename:
-            self.log.error("Received message contains no output_filename")
-            rw.transport.nack(header)
-            return
-        output_filename = Path(output_filename)
-        exclude = set(rw.recipe_step["parameters"].get("exclude", []))
-        include = set(rw.recipe_step["parameters"].get("include", []))
+        output_filename = parameters.output_filename
         filtered_message = message
-        if include:
+        if parameters.include:
             filtered_message = {
-                k: v for k, v in filtered_message.items() if k in include
+                k: v for k, v in filtered_message.items() if k in parameters.include
             }
-        if exclude:
+        if parameters.exclude:
             filtered_message = {
-                k: v for k, v in filtered_message.items() if k not in exclude
+                k: v for k, v in filtered_message.items() if k not in parameters.exclude
             }
 
         with self._lock:
