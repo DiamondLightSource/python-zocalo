@@ -738,8 +738,8 @@ class ProcessExitCodeVerbose(BaseModel):
     signal: Signal | None = None
 
 
-class JobInfoGresDetail(RootModel[List[str]]):
-    root: List[str]
+class JobInfoGresDetail(RootModel[List[str | None]]):
+    root: List[str | None]
 
 
 class SelectTypeEnum(StrEnum):
