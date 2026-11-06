@@ -10,7 +10,7 @@
   "schedule": [
     "* 7-15 * * 1"
   ],
-  "minimumReleaseAge": "2 days",
+  "minimumReleaseAge": "7 days",
   "prCreation": "not-pending",
   "prHourlyLimit": 2,
   "lockFileMaintenance": {
