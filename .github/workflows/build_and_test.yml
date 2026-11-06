@@ -11,7 +11,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.13
+          python-version: 3.15
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -58,7 +58,7 @@ jobs:
           custom-pytest: "PYTHONDEVMODE=1 pytest"
           report-title: "Test Report"
       - name: Upload Coverage to Codecov
-        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
+        uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # v5.5.5
 
   pypi-publish:
     name: Upload release to PyPI
@@ -76,4 +76,4 @@ jobs:
           name: artifact
           path: dist
       - name: Publish package distributions to PyPI
-        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # v1.14.0
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
