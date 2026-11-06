@@ -38,14 +38,15 @@ jobs:
           name: artifact
           path: dist
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - name: Set up uv with Python ${{ matrix.python-version }}
+        uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ matrix.python-version }}
+          activate-environment: true
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install dist/*.whl -r requirements_dev.txt pytest-md pytest-emoji
+          uv sync --locked --no-install-project
+          uv pip install dist/*.whl pytest-md pytest-emoji
       - name: Run pytest
         uses: pavelzw/pytest-action@510c5e90c360a185039bea56ce8b3e7e51a16507 # v2.2.0
         with:

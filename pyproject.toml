@@ -84,6 +84,7 @@ storage = "zocalo.configuration.plugin_storage:Storage"
 
 [tool.uv]
 default-groups = ["dev", "docs"]
+exclude-newer = "7 days"
 
 [tool.pytest.ini_options]
 required_plugins = "pytest-mock requests-mock"
