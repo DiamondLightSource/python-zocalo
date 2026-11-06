@@ -33,7 +33,7 @@ repos:
     - types-pyyaml
 
 - repo: https://github.com/astral-sh/uv-pre-commit
-  rev: 0.11.18
+  rev: 0.13.7
   hooks:
     - id: uv-lock
     - id: uv-export
