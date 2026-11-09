@@ -49,3 +49,19 @@ def test_jsonlines(tmp_path):
 {"ham": 2, "spam": 3}
 """
     )
+
+
+def test_jsonlines_rejects_missing_output_filename():
+    message = {
+        "recipe": {"1": {"parameters": {"output_filename": ""}}},
+        "recipe-pointer": 1,
+    }
+    header = {"message-id": 1, "subscription": 1}
+    t = mock.Mock()
+    rw = RecipeWrapper(message=message, transport=t)
+    jsonlines = JSONLines()
+    jsonlines.transport = t
+    jsonlines.start()
+    jsonlines.receive_msg(rw, header, {"foo": "bar"})
+    t.nack.assert_called_once_with(header, requeue=False)
+    assert not jsonlines._data

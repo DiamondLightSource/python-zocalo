@@ -15,7 +15,7 @@ dependencies = [
     "marshmallow",
     "requests",
     "pydantic~=2.13",
-    "workflows>=3.7",
+    "workflows>=3.8",
     "opentelemetry-api"
 ]
 
@@ -85,6 +85,7 @@ storage = "zocalo.configuration.plugin_storage:Storage"
 [tool.uv]
 default-groups = ["dev", "docs"]
 exclude-newer = "7 days"
+exclude-newer-package = { workflows = false }
 
 [tool.pytest.ini_options]
 required_plugins = "pytest-mock requests-mock"

@@ -137,13 +137,8 @@ class Dispatcher(CommonService):
             )
         }
 
-        workflows.recipe.wrap_subscribe(
-            self.transport,
-            "processing_recipe",
-            self.process,
-            acknowledgement=True,
-            log_extender=self.extend_log,
-            allow_non_recipe_messages=True,
+        self.subscribe(
+            "processing_recipe", self.process, allow_non_recipe_messages=True
         )
 
     def record_to_logbook(

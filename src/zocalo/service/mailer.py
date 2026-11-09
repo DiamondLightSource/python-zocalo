@@ -3,9 +3,12 @@ from __future__ import annotations
 import email.message
 import pprint
 import smtplib
-from typing import Any
+from collections.abc import Mapping
+from typing import Annotated, Any
 
+import pydantic
 import workflows.recipe
+from workflows.recipe.typed import typed_handler
 from workflows.services.common_service import CommonService
 
 import zocalo.configuration
@@ -17,6 +20,70 @@ class _SafeDict(dict):
 
     def __missing__(self, key: str) -> str:
         return "{" + key + "}"
+
+
+def _listify(recipients: str | list[str]) -> list[str]:
+    return recipients if isinstance(recipients, list) else [recipients]
+
+
+class RecipientGroups(pydantic.BaseModel):
+    """Recipients chosen from named groups of addresses, eg.
+
+    {"select": "i03", "i03": ["a@example.com"], "all": "b@example.com"}
+
+    sends to the addresses of the group named by 'select', plus those in 'all'.
+    """
+
+    model_config = pydantic.ConfigDict(extra="allow")
+    # Typing the extra fields validates the group addresses, as documented by pydantic
+    __pydantic_extra__: dict[str, str | list[str]]  # pyright: ignore[reportIncompatibleVariableOverride]
+
+    select: str
+    all: str | list[str] | None = None
+
+    def addresses(self) -> list[str]:
+        groups = self.model_dump(exclude_unset=True)
+        selected = set(_listify(groups.get(self.select, [])))
+        if self.all:
+            selected |= set(_listify(self.all))
+        return sorted(selected)
+
+
+class MailParameters(pydantic.BaseModel):
+    recipients: (
+        Annotated[str, pydantic.Field(min_length=1)]
+        | Annotated[list[str], pydantic.Field(min_length=1)]
+        | RecipientGroups
+    )
+    from_: str | None = pydantic.Field(None, alias="from")
+    subject: str = "mail notification via zocalo"
+    content: str | list[str] | None = None
+
+    @pydantic.model_validator(mode="before")
+    @classmethod
+    def _accept_recipient(cls, data: Any) -> Any:
+        """Accept 'recipient' as an alternative spelling of 'recipients'"""
+        if isinstance(data, Mapping) and "recipients" not in data:
+            if "recipient" in data:
+                return {**data, "recipients": data["recipient"]}
+        return data
+
+    def addresses(self) -> list[str]:
+        if isinstance(self.recipients, RecipientGroups):
+            return self.recipients.addresses()
+        return _listify(self.recipients)
+
+
+class SimpleMailMessage(pydantic.BaseModel):
+    """A mail notification sent directly to the queue, outside of a recipe"""
+
+    model_config = pydantic.ConfigDict(extra="allow")
+
+    parameters: Annotated[dict[str, Any], pydantic.Field(min_length=1)]
+    content: (
+        Annotated[str, pydantic.Field(min_length=1)]
+        | Annotated[list[str], pydantic.Field(min_length=1)]
+    )
 
 
 class Mailer(CommonService):
@@ -40,23 +107,11 @@ class Mailer(CommonService):
                 "There are no SMTP settings configured in your environment"
             )
 
-        workflows.recipe.wrap_subscribe(
-            self.transport,
+        self.subscribe(
             "mailnotification",
             self.receive_msg,
-            acknowledgement=True,
-            log_extender=self.extend_log,
             allow_non_recipe_messages=True,
         )
-
-    @staticmethod
-    def listify(recipients: Any) -> list:
-        if isinstance(recipients, list):
-            return recipients
-        elif isinstance(recipients, tuple):
-            return list(recipients)
-        else:
-            return [recipients]
 
     def receive_msg(
         self, rw: workflows.recipe.RecipeWrapper | None, header: dict, message: Any
@@ -66,71 +121,68 @@ class Mailer(CommonService):
         self.log.info(f"{message=}")
 
         if rw:
-            assert rw.recipe_step
-            parameters = rw.recipe_step["parameters"]
-            content = None
+            self.receive_recipe_msg(rw, header, message)
         else:
             # Incoming message is not a recipe message. Simple messages can be valid
-            if (
-                not isinstance(message, dict)
-                or not message.get("parameters")
-                or not message.get("content")
-            ):
-                self.log.warning("Rejected invalid simple message")
-                self.transport.nack(header)
-                return
+            self.receive_simple_msg(rw, header, message)
 
-            parameters = message["parameters"]
-            content = message["content"]
+    @typed_handler
+    def receive_recipe_msg(
+        self,
+        rw: workflows.recipe.RecipeWrapper,
+        header: dict,
+        message: Any,
+        parameters: MailParameters,
+    ) -> None:
+        self.send_mail(header, parameters, content=None, payload=message)
 
-        recipients = parameters.get("recipients", parameters.get("recipient"))
+    @typed_handler(parameters_from=("message.parameters",))
+    def receive_simple_msg(
+        self,
+        rw: None,
+        header: dict,
+        message: SimpleMailMessage,
+        parameters: MailParameters,
+    ) -> None:
+        self.send_mail(
+            header, parameters, content=message.content, payload=message.model_dump()
+        )
+
+    def send_mail(
+        self,
+        header: dict,
+        parameters: MailParameters,
+        *,
+        content: str | list[str] | None,
+        payload: Any,
+    ) -> None:
+        recipients = parameters.addresses()
         if not recipients:
-            self.log.warning("No recipients set for message")
-            self.transport.nack(header)
+            self.log.warning("No selected recipients for message")
+            self.transport.nack(header, requeue=False)
             return
-        if isinstance(recipients, dict):
-            if "select" not in recipients:
-                self.log.warning(
-                    "Recipients dictionary must have key 'select' to select relevant group"
-                )
-                self.transport.nack(header)
-                return
-            selected_recipients = self.listify(recipients.get(recipients["select"], []))
 
-            if recipients.get("all"):
-                recipients = sorted(
-                    set(selected_recipients) | set(self.listify(recipients["all"]))
-                )
-            else:
-                recipients = sorted(set(selected_recipients))
-            if not recipients:
-                self.log.warning("No selected recipients for message")
-                self.transport.nack(header)
-                return
-        else:
-            recipients = self.listify(recipients)
+        sender = parameters.from_ or self.config.smtp["from"]
 
-        sender = parameters.get("from", self.config.smtp["from"])
+        subject = parameters.subject
 
-        subject = parameters.get("subject", "mail notification via zocalo")
-
-        content = parameters.get("content", content)
+        if parameters.content is not None:
+            content = parameters.content
 
         if not content:
             self.log.warning("Message has no content")
-            self.transport.nack(header)
+            self.transport.nack(header, requeue=False)
             return
         if isinstance(content, list):
             content = "".join(content)
-        if isinstance(message, list):
-            pprint_message = "\n".join(message)
+        if isinstance(payload, list):
+            pprint_message = "\n".join(str(x) for x in payload)
         else:
-            pprint_message = pprint.pformat(message)
+            pprint_message = pprint.pformat(payload)
 
         content = content.format_map(
-            _SafeDict(payload=message, pprint_payload=pprint_message)
+            _SafeDict(payload=payload, pprint_payload=pprint_message)
         )
-
         self.log.info("Sending mail notification %r to %r", subject, recipients)
 
         # Accept message before sending mail. While this means we do not guarantee
