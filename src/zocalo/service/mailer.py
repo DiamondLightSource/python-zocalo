@@ -176,7 +176,7 @@ class Mailer(CommonService):
         if isinstance(content, list):
             content = "".join(content)
         if isinstance(payload, list):
-            pprint_message = "\n".join(payload)
+            pprint_message = "\n".join(str(x) for x in payload)
         else:
             pprint_message = pprint.pformat(payload)
 

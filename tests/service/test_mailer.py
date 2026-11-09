@@ -183,3 +183,14 @@ def test_mailer_select_group_from_all(mailer, mock_smtp_send_message):
     mailer.receive_msg(rw, HEADER, {})
     email_msg = mock_smtp_send_message.call_args[0][0]
     assert email_msg["To"] == "a@example.com"
+
+
+def test_mailer_pprint_list_payload(mailer, mock_smtp_send_message):
+    rw = recipe_wrapper(
+        {"recipients": "a@example.com", "content": "{pprint_payload}"},
+        mailer.transport,
+    )
+    mailer.receive_msg(rw, HEADER, ["line", 2, {"a": 1}])
+    mailer.transport.ack.assert_called_once_with(HEADER)
+    email_msg = mock_smtp_send_message.call_args[0][0]
+    assert email_msg.get_content() == "line\n2\n{'a': 1}\n"
