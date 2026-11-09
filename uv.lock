@@ -10,6 +10,9 @@ resolution-markers = [
 exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for backwards compatibility when using relative exclude-newer values.
 exclude-newer-span = "P7D"
 
+[options.exclude-newer-package]
+workflows = false
+
 [[package]]
 name = "alabaster"
 version = "1.0.0"
@@ -1152,7 +1155,7 @@ wheels = [
 
 [[package]]
 name = "workflows"
-version = "3.7"
+version = "3.8"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "bidict" },
@@ -1160,12 +1163,13 @@ dependencies = [
     { name = "opentelemetry-exporter-otlp-proto-http" },
     { name = "opentelemetry-sdk" },
     { name = "pika" },
+    { name = "pydantic" },
     { name = "setuptools" },
     { name = "stomp-py" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ca/20/30b7d325cdb679552c593e22f7ceb870a0daa611550bf46db460479f42eb/workflows-3.7.tar.gz", hash = "sha256:30ebf61e206e84ce687aa2ab43a3037ce66e7db78e5caa9ad12f9489acc097ba", size = 61650, upload-time = "2026-05-12T08:15:54.267Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ec/72/67b5c14d99cff8b9901404731899082c58572823d226e52bc828c4142edb/workflows-3.8.tar.gz", hash = "sha256:9c2964ea98adadb930886dccf33ce3e9748e8ddc57f474bb5b1921831bcd6d05", size = 68975, upload-time = "2026-11-06T17:02:01.112Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/db/a8/d39108fa624c2522d842004559dec04f2b9692f3c121327986e0dbabc97a/workflows-3.7-py3-none-any.whl", hash = "sha256:4667e762805266967b1a5803bfe4103d8a9dee41e9b4f52b4636c4f23e8236f7", size = 71718, upload-time = "2026-05-12T08:15:53.001Z" },
+    { url = "https://files.pythonhosted.org/packages/ee/22/d5839e5e52f1c8d4e6374b999027112fca82c4384c304ebdf58eddc5a5e7/workflows-3.8-py3-none-any.whl", hash = "sha256:c44c27499f2ef0b91eb4136b3435bf3189233febfe357275e2f58a835bda1390", size = 78621, upload-time = "2026-11-06T17:01:59.749Z" },
 ]
 
 [[package]]
@@ -1205,7 +1209,7 @@ requires-dist = [
     { name = "pydantic", specifier = "~=2.13" },
     { name = "pyyaml" },
     { name = "requests" },
-    { name = "workflows", specifier = ">=3.7" },
+    { name = "workflows", specifier = ">=3.8" },
 ]
 
 [package.metadata.requires-dev]
