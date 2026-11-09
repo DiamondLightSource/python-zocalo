@@ -2,6 +2,10 @@
 History
 =======
 
+Unreleased
+----------
+- Migrate Zocalo services to use new typed handlers and convenience subscription. (`#330 <https://github.com/DiamondLightSource/python-zocalo/pull/330>`_)
+
 1.6.0 (2026-06-11)
 ------------------
 - Fix error running tests with Workflows 3.7 installed. (`#308 <https://github.com/DiamondLightSource/python-zocalo/pull/308>`_)
