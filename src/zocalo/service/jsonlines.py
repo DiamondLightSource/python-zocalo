@@ -75,7 +75,6 @@ class JSONLines(CommonService):
                     f"Writing {len(grouped_data)} messages to {output_filename}"
                 )
                 try:
-                    output_filename = Path(output_filename)
                     output_filename.parent.mkdir(exist_ok=True, parents=True)
                     with output_filename.open(mode="a") as fh:
                         for _, message in grouped_data:
